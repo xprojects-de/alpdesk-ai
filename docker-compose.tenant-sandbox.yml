@@ -1,0 +1,42 @@
+# One tenant's sandbox for the chat's Python and shell (README.md "Code execution"):
+# every tenant that wants code execution gets instances of its own - the container keeps tenants apart. Published with
+# every release next to docker-compose.prod.yml (the image tag below pinned to the release's version), started once per
+# instance with its own project name and its own file of settings:
+#
+#   mkdir -p sandboxes && (umask 077; printf 'SANDBOX_NAME=musterfirma\nSANDBOX_TOKEN=%s\n' "$(openssl rand -hex 32)" > sandboxes/musterfirma.env)
+#   podman-compose --env-file sandboxes/musterfirma.env -p alpdesk-ai-sandbox-musterfirma -f docker-compose.tenant-sandbox.yml up -d
+#
+# Then the admin enters http://alpdesk-ai-sandbox-musterfirma:8080 and the token at the tenant (page "Mandanten") and
+# checks it there. A second instance of the same tenant: another file with another name (musterfirma-2) and the same
+# token, both addresses at the tenant. It needs the network of docker-compose.prod.yml - start that first.
+# Nothing installation-specific is in this file, so every release can replace it; the files in sandboxes/ stay.
+
+services:
+
+  sandbox:
+    # Not root, a read-only root, every capability dropped, memory and CPU limited, only the internal network: it
+    # reaches nothing but the app, and holds no secret but its token.
+    image: ghcr.io/xprojects-de/alpdesk-ai-sandbox:1.2.0
+    container_name: "alpdesk-ai-sandbox-${SANDBOX_NAME:?set SANDBOX_NAME in the sandbox's env file}"
+    environment:
+      SANDBOX_TOKEN: "${SANDBOX_TOKEN:?set SANDBOX_TOKEN in the sandbox's env file}"
+    read_only: true
+    tmpfs:
+      - /work:rw,size=1g,mode=1777
+      - /tmp:rw,size=512m,mode=1777
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges
+    mem_limit: 2g
+    cpus: 2
+    pids_limit: 512
+    networks:
+      - sandbox
+    restart: always
+
+networks:
+  # Created by docker-compose.prod.yml (project alpdesk-ai, network sandbox: internal, the app is in it).
+  sandbox:
+    external: true
+    name: alpdesk-ai_sandbox

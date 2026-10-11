@@ -1,0 +1,12 @@
+# The domain comes from APP_DOMAIN in .env (docker-compose.prod.yml passes it in): Caddy fetches the certificate itself
+# and redirects plain HTTP to HTTPS. Never serve the app on plain HTTP (e.g. a ":80 { reverse_proxy ... }" block) -
+# passwords, tokens and the client software's API keys would travel unencrypted.
+https://{$APP_DOMAIN} {
+    # Nothing here is for search engines - the login page, /swagger and the API's answers alike. A header instead of a
+    # robots.txt "Disallow": that only stops crawling, and a URL found through a link can still be listed.
+    header X-Robots-Tag "noindex, nofollow"
+    # The browser goes straight to HTTPS from the second visit on: the redirect above leaves the first plain request
+    # open to someone in the same network (a guest Wi-Fi) answering it instead - with the login page.
+    header Strict-Transport-Security "max-age=31536000"
+    reverse_proxy alpdesk-ai:19100
+}

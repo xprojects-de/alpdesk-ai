@@ -1,0 +1,37 @@
+name: Feature request
+description: Something is missing or should work differently
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Describe best **how your company works with it**, not only the feature you want. Alpdesk AI is
+        used by companies of very different trades; "how does that run for you?" usually leads to a
+        better solution than a finished proposal. Whatever only one trade needs tends to come as
+        configuration or as a tool of its own, not into the core.
+
+        Please **no real data** in examples.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Which problem should be solved?
+      description: What does not work today, or only with effort?
+    validations:
+      required: true
+
+  - type: textarea
+    id: workflow
+    attributes:
+      label: How does it run for you?
+      description: |
+        Who uses it (tenant admin, users, the client software, Claude Code via MCP), with which
+        documents, which models or providers, which software it should connect to.
+    validations:
+      required: true
+
+  - type: textarea
+    id: idea
+    attributes:
+      label: Do you have an idea how it could look?
+      description: Optional - "no idea, as long as it works" is a valid answer too.

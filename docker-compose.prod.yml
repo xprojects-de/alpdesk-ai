@@ -1,0 +1,111 @@
+# Production, Caddy terminating TLS in front of the app - see README.md "Installation". Published with every release in
+# the public repository, the app's image tag pinned to the release's version (in the private repository the tag is a
+# placeholder the release replaces - that copy starts nothing).
+# Nothing installation-specific is in this file, so every release can replace it: the secrets and the domain come
+# from the file .env next to it (template: .env.example), which compose reads by itself and a release never touches.
+# A required value missing there stops `podman-compose` with its name.
+# Its own project name, not the folder's: the volumes are named after it (alpdesk-ai_caddy_data), whatever folder the
+# file is deployed in.
+name: alpdesk-ai
+
+services:
+
+  postgres:
+    # PostgreSQL with pgvector: the management database and every tenant's own database (docs/architecture/tenancy.md).
+    image: docker.io/pgvector/pgvector:pg18
+    container_name: alpdesk-ai-db
+    environment:
+      POSTGRES_DB: "alpdesk_ai"
+      POSTGRES_USER: "alpdeskai"
+      POSTGRES_PASSWORD: "${DB_PASSWORD:?set DB_PASSWORD in .env}"
+    volumes:
+      - ./pgdata:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U alpdeskai -d alpdesk_ai"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    # Deliberately no published port: only the app container talks to the database.
+    restart: always
+
+  alpdesk-ai:
+    image: ghcr.io/xprojects-de/alpdesk-ai:1.2.0
+    container_name: alpdesk-ai
+
+    expose:
+      - "19100"
+
+    environment:
+      APP_USERNAME: "${APP_USERNAME:?set APP_USERNAME in .env}"
+      APP_PASSWORD: "${APP_PASSWORD:?set APP_PASSWORD in .env}"
+      JWT_GENERATOR_SIGNATURE_SECRET: "${JWT_GENERATOR_SIGNATURE_SECRET:?set JWT_GENERATOR_SIGNATURE_SECRET in .env}"
+      APP_SECRET_KEY: "${APP_SECRET_KEY:?set APP_SECRET_KEY in .env}"
+      DATASOURCES_DEFAULT_URL: "jdbc:postgresql://postgres:5432/alpdesk_ai"
+      DATASOURCES_DEFAULT_USERNAME: "alpdeskai"
+      DATASOURCES_DEFAULT_PASSWORD: "${DB_PASSWORD:?set DB_PASSWORD in .env}"
+      # The installation's look (optional): name, primary colour, logo - a tenant can get its own from the admin.
+      APP_BRANDING_NAME: "${APP_BRANDING_NAME:-Alpdesk AI}"
+      APP_BRANDING_PRIMARY_COLOR: "${APP_BRANDING_PRIMARY_COLOR:-#49732a}"
+      # Unset: the Alpdesk AI logo in the jar; set but empty: no logo ("-", not ":-", keeps the two apart).
+      APP_BRANDING_LOGO: "${APP_BRANDING_LOGO-classpath:branding/default-logo.png}"
+      # Own model servers (optional): the hosts reached over plain HTTP - everything else needs HTTPS.
+      APP_AI_PLAIN_HTTP_HOSTS: "${APP_AI_PLAIN_HTTP_HOSTS:-}"
+      # Optional: 1 = trust the company's own certificate authorities in the volume's certificates/ (README "Own model
+      # servers").
+      USE_SYSTEM_CA_CERTS: "${USE_SYSTEM_CA_CERTS:-}"
+      # Optional JVM options.
+      JAVA_TOOL_OPTIONS: "${JAVA_TOOL_OPTIONS:-}"
+      # Optional: the sub-path behind a reverse proxy, e.g. /alpdesk-ai (README "Behind a reverse proxy under a sub-path").
+      MICRONAUT_SERVER_CONTEXT_PATH: "${MICRONAUT_SERVER_CONTEXT_PATH:-}"
+      # Optional: sign-in through a WAM proxy (README "Sign-in through a WAM proxy") - off unless set to true.
+      APP_WAM_ENABLED: "${APP_WAM_ENABLED:-false}"
+      APP_WAM_USER_HEADER: "${APP_WAM_USER_HEADER:-X-Remote-User}"
+      APP_WAM_NAME_HEADER: "${APP_WAM_NAME_HEADER:-}"
+
+    volumes:
+      # Named volume: it takes the ownership of /home/app/files from the image (the app runs as a non-root user),
+      # which a host bind mount would not.
+      - files:/home/app/files
+
+    networks:
+      - default
+      - sandbox
+
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+    restart: always
+
+  caddy:
+    image: docker.io/library/caddy:2
+    container_name: caddy-proxy
+
+    ports:
+      - "80:80"
+      - "443:443"
+
+    environment:
+      # Read by the Caddyfile ({$APP_DOMAIN})
+      APP_DOMAIN: "${APP_DOMAIN:?set APP_DOMAIN in .env}"
+
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - caddy_data:/data
+
+    depends_on:
+      - alpdesk-ai
+
+    restart: always
+
+volumes:
+  caddy_data:
+  files:
+
+networks:
+  # The app, the database and Caddy.
+  default:
+  # The app and the tenants' sandboxes only, without a way out (internal) - the database is not in it. Each tenant's
+  # sandbox joins it from docker-compose.tenant-sandbox.yml (README "Code execution").
+  sandbox:
+    internal: true

@@ -1,0 +1,83 @@
+name: Bug report
+description: Something does not work as it should
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting. Please paste **no real data**: no documents of a company, no chat
+        histories, no names of users, no API or provider keys, no domain names of your installation.
+        A made-up example almost always shows the problem just as well.
+
+        Security vulnerabilities do not belong in an issue - see
+        [SECURITY.md](../blob/main/SECURITY.md).
+
+  - type: textarea
+    id: what-happens
+    attributes:
+      label: What happens?
+      description: And what did you expect instead?
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: How can it be reproduced?
+      placeholder: |
+        1. As tenant admin, upload a DOCX under "Firmenwissen" ...
+        2. Ask in the chat ...
+        3. The answer ...
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: Shown in the admin's dashboard, or the release you installed
+    validations:
+      required: true
+
+  - type: dropdown
+    id: installation
+    attributes:
+      label: How is it installed?
+      options:
+        - podman-compose / docker compose (this repository)
+        - Kubernetes
+        - Other
+    validations:
+      required: true
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Which area?
+      options:
+        - Chat / answers / tools
+        - Documents / company knowledge / embeddings
+        - Files in the chat (upload, audio, video, created files)
+        - Model catalog / provider keys / own model servers
+        - Tenants / users / login / WAM
+        - Client software API (/api/v1)
+        - MCP (server for Claude Code, connected software)
+        - Usage / prices
+        - Code execution (sandbox)
+        - Embeddings image (local Ollama)
+        - Installation / container / update
+        - Other / don't know
+    validations:
+      required: true
+
+  - type: input
+    id: provider
+    attributes:
+      label: AI provider and model
+      description: If it concerns an answer or embedding - e.g. "Gemini 2.5 Flash", "Ollama qwen3:32b"
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Anything else
+      description: Log lines (without keys, names or document content), screenshots, browser, or whatever helps.

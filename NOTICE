@@ -1,0 +1,39 @@
+Alpdesk AI
+Copyright (c) 2025-2026 Benjamin Hummel
+
+This product is licensed under the MIT License (see LICENSE).
+
+It includes software developed by third parties under their own licenses - among them the Apache License 2.0,
+which asks for this notice to be passed on. The complete list of the included libraries with their licenses is in
+THIRD-PARTY.md.
+
+Apache License 2.0 (copy: https://www.apache.org/licenses/LICENSE-2.0)
+- Micronaut Framework, LangChain4j, Netty, Jackson, Flyway Community, HikariCP, Project Reactor, Nimbus JOSE+JWT and
+  further components.
+- This product includes software developed at The Apache Software Foundation (https://www.apache.org/):
+  Apache Tika, Apache POI, Apache XMLBeans, Apache PDFBox (with FontBox, XmpBox, JempBox), Apache Commons
+  (Codec, IO, Logging, Lang, Compress, CSV, Exec, Collections, Math), Apache James Mime4j, Apache OpenNLP and
+  Apache Log4j API.
+- Apache POI and XMLBeans contain parts originally developed by BEA Systems (2000-2003), W3C XML Schema documents
+  (Copyright 2001-2003 W3C (MIT, ERCIM, Keio)), chunks_parse_cmds.tbl from vsdump (Copyright 2006-2007 Valek
+  Filippov), parts of the eID Applet project (Copyright 2009-2018 FedICT, e-Contract.be) and code derived from
+  Scala's NonFatal (Copyright EPFL, Lightbend).
+- Apache PDFBox and FontBox contain the Adobe Glyph List and Zapf Dingbats Glyph List (Copyright Adobe Systems),
+  Unicode data files (Copyright Unicode, Inc.), parts of TwelveMonkeys ImageIO (Copyright 2008-2016 Harald Kuhr) and
+  a CC0 CMYK ICC profile (saucecontrol).
+- Apache Commons Math includes software developed for Orekit by CS Systemes d'Information (2010-2012).
+- Jackson includes FastDoubleParser (MIT, Copyright 2023 Werner Randelshofer) and Schubfach (MIT, Copyright 2018-2020
+  Raffaello Giulietti).
+- In the frontend: RxJS, Material Color Utilities, Material Icons.
+
+Other licenses
+- Logback is used under the Eclipse Public License 2.0 (dual licensed with LGPL 2.1).
+- openhtmltopdf is used under the GNU Lesser General Public License 2.1 or later, unmodified
+  (source: https://github.com/openhtmltopdf/openhtmltopdf).
+- The PostgreSQL JDBC driver and flexmark are under the BSD 2-Clause License.
+- Bouncy Castle is under the Bouncy Castle Licence.
+- The bundled font Inter is under the SIL Open Font License 1.1 (copy: https://openfontlicense.org).
+- Angular, Angular Material, NgRx and marked are under the MIT License; highlight.js is under the BSD 3-Clause License.
+- The container image of a release includes Ubuntu packages, among them ffmpeg under the GNU General Public License
+  2.0 or later, and the Eclipse Temurin Java runtime (GPL-2.0 with Classpath exception); their sources are available
+  from Ubuntu and Adoptium.
