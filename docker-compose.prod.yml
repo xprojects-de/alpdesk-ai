@@ -29,7 +29,7 @@ services:
     restart: always
 
   alpdesk-ai:
-    image: ghcr.io/xprojects-de/alpdesk-ai:1.2.0
+    image: ghcr.io/xprojects-de/alpdesk-ai:1.3.0
     container_name: alpdesk-ai
 
     expose:
@@ -57,6 +57,15 @@ services:
       JAVA_TOOL_OPTIONS: "${JAVA_TOOL_OPTIONS:-}"
       # Optional: the sub-path behind a reverse proxy, e.g. /alpdesk-ai (README "Behind a reverse proxy under a sub-path").
       MICRONAUT_SERVER_CONTEXT_PATH: "${MICRONAUT_SERVER_CONTEXT_PATH:-}"
+      # Optional: the daily report by e-mail (README "Daily report") - nothing is sent without a mail server and recipients.
+      APP_MONITORING_MAIL_TO: "${APP_MONITORING_MAIL_TO:-}"
+      APP_MONITORING_DAILY_REPORT_CRON: "${APP_MONITORING_DAILY_REPORT_CRON:-0 0 6 * * *}"
+      APP_MAIL_HOST: "${APP_MAIL_HOST:-}"
+      APP_MAIL_PORT: "${APP_MAIL_PORT:-587}"
+      APP_MAIL_SECURITY: "${APP_MAIL_SECURITY:-STARTTLS}"
+      APP_MAIL_USERNAME: "${APP_MAIL_USERNAME:-}"
+      APP_MAIL_PASSWORD: "${APP_MAIL_PASSWORD:-}"
+      APP_MAIL_FROM: "${APP_MAIL_FROM:-}"
       # Optional: sign-in through a WAM proxy (README "Sign-in through a WAM proxy") - off unless set to true.
       APP_WAM_ENABLED: "${APP_WAM_ENABLED:-false}"
       APP_WAM_USER_HEADER: "${APP_WAM_USER_HEADER:-X-Remote-User}"

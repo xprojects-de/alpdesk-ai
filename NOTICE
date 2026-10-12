@@ -28,6 +28,8 @@ Apache License 2.0 (copy: https://www.apache.org/licenses/LICENSE-2.0)
 
 Other licenses
 - Logback is used under the Eclipse Public License 2.0 (dual licensed with LGPL 2.1).
+- Eclipse Angus Mail and the Jakarta Mail API (Copyright Eclipse Foundation contributors) are used under the Eclipse
+  Distribution License 1.0 (BSD 3-Clause); they are also offered under EPL-2.0 or GPL-2.0 with Classpath exception.
 - openhtmltopdf is used under the GNU Lesser General Public License 2.1 or later, unmodified
   (source: https://github.com/openhtmltopdf/openhtmltopdf).
 - The PostgreSQL JDBC driver and flexmark are under the BSD 2-Clause License.

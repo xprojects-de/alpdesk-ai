@@ -27,11 +27,13 @@ A company running Alpdesk AI for itself only is operator and controller at once.
 | Conversations and messages of the chat, pending tool calls | the tenant's own database | yes - questions and answers belong to a user |
 | Files in the chat (uploaded and created), converted copies of audio and video, page images of scans | file storage (`APP_STORAGE_PATH`, volume `files`) | whatever the files contain |
 | The question's files while its code runs (sent files and conversation files, what the code writes) | the tenant's own sandbox, in memory (`/work`, `/tmp` and the other writable places) | whatever the files contain - deleted when the answer ends, after 5 minutes idle at the latest; never in another tenant's sandbox |
-| Server log | container log | usernames on sign-in events and errors; never a document's content, a prompt or a provider's answer |
+| Server log | container log | ids of tenants and users in errors and warnings; never a document's content, a prompt or a provider's answer |
+| The last 1000 warnings and errors of the log, for the daily report and the admin's page "Application log" | the app's memory - a restart empties it | as the server log |
 | Backups | wherever the operator puts them | everything above |
 
-Besides the session's token (removed at logout), the browser keeps only the colour scheme (`localStorage`). The
-frontend's language before the login is the browser's own; nothing of the last user's is kept.
+Besides the session's token, user name and roles (removed at logout), the browser keeps the colour scheme, the chat
+model chosen last and the width of the chat's conversation list (`localStorage`) - these three stay after a logout, so
+the next user of the same browser starts with them. The frontend's language before the login is the browser's own.
 
 Not stored: the model's reasoning shown while it thinks, and - with an API key whose "Verlauf speichern" is off -
 anything of the client software's questions but the usage. Questions through the MCP server (Claude Code) are not
@@ -54,6 +56,12 @@ Every model call sends data to the provider of the model in use:
   to the chat model like any tool result.
 - **An image asked for in the chat** sends the instruction the chat model wrote and the conversation's images it names
   to the tenant's image model (Google Gemini for now); the image it creates is stored as a file of the conversation.
+
+Besides the model calls, **the daily report** (when the operator set a mail server and recipients) goes by e-mail to
+the operator's addresses over the configured mail server, every morning: the active tenants' names with counts (users,
+documents, questions, the users who asked), database sizes and usage amounts, and the warnings and errors of the log of
+the last 24 hours. No document or file names, no questions or answers, no names of people other than what a log line
+holds.
 
 Which providers a tenant's data may reach is decided by the admin (models assigned per tenant) - audio never goes to a
 provider the tenant is not assigned. For data that must not leave the company, use models on your own servers
@@ -78,8 +86,10 @@ For the big providers, check before use:
   being answered at that moment may store its conversation afterwards - reachable by no one, it goes with the tenant;
   so do the client software's conversations from before they belonged to a key. Its usage records stay (without the
   user) for billing.
-- **A document or a conversation** is deleted with its chunks or messages and files. Every document uploaded into the
-  company knowledge or a knowledge area can be deleted at once (before its ZIP is imported anew).
+- **A document or a conversation** is deleted with its chunks or messages and files. What of a document cannot be
+  removed at that moment stays behind unreachable and is logged: its chunks go with the next change of the embedding
+  model or with the tenant, its file with the tenant. Every document uploaded into the company knowledge or a
+  knowledge area can be deleted at once (before its ZIP is imported anew).
 - **Taking a knowledge area away** from a user or key: new questions no longer find its documents, but answers already
   given stay in the conversations as they are - with what they quoted. Delete those conversations where that matters.
 - **Backups** keep everything until they are rotated - plan a retention period, and delete or let backups expire after

@@ -7,7 +7,7 @@ unmodified libraries, or offer a permissive option.
 
 The licenses were read out of the resolved artifacts - POM metadata, `Bundle-License` in the jar manifests,
 `META-INF/LICENSE` files and source headers for the backend, the `license` field of each installed package for the
-frontend - not assumed. As of: backend `runtimeClasspath` and frontend `dependencies` of 10 October 2026.
+frontend - not assumed. As of: backend `runtimeClasspath` and frontend `dependencies` of 12 October 2026.
 
 ## Backend (Java, shipped in the jar)
 
@@ -67,6 +67,7 @@ are not used and so do not extend to the project's own code.
 | `ch.qos.logback:logback-classic`, `logback-core` | EPL-2.0 **or** LGPL-2.1 | EPL-2.0 | Logging |
 | `jakarta.annotation:jakarta.annotation-api`, `jakarta.transaction:jakarta.transaction-api` | EPL-2.0 **or** GPL-2.0 with Classpath exception | EPL-2.0 | Standard APIs |
 | `jakarta.persistence:jakarta.persistence-api` | EPL-2.0 **or** EDL-1.0 | EDL-1.0 | Standard API |
+| `org.eclipse.angus:angus-mail`, `jakarta.mail:jakarta.mail-api` | EPL-2.0 **or** GPL-2.0 with Classpath exception **or** EDL-1.0 | EDL-1.0 | Sends the daily report over SMTP |
 | `com.github.albfernandez:juniversalchardet` | MPL-1.1 **or** GPL-3.0 **or** LGPL-3.0 | MPL-1.1 - source at https://github.com/albfernandez/juniversalchardet | Character set detection (Tika) |
 | `org.codelibs:jhighlight` | CDDL-1.0 **or** LGPL-2.1-or-later | CDDL-1.0 - source at https://github.com/codelibs/jhighlight | Source code highlighting (Tika) |
 

@@ -1,5 +1,5 @@
 # Optional: a local Ollama with the embedding model bge-m3 baked in, for the company's knowledge without a cloud
-# provider (README.md "Embeddings with a local Ollama"). The image is about 4 GB; once pulled, it needs no internet.
+# provider (README.md "Embeddings with a local Ollama"). The image is about 5 GB; once pulled, it needs no internet.
 # Started after docker-compose.prod.yml, whose network it joins - the app reaches it as
 # http://alpdesk-ai-embeddings:11434:
 #

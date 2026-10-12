@@ -25,7 +25,9 @@ protected by the software:
 
 - **HTTPS only.** The production stack puts Caddy in front of the app (the installation's `Caddyfile`), which serves
   HTTPS and redirects plain HTTP. Never add a plain-HTTP site or publish the app's port 19100 directly: passwords,
-  tokens and API keys would travel unencrypted.
+  tokens and API keys would travel unencrypted. The app itself answers every request with `X-Frame-Options: DENY`,
+  `Content-Security-Policy: frame-ancestors 'none'` and `X-Content-Type-Options: nosniff`: no page of it can be framed
+  by another site (clickjacking), and no file it serves is sniffed into a script - whatever proxy is in front.
 - **PostgreSQL is never reachable from outside.** It gets no published port in production; every tenant's database
   lives on it.
 - **The secrets are the installation's own.** Outside the environments "dev" and "test" the app refuses to start
@@ -44,7 +46,9 @@ protected by the software:
 - **Code execution runs in a container of the tenant's own, never in the app's and never in another tenant's.** The
   chat's model may run Python and shell commands (`run_python`, `run_shell`) for a tenant whose sandbox the admin
   entered - its addresses and token at the tenant (the image `alpdesk-ai-sandbox`, README.md "Code execution" of the
-  installation guide). Never give two tenants the same
+  installation guide). This holds for every question of the tenant, also those of its client software
+  (`/api/v1/chat`, API key) and of its MCP key (`ask_assistant`): whoever holds one of its keys can have code run in
+  its sandbox - there is no switch per key. Never give two tenants the same
   instance - the app refuses an address another tenant already has, but not another name for the same container: the
   container is what keeps them apart; within it a session's cleanup keeps the tenant's users apart. A
   sandbox holds no secret but its token (`SANDBOX_TOKEN`, at least 32 characters, one per tenant; the app stores it
@@ -54,6 +58,11 @@ protected by the software:
   port and every tenant's sandbox: there, only the sandbox's seccomp filter (no network socket for a session's
   program) keeps code from reaching the app or another tenant's instance. It needs no root or capabilities: run it as
   shipped (not root, read-only, all capabilities dropped).
+- **The daily report goes to the operator only.** It is mailed to `APP_MONITORING_MAIL_TO` over the mail server of
+  `APP_MAIL_*` (optional, off without them): the tenants' names, counts, sizes, amounts and the recent warnings and
+  errors of the log. `APP_MAIL_PASSWORD` is a secret of the installation like the others; use `STARTTLS` (the default,
+  required once chosen) or `SSL` - `NONE` sends the report and the mail password unencrypted, only for a mail server
+  in the same internal network.
 - **The operator is trusted.** The admin sees and manages every tenant, may set any user's password and so log in as
   that user, and enters the addresses of model servers. A tenant admin may do the same within its own tenant, except
   for model servers: it enters the addresses of its connected software (MCP) instead, and may mark one of its tools

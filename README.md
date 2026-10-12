@@ -14,7 +14,7 @@ the template of the settings and this guide. The images come from the GitHub Con
 |---|---|
 | `ghcr.io/xprojects-de/alpdesk-ai:<version>` | The application: a Micronaut (Java 25) backend with the web frontend baked in |
 | `ghcr.io/xprojects-de/alpdesk-ai-sandbox:<version>` | Optional: the sandbox in which the chat runs Python and shell commands, one per tenant |
-| `ghcr.io/xprojects-de/alpdesk-ai-embeddings:latest` | Optional: Ollama with the embedding model `bge-m3` baked in, for the company's knowledge without a cloud provider (about 4 GB) |
+| `ghcr.io/xprojects-de/alpdesk-ai-embeddings:latest` | Optional: Ollama with the embedding model `bge-m3` baked in, for the company's knowledge without a cloud provider (about 5 GB) |
 
 Every release is a tag `v<version>` here, its compose files pinned to the images of that version; `main` is always
 the latest release.
@@ -69,6 +69,12 @@ running an installation for others, read:
 
 Needs a Linux server (`linux/amd64`) with Podman and `podman-compose` (Docker with `docker compose` works the same),
 a domain pointing at it and the ports 80 and 443 free: Caddy fetches the certificate itself and serves HTTPS only.
+
+**Sizing** (measured on a test installation): the app takes about 1 GB of memory, PostgreSQL and Caddy together less
+than 150 MB - plan **at least 4 GB of RAM and 2 CPUs**. With the local embeddings image ("Embeddings with a local
+Ollama") plan **8 GB**: it takes about 2 GB while it embeds. A tenant's sandbox ("Code execution") takes about 20 MB
+when idle and up to 2 GB while an answer runs code. The images take about 2 GB of disk, the embeddings image about
+5 GB more; the documents, the databases and the chat's files come on top.
 
 In the installation folder (e.g. `/opt`):
 
@@ -135,6 +141,7 @@ The app's environment variables, set through the file `.env` next to `docker-com
 | `JAVA_TOOL_OPTIONS` | Optional JVM options |
 | `MICRONAUT_SERVER_CONTEXT_PATH` | Optional: the sub-path behind a reverse proxy - see "Behind a reverse proxy under a sub-path" |
 | `APP_WAM_ENABLED` / `APP_WAM_USER_HEADER` / `APP_WAM_NAME_HEADER` | Optional: sign-in through a WAM proxy - see "Sign-in through a WAM proxy" |
+| `APP_MONITORING_MAIL_TO` / `APP_MAIL_*` / `APP_MONITORING_DAILY_REPORT_CRON` | Optional: the daily report by e-mail - see "Daily report" |
 
 Data lives in PostgreSQL with pgvector (`./pgdata`; the schema is migrated on startup): the management database and
 every tenant's own database. The chat's files (uploaded and created) live in the named volume `alpdesk-ai_files`
@@ -170,6 +177,39 @@ podman-compose -f docker-compose.prod.yml logs -f
 
 The log lines carry date and time (`2026-10-01 14:03:12.345 [thread] LEVEL logger - message`), without colour codes.
 They never contain a document's content, a prompt or a provider's answer.
+
+## Daily report
+
+Every morning at 06:00 (Europe/Berlin) the app mails a report to the addresses in `APP_MONITORING_MAIL_TO` - also when
+everything is fine: **a report that does not arrive means the app or sending mail is down.** It covers the last 24 hours:
+
+- what needs attention: little free space on the disk of the stored files, documents waiting over an hour to be
+  embedded or failed, a tenant database that cannot be read, people waiting for access (WAM);
+- the system: version, start (a restart is pointed out), PostgreSQL, the size of the databases, the free disk space;
+- every active tenant: its database size, users, documents (ready, waiting, failed, new), questions, the users who
+  asked, model calls and their cost - in the last 24 hours and the month so far, with the part of the global keys;
+- the application log: warnings and errors counted, the loudest sources and the newest entries (kept in memory - a
+  restart empties it; the container log keeps everything).
+
+It holds counts, sizes and amounts and the tenants' names - no document or file names, no questions or answers. Its log
+lines are those of the container log at warning level and above, which never contain a document's content, a prompt or
+a provider's answer. When the database cannot be read, the report still goes out with what the app knows without it.
+
+```dotenv
+APP_MONITORING_MAIL_TO=ops@example.com
+APP_MAIL_HOST=smtp.example.com
+APP_MAIL_PORT=587
+APP_MAIL_SECURITY=STARTTLS
+APP_MAIL_USERNAME=report@example.com
+APP_MAIL_PASSWORD=...
+```
+
+`APP_MAIL_SECURITY` is `STARTTLS` (port 587), `SSL` (port 465) or `NONE`; `APP_MAIL_FROM` defaults to the username.
+Without a mail server or recipients nothing is sent. A recipient that is no e-mail address, or a mail server without a
+sender address (neither `APP_MAIL_FROM` nor an address as `APP_MAIL_USERNAME`), stops the start on purpose - so a typo
+shows at once, not at 06:00; the log names the setting. To try the settings, the admin presses **Send daily report now**
+on the page "Application log" - a refused mail is shown there with the mail server's reason. The same page shows the
+recent warnings and errors at any time, searchable, with their stack traces - for the admin only.
 
 ## Own model servers
 
@@ -226,7 +266,7 @@ farm or `https://api.mistral.ai/v1`), the server's address and, if it asks for o
 The company's knowledge needs an embedding model. Where the documents must not go to a cloud provider and the model
 server offers none (an OpenAI-compatible model farm often serves chat models only), the image
 `ghcr.io/xprojects-de/alpdesk-ai-embeddings` does it: Ollama with `bge-m3` (multilingual, 1024 dimensions) baked in,
-about 4 GB. Once pulled it needs no internet - also no download of the model at its start.
+about 5 GB. Once pulled it needs no internet - also no download of the model at its start.
 
 ```shell
 podman-compose -f docker-compose.embeddings.yml up -d          # after docker-compose.prod.yml, whose network it joins
@@ -363,6 +403,26 @@ podman run -d --name alpdesk-ai-sandbox-musterfirma --network alpdesk-ai-sandbox
   --cap-drop ALL --security-opt no-new-privileges --memory 2g --cpus 2 --pids-limit 512 --restart always \
   -e SANDBOX_TOKEN="$(openssl rand -hex 32)" ghcr.io/xprojects-de/alpdesk-ai-sandbox:<version>
 ```
+
+**With Docker** instead of Podman the commands are the same (`docker network create`, `docker run`, `docker compose`),
+with two differences:
+
+- **`/work` and `/tmp` must belong to the sandbox's user**: Docker on some hosts (RHEL) does not apply `mode=1777`
+  alone - "Sandbox prüfen" then reports the instance unreachable, and the app's log says "answered the check with HTTP
+  400" (the sandbox cannot write the session's files). Add `uid=10001,gid=10001` to both tmpfs mounts, in
+  `docker run` and in `docker-compose.tenant-sandbox.yml` alike (Podman refuses these options and needs none):
+  ```shell
+  --tmpfs /work:rw,size=1g,mode=1777,uid=10001,gid=10001 --tmpfs /tmp:rw,size=512m,mode=1777,uid=10001,gid=10001
+  ```
+- **An internal network behind firewalld** (RHEL): the app finds the sandbox by name but gets "No route to host" -
+  firewalld rejects the traffic on the internal network's bridge. Give the network a fixed bridge name and add it to
+  firewalld's zone `docker` (or `trusted` where there is none):
+  ```shell
+  docker network create --internal -o com.docker.network.bridge.name=br-ai-sandbox alpdesk-ai-sandbox
+  sudo firewall-cmd --permanent --zone=docker --add-interface=br-ai-sandbox && sudo firewall-cmd --reload
+  ```
+  Do not leave the network's `--internal` off to get around it: the internal network is a required layer of the
+  sandbox's isolation, not an optional one.
 
 **Kubernetes** - per tenant a StatefulSet (every pod reachable by name, one session each), a headless Service and a
 Secret with its token; one NetworkPolicy for all sandboxes: only the app's pods may reach them, they reach nothing. It
