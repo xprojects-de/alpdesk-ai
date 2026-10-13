@@ -47,7 +47,7 @@ protected by the software:
   chat's model may run Python and shell commands (`run_python`, `run_shell`) for a tenant whose sandbox the admin
   entered - its addresses and token at the tenant (the image `alpdesk-ai-sandbox`, README.md "Code execution" of the
   installation guide). This holds for every question of the tenant, also those of its client software
-  (`/api/v1/chat`, API key) and of its MCP key (`ask_assistant`): whoever holds one of its keys can have code run in
+  (`/api/v1/chat` and `/api/v1/chat/stream`, API key) and of its MCP key (`ask_assistant`): whoever holds one of its keys can have code run in
   its sandbox - there is no switch per key. Never give two tenants the same
   instance - the app refuses an address another tenant already has, but not another name for the same container: the
   container is what keeps them apart; within it a session's cleanup keeps the tenant's users apart. A

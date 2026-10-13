@@ -16,7 +16,7 @@ services:
   sandbox:
     # Not root, a read-only root, every capability dropped, memory and CPU limited, only the internal network: it
     # reaches nothing but the app, and holds no secret but its token.
-    image: ghcr.io/xprojects-de/alpdesk-ai-sandbox:1.3.0
+    image: ghcr.io/xprojects-de/alpdesk-ai-sandbox:1.3.1
     container_name: "alpdesk-ai-sandbox-${SANDBOX_NAME:?set SANDBOX_NAME in the sandbox's env file}"
     environment:
       SANDBOX_TOKEN: "${SANDBOX_TOKEN:?set SANDBOX_TOKEN in the sandbox's env file}"

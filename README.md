@@ -233,6 +233,9 @@ farm or `https://api.mistral.ai/v1`), the server's address and, if it asks for o
   The context length is sent with every request (catalog field "Kontextlänge", default 32768) - the Ollama server needs
   no `OLLAMA_CONTEXT_LENGTH`, only enough memory for it.
 - **The company's knowledge needs an embedding model** - a local one: "Embeddings with a local Ollama".
+- **Choose the tenant's search language** when creating it (the tenant dialog; later under "Company knowledge"): the
+  language its documents are written in, so the search finds other forms of a word too. Without a choice the tenant is
+  searched without a language - words are found only as written. Tenants from before version 1.3 keep German.
 - **A certificate of the company's own authority** (no public one): the app must trust it - there is no setting that
   skips the certificate check. Ask the company's IT for the certificate of its root authority (PEM, the text starting
   with `-----BEGIN CERTIFICATE-----`; one file may hold several), name it `*.crt` and copy it into the volume `files`:
@@ -494,6 +497,23 @@ spec:
     - securityContext: {allowPrivilegeEscalation: false, readOnlyRootFilesystem: true, capabilities: {drop: [ALL]}}
 ```
 
+## Source code
+
+Every release carries its source code: `alpdesk-ai-v<version>-source.zip` on the
+[releases page](https://github.com/xprojects-de/alpdesk-ai/releases) - the backend, the frontend and the sandbox the
+images are built from, with their tests. GitHub's own "Source code" downloads there hold only this repository.
+
+To build it: a JDK 25, Node.js 24 and Podman or Docker (the tests start their own PostgreSQL; ffmpeg for the tests of
+audio and video, skipped without it).
+
+```bash
+cd Frontend && npm ci && npm run deploy
+cd ../Backend && ./gradlew copyFrontend test optimizedJitJarAll
+```
+
+The result is `Backend/build/libs/alpdesk-ai.jar`. The release's own jar, `alpdesk-ai-v<version>.jar` - the one the
+image runs, on any Java 25 runtime - is on the releases page too.
+
 ## Contributing
 
 Questions, bugs and wishes are welcome as an [issue](https://github.com/xprojects-de/alpdesk-ai/issues) - especially
@@ -505,8 +525,7 @@ This repository is written by every release: the files here come from the projec
 here would be overwritten by the next release. An issue reaches the maintainer just as well. Security vulnerabilities
 do not belong in an issue - see [SECURITY.md](SECURITY.md).
 
-**The source code is not public for now.** Whoever wants to look into it or contribute is welcome at any time - just
-get in touch, by an issue or by e-mail to `infos@x-projects.de`.
+Changes to the source code are not taken for now - the [source code](#source-code) is there to read, build and check.
 
 ## License
 
