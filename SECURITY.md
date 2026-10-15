@@ -93,7 +93,9 @@ So nobody has to find it out the hard way:
   aimed at the model (prompt injection). The design limits the damage - links other than http(s)/mailto and content
   the browser loads by itself are not rendered, changing tools of connected software run only after the user's
   decision in the chat, the client software and the MCP key never get changing tools, addresses of connected software
-  must not resolve to internal addresses, images are created only from the conversation's own images and with at
+  must not resolve to internal addresses, a file a connected software returns is offered only as a download with a
+  type from a fixed list (anything else as `application/octet-stream`) - also when it goes to an MCP client with an
+  answer of the MCP server, images are created only from the conversation's own images and with at
   most three calls of the image model per answer (each one billed, also a refused one), code runs in the tenant's own sandbox only,
   one answer at a time per instance, without network and with nothing of another answer left - but no model is immune. Turn on only the tools a company needs.
 

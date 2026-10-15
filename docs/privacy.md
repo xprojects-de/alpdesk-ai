@@ -25,7 +25,7 @@ A company running Alpdesk AI for itself only is operator and controller at once.
 | Usage per call (tenant, user, provider, model, tokens, amount, time) | management database | yes - who used which model when |
 | The company's documents: their text, chunks and embeddings | the tenant's own database (`tenant_...`) | whatever the documents contain |
 | Conversations and messages of the chat, pending tool calls | the tenant's own database | yes - questions and answers belong to a user |
-| Files in the chat (uploaded and created), converted copies of audio and video, page images of scans | file storage (`APP_STORAGE_PATH`, volume `files`) | whatever the files contain |
+| Files in the chat (uploaded, created, and returned by a tool of connected software), converted copies of audio and video, page images of scans | file storage (`APP_STORAGE_PATH`, volume `files`) | whatever the files contain |
 | The question's files while its code runs (sent files and conversation files, what the code writes) | the tenant's own sandbox, in memory (`/work`, `/tmp` and the other writable places) | whatever the files contain - deleted when the answer ends, after 5 minutes idle at the latest; never in another tenant's sandbox |
 | Server log | container log | ids of tenants and users in errors and warnings; never a document's content, a prompt or a provider's answer |
 | The last 1000 warnings and errors of the log, for the daily report and the admin's page "Application log" | the app's memory - a restart empties it | as the server log |
@@ -36,8 +36,9 @@ model chosen last and the width of the chat's conversation list (`localStorage`)
 the next user of the same browser starts with them. The frontend's language before the login is the browser's own.
 
 Not stored: the model's reasoning shown while it thinks, and - with an API key whose "Verlauf speichern" is off -
-anything of the client software's questions but the usage. Questions through the MCP server (Claude Code) are not
-stored either, only their usage.
+anything of the client software's questions but the usage. Questions through the MCP server (Claude Code, GitHub
+Copilot) are not stored either, only their usage: the files their answer creates or a connected software returns are
+written to the file storage for the moment of the answer, go to the MCP client with it and are deleted at once.
 
 ## What leaves the server
 
@@ -56,6 +57,10 @@ Every model call sends data to the provider of the model in use:
   to the chat model like any tool result.
 - **An image asked for in the chat** sends the instruction the chat model wrote and the conversation's images it names
   to the tenant's image model (Google Gemini for now); the image it creates is stored as a file of the conversation.
+- **A prompt of connected software** sends the values a user typed into its form to that software (the tenant's
+  own), which makes the text that lands in the user's input field.
+- **An answer through the MCP server** goes to the MCP client that holds the tenant's MCP key (Claude Code, GitHub
+  Copilot) - with the files the answer created and the files a connected software's tool returned in it.
 
 Besides the model calls, **the daily report** (when the operator set a mail server and recipients) goes by e-mail to
 the operator's addresses over the configured mail server, every morning: the active tenants' names with counts (users,
