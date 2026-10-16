@@ -42,7 +42,9 @@ protected by the software:
   software and of own model servers (AES-256-GCM); whoever has it and a database dump has those keys.
 - **Sign-in through a WAM proxy** (`APP_WAM_ENABLED`, off by default) trusts the user header completely. With it on,
   the proxy must strip that header from every request from outside, and the app must be reachable through the proxy
-  only - otherwise anyone can sign in as anyone.
+  only - otherwise anyone can sign in as anyone. The same holds for the IDM groups header (`APP_WAM_GROUPS_HEADER`,
+  optional): whoever can send it chooses which user groups with a WAM group count. A request without it counts none
+  of them (fail closed), and so does an installation without `APP_WAM_GROUPS_HEADER` set.
 - **Code execution runs in a container of the tenant's own, never in the app's and never in another tenant's.** The
   chat's model may run Python and shell commands (`run_python`, `run_shell`) for a tenant whose sandbox the admin
   entered - its addresses and token at the tenant (the image `alpdesk-ai-sandbox`, README.md "Code execution" of the

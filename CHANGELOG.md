@@ -5,6 +5,31 @@ What changed in each release of Alpdesk AI, newest first. Versions follow [Seman
 features, updating needs nothing by hand; **patch** - fixes and small improvements. Every release is a tag `v<version>`
 with its images `ghcr.io/xprojects-de/alpdesk-ai:<version>` and `-sandbox:<version>`; updating: see the README.
 
+## [1.5.0] - 2026-10-16
+
+**Updating needs a step by hand**: the rights per user are not carried over. After the update every user has the
+chat and the company knowledge only - a tenant admin creates the user groups (page "Benutzer", panel "Gruppen"), gives
+them their knowledge areas and, on the page "Software", their level per connected software, and assigns the users.
+
+### Added
+- User groups: what a user may use - the knowledge areas besides the company knowledge, and the level for each
+  connected software - comes from their groups. A user may be in several groups: the highest level counts, and the
+  areas of all of them. A user in no group has the chat and the company knowledge. Kept by the tenant admins and the
+  administrator, below the users.
+- With a WAM proxy that sends the person's directory groups (`APP_WAM_GROUPS_HEADER`, optional): a user group can name
+  a WAM group and then counts for a member only while the proxy lists it - a right taken away in the directory is gone
+  with the next request; a request without the header counts none of them, and neither does a missing
+  `APP_WAM_GROUPS_HEADER`. The user dialog shows the groups the proxy sent last.
+
+### Changed
+- A user's knowledge areas and levels per software are no longer set on the user: the user dialog chooses groups, and
+  the access list of a connected software lists the groups instead of the users.
+
+### Fixed
+- When connected software (MCP) refuses a request - e.g. a prompt's value it does not accept - its own reason is shown,
+  no longer "did not answer as an MCP server"; servers that send the error with HTTP status 400 or 500 included.
+- An answer of connected software larger than the limit (8 MB) says so instead of "did not answer as an MCP server".
+
 ## [1.4.0] - 2026-10-14
 
 ### Added

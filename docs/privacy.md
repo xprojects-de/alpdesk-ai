@@ -19,7 +19,8 @@ A company running Alpdesk AI for itself only is operator and controller at once.
 
 | Data | Where | Personal data in it |
 |------|-------|---------------------|
-| Tenants, users (username, display name, password hash, the frontend's language), admin flags, the knowledge areas each user finds, access requests (WAM user name and name) | management database | yes - the employees' accounts |
+| Tenants, users (username, display name, password hash, the frontend's language), admin flags, user groups and their members (each group's knowledge areas and levels for connected software), access requests (WAM user name and name) | management database | yes - the employees' accounts |
+| With the WAM proxy's IDM groups checked (`APP_WAM_GROUPS_HEADER`): the IDM groups the proxy sent on each user's last request | management database, replaced on every change, deleted with the user - and all of them when the app starts without the check | yes - which groups of the company's directory a person is in |
 | API keys of the client software, MCP keys | management database | SHA-256 hash and a display prefix only |
 | Provider keys, keys of connected software, the token of a tenant's sandbox | management database | encrypted (`APP_SECRET_KEY`) |
 | Usage per call (tenant, user, provider, model, tokens, amount, time) | management database | yes - who used which model when |
@@ -95,7 +96,7 @@ For the big providers, check before use:
   removed at that moment stays behind unreachable and is logged: its chunks go with the next change of the embedding
   model or with the tenant, its file with the tenant. Every document uploaded into the company knowledge or a
   knowledge area can be deleted at once (before its ZIP is imported anew).
-- **Taking a knowledge area away** from a user or key: new questions no longer find its documents, but answers already
+- **Taking a knowledge area away** from a group or key (or a user out of the group): new questions no longer find its documents, but answers already
   given stay in the conversations as they are - with what they quoted. Delete those conversations where that matters.
 - **Backups** keep everything until they are rotated - plan a retention period, and delete or let backups expire after
   a deletion request where needed.

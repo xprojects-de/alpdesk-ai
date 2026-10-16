@@ -29,7 +29,7 @@ services:
     restart: always
 
   alpdesk-ai:
-    image: ghcr.io/xprojects-de/alpdesk-ai:1.4.0
+    image: ghcr.io/xprojects-de/alpdesk-ai:1.5.0
     container_name: alpdesk-ai
 
     expose:
@@ -70,6 +70,8 @@ services:
       APP_WAM_ENABLED: "${APP_WAM_ENABLED:-false}"
       APP_WAM_USER_HEADER: "${APP_WAM_USER_HEADER:-X-Remote-User}"
       APP_WAM_NAME_HEADER: "${APP_WAM_NAME_HEADER:-}"
+      APP_WAM_GROUPS_HEADER: "${APP_WAM_GROUPS_HEADER:-}"
+      APP_WAM_GROUPS_SEPARATOR: "${APP_WAM_GROUPS_SEPARATOR:-,}"
 
     volumes:
       # Named volume: it takes the ownership of /home/app/files from the image (the app runs as a non-root user),

@@ -22,8 +22,9 @@ the latest release.
 ## What it does
 
 - **Tenants with their own people.** Every company (tenant) gets its own database for its documents, embeddings and
-  chat history. Its employees log in and chat; its tenant admins keep users, keys, the company's knowledge, the
-  assistant's instructions and an eye on the usage. The operator (admin) manages the tenants, the model catalog and
+  chat history. Its employees log in and chat; its tenant admins keep users and their groups (which knowledge areas
+  and which connected software a group's members may use), keys, the company's knowledge, the assistant's
+  instructions and an eye on the usage. The operator (admin) manages the tenants, the model catalog and
   prices.
 - **The company's knowledge in the chat.** Documents - one by one, as a ZIP archive with folders, or pushed by the
   company's software - are read (PDF, DOCX, ODT, RTF, TXT, Markdown, HTML, PPTX, XLSX, ODS, CSV; images and scanned
@@ -141,6 +142,7 @@ The app's environment variables, set through the file `.env` next to `docker-com
 | `JAVA_TOOL_OPTIONS` | Optional JVM options |
 | `MICRONAUT_SERVER_CONTEXT_PATH` | Optional: the sub-path behind a reverse proxy - see "Behind a reverse proxy under a sub-path" |
 | `APP_WAM_ENABLED` / `APP_WAM_USER_HEADER` / `APP_WAM_NAME_HEADER` | Optional: sign-in through a WAM proxy - see "Sign-in through a WAM proxy" |
+| `APP_WAM_GROUPS_HEADER` / `APP_WAM_GROUPS_SEPARATOR` | Optional: the person's IDM groups from the WAM proxy, checked against the user groups' WAM groups - see "Sign-in through a WAM proxy" |
 | `APP_MONITORING_MAIL_TO` / `APP_MAIL_*` / `APP_MONITORING_DAILY_REPORT_CRON` | Optional: the daily report by e-mail - see "Daily report" |
 
 Data lives in PostgreSQL with pgvector (`./pgdata`; the schema is migrated on startup): the management database and
@@ -354,9 +356,43 @@ APP_WAM_NAME_HEADER=X-Remote-Name    # optional: the person's name for a new use
   sign in through the proxy when its user name equals their username.
 - Every request is checked against the header: when another person signs in at the proxy on the same computer, the
   first one's session ends and the second one is signed in.
-- **The app trusts the header completely**: the proxy must remove `APP_WAM_USER_HEADER` (and `APP_WAM_NAME_HEADER`)
-  from every request coming from outside, and the app must be reachable through the proxy only - never publish its
-  port anywhere else. Whoever reaches it past the proxy can sign in as anyone.
+- **The app trusts the header completely**: the proxy must remove `APP_WAM_USER_HEADER` (and `APP_WAM_NAME_HEADER`,
+  `APP_WAM_GROUPS_HEADER`) from every request coming from outside, and the app must be reachable through the proxy
+  only - never publish its port anywhere else. Whoever reaches it past the proxy can sign in as anyone.
+
+### Rights from the directory's groups (optional)
+
+What a user may use comes from their user groups (page **Benutzer**, panel **Gruppen**). With the proxy sending the
+person's IDM groups, a user group can name a **WAM group**: membership then counts only while the proxy lists that
+group - assigned in Alpdesk AI **and** in the directory. A right taken away in the directory is gone with the next
+request.
+
+```shell
+APP_WAM_GROUPS_HEADER=X-Remote-Groups   # the header with the person's groups, e.g. "Gruppe1,Gruppe2" (empty: off)
+APP_WAM_GROUPS_SEPARATOR=,              # what separates them - e.g. ";" when they are DNs (CN=Sales,OU=...)
+```
+
+- Compared without regard to case and trimmed; the WAM group of a user group is written exactly as the proxy sends
+  it (`Gruppe1`). A request without the header lists no group - user groups with a WAM group then count for nobody
+  (fail closed). So do they while `APP_WAM_GROUPS_HEADER` is not set: a forgotten setting takes rights away, it never
+  hands them out - the panel **Gruppen** says so at the group. User groups without a WAM group count as they are.
+- What the proxy sends - plain names or DNs - shows in the user dialog ("IDM groups the WAM proxy sent last"): write
+  the WAM group the same way.
+- Alpdesk AI looks nothing up itself: the proxy reads the groups from LDAP / Active Directory. A commercial WAM usually
+  can; Apache can with `mod_authnz_ldap`. nginx cannot read LDAP itself - it takes the groups from an auth service
+  that answers its `auth_request` with them, which also replaces a header sent from outside:
+
+  ```nginx
+  location / {
+      auth_request /auth;
+      auth_request_set $user $upstream_http_x_remote_user;
+      auth_request_set $groups $upstream_http_x_remote_groups;
+      proxy_set_header X-Remote-User $user;
+      proxy_set_header X-Remote-Groups $groups;
+      proxy_pass http://127.0.0.1:19100;
+  }
+  ```
+- Send only the groups that matter: a long list can exceed the server's header limit (8 KB).
 
 ## Code execution
 
