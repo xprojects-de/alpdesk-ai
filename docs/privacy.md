@@ -26,7 +26,8 @@ A company running Alpdesk AI for itself only is operator and controller at once.
 | Usage per call (tenant, user, provider, model, tokens, amount, time) | management database | yes - who used which model when |
 | The company's documents: their text, chunks and embeddings | the tenant's own database (`tenant_...`) | whatever the documents contain |
 | Conversations and messages of the chat, pending tool calls | the tenant's own database | yes - questions and answers belong to a user |
-| Files in the chat (uploaded, created, and returned by a tool of connected software), converted copies of audio and video, page images of scans | file storage (`APP_STORAGE_PATH`, volume `files`) | whatever the files contain |
+| Files in the chat (uploaded, created, and returned by a tool of connected software), converted copies of audio, page images of scans | file storage (`APP_STORAGE_PATH`, volume `files`) | whatever the files contain - until `APP_CHAT_FILE_RETENTION_DAYS` (14) after they were stored, an uploaded video `APP_CHAT_VIDEO_RETENTION_HOURS` (8) after its upload (set empty: until they or their conversation are deleted); then deleted with their text, their name, type and size stay listed in the conversation |
+| The handbook's websites (static websites uploaded as a ZIP for everyone or a knowledge area) | file storage, their list in the tenant's own database | whatever the tenant puts on them - read by people only, never sent to an AI provider |
 | The question's files while its code runs (sent files and conversation files, what the code writes) | the tenant's own sandbox, in memory (`/work`, `/tmp` and the other writable places) | whatever the files contain - deleted when the answer ends, after 5 minutes idle at the latest; never in another tenant's sandbox |
 | Server log | container log | ids of tenants and users in errors and warnings; never a document's content, a prompt or a provider's answer |
 | The last 1000 warnings and errors of the log, for the daily report and the admin's page "Application log" | the app's memory - a restart empties it | as the server log |
@@ -55,7 +56,9 @@ Every model call sends data to the provider of the model in use:
 - **Code execution** (when the tenant has a sandbox of its own): the question's files go to that sandbox, a container
   of the installation itself - not to a provider, not to another tenant's -, and are deleted there when the answer
   ends; what the code prints goes
-  to the chat model like any tool result.
+  to the chat model like any tool result, and so do the images the model asks to see of what the code wrote (e.g.
+  frames cut out of a video) - only those, not the file they came from. A file of the session the model hands to the
+  user (a marked still, a clip) is stored as a file of the conversation like one it created.
 - **An image asked for in the chat** sends the instruction the chat model wrote and the conversation's images it names
   to the tenant's image model (Google Gemini for now); the image it creates is stored as a file of the conversation.
 - **A prompt of connected software** sends the values a user typed into its form to that software (the tenant's
@@ -92,10 +95,18 @@ For the big providers, check before use:
   being answered at that moment may store its conversation afterwards - reachable by no one, it goes with the tenant;
   so do the client software's conversations from before they belonged to a key. Its usage records stay (without the
   user) for billing.
+- **A file of the chat** (uploaded, created, handed out or returned by a connected software) is deleted from the file
+  storage `APP_CHAT_FILE_RETENTION_DAYS` (14) after it was stored, an uploaded video `APP_CHAT_VIDEO_RETENTION_HOURS`
+  (8) after its upload - by an hourly job, together with its text in the tenant database (extracted on upload, a
+  transcript). The conversation keeps its name, type and size, marked expired; its messages stay. A file that cannot be
+  deleted at that moment is tried again at the next run. Set empty, a retention is off.
 - **A document or a conversation** is deleted with its chunks or messages and files. What of a document cannot be
   removed at that moment stays behind unreachable and is logged: its chunks go with the next change of the embedding
   model or with the tenant, its file with the tenant. Every document uploaded into the company knowledge or a
   knowledge area can be deleted at once (before its ZIP is imported anew).
+- **A handbook's website** is deleted with its files when it is removed or replaced by a new ZIP; a knowledge area
+  with a website cannot be deleted before it. What cannot be removed at that moment stays behind unreachable and is
+  logged; it goes with the tenant.
 - **Taking a knowledge area away** from a group or key (or a user out of the group): new questions no longer find its documents, but answers already
   given stay in the conversations as they are - with what they quoted. Delete those conversations where that matters.
 - **Backups** keep everything until they are rotated - plan a retention period, and delete or let backups expire after

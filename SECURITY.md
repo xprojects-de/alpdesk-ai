@@ -59,7 +59,9 @@ protected by the software:
   `docker-compose.prod.yml` (`internal: true`) keeps the internet out, but it is one network for the app's unproxied
   port and every tenant's sandbox: there, only the sandbox's seccomp filter (no network socket for a session's
   program) keeps code from reaching the app or another tenant's instance. It needs no root or capabilities: run it as
-  shipped (not root, read-only, all capabilities dropped).
+  shipped (not root, read-only, all capabilities dropped). The app reads back only files the code wrote below its
+  session's directory (images the model looks at, files it hands to the user) - checked on the opened file, so a link
+  the code made reaches nothing outside it, not the sandbox's own token.
 - **The daily report goes to the operator only.** It is mailed to `APP_MONITORING_MAIL_TO` over the mail server of
   `APP_MAIL_*` (optional, off without them): the tenants' names, counts, sizes, amounts and the recent warnings and
   errors of the log. `APP_MAIL_PASSWORD` is a secret of the installation like the others; use `STARTTLS` (the default,
@@ -86,8 +88,19 @@ So nobody has to find it out the hard way:
   address-based lockout would lock out everyone. Passwords are hashed with PBKDF2-HMAC-SHA256 (600 000 iterations) and
   must have at least 12 characters. If you need rate limiting, add it in the reverse proxy.
 - **Some routes are anonymous on purpose**: the frontend's static files, `/login`, `/login/wam`, `/watchdog` (liveness),
-  `/branding` (name, colour and logo for the login page) and `/swagger` (the documentation of the client software's API
-  - it describes the endpoints, the endpoints themselves require a key).
+  `/branding` (name, colour and logo of the installation), `/login/<key>` with `/branding/login/<key>` (a tenant's
+  own login page with its name, colour and logo - the key is 128 random bits, so nobody finds out by trying which
+  companies use an installation; an unknown key or a deactivated tenant shows the neutral page; the admin can renew a
+  key) and `/swagger` (the documentation of the client software's API
+  - it describes the endpoints, the endpoints themselves require a key), and `/doc-sites/<token>/...` - the files of a
+  handbook's website, reached through an address a signed-in user gets for one website and one hour.
+- **A handbook's website runs its own scripts - sandboxed.** A tenant admin (or the admin) uploads a static website as
+  a ZIP; its HTML and JavaScript are served as they are, every file with `Content-Security-Policy: sandbox` (scripts
+  and new tabs only, no same origin) and framed only by the app. The browser treats them as a foreign site: they reach
+  neither the user's session nor the API. An address handed out stays valid for its hour also after the user was
+  deactivated or taken out of the knowledge area; it sends no referrer, so it does not reach the sites the website
+  links to. The address is a URL: for its hour it can also show in a reverse proxy's access log, the browser's history
+  and the application log.
 - **Data goes to the AI providers the admin configures.** Documents, questions, chat files and tool results are sent to
   the provider of the model in use (Anthropic, OpenAI, Google, or a server of your own). What happens there is governed
   by that provider's terms - see [docs/privacy.md](docs/privacy.md).

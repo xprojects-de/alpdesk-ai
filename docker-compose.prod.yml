@@ -29,7 +29,7 @@ services:
     restart: always
 
   alpdesk-ai:
-    image: ghcr.io/xprojects-de/alpdesk-ai:1.5.0
+    image: ghcr.io/xprojects-de/alpdesk-ai:1.6.0
     container_name: alpdesk-ai
 
     expose:
@@ -58,6 +58,13 @@ services:
       # Optional: the sub-path behind a reverse proxy, e.g. /alpdesk-ai (README "Behind a reverse proxy under a sub-path").
       MICRONAUT_SERVER_CONTEXT_PATH: "${MICRONAUT_SERVER_CONTEXT_PATH:-}"
       # Optional: the daily report by e-mail (README "Daily report") - nothing is sent without a mail server and recipients.
+      # The chat's files (README.md "Configuration"): the size a video may have; how long files stay - a video the hours
+      # after its upload, every other file the days after it was stored (set empty: kept) -; when the cleanup runs.
+      APP_CHAT_VIDEO_MAX_SIZE: "${APP_CHAT_VIDEO_MAX_SIZE:-500MB}"
+      APP_CHAT_VIDEO_ROUNDS: "${APP_CHAT_VIDEO_ROUNDS:-16}"
+      APP_CHAT_VIDEO_RETENTION_HOURS: "${APP_CHAT_VIDEO_RETENTION_HOURS-8}"
+      APP_CHAT_FILE_RETENTION_DAYS: "${APP_CHAT_FILE_RETENTION_DAYS-14}"
+      APP_CHAT_CLEANUP_CRON: "${APP_CHAT_CLEANUP_CRON:-0 0 * * * *}"
       APP_MONITORING_MAIL_TO: "${APP_MONITORING_MAIL_TO:-}"
       APP_MONITORING_DAILY_REPORT_CRON: "${APP_MONITORING_DAILY_REPORT_CRON:-0 0 6 * * *}"
       APP_MAIL_HOST: "${APP_MAIL_HOST:-}"

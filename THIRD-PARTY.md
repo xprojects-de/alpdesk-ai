@@ -142,6 +142,28 @@ The sandbox's HTTP server runs from a venv of its own, exactly as pinned in `Bac
 
 The image carries `LICENSE`, `NOTICE` and this file under `/usr/share/doc/alpdesk-ai-sandbox/`.
 
+**The video sandbox** (`ghcr.io/xprojects-de/alpdesk-ai-sandbox-video:<version>`, the same Dockerfile's target
+`video`) is the sandbox above plus Ubuntu's packages **`ffmpeg`** with its libraries (GPL-2.0-or-later in Ubuntu's
+build) and `fonts-dejavu-core` (Bitstream Vera license, public domain changes), run as separate programs or read as
+data, unmodified, their sources available from Ubuntu as above; the Python libraries exactly as pinned in
+`Backend/podman/sandbox/requirements-video.txt`:
+
+| Library | License |
+|---|---|
+| rtmlib | Apache-2.0 |
+| onnxruntime | MIT |
+| opencv-python-headless (bundles FFmpeg's libraries, LGPL-2.1, and Qt-free OpenCV) | Apache-2.0 |
+| flatbuffers | Apache-2.0 |
+| protobuf | BSD-3-Clause |
+| tqdm | MPL-2.0 and MIT |
+
+and the models rtmlib's RTMPose "balanced" runs on, fetched from OpenMMLab when the image is built and unmodified: the
+person detector YOLOX-m trained on Human-Art (`yolox_m_8xb8-300e_humanart`) and RTMPose-m for 26 points of the body
+with the feet (`rtmpose-m_simcc-body7_pt-body7-halpe26`), both from MMPose's model zoo under Apache-2.0
+(https://github.com/open-mmlab/mmpose). They were trained on public datasets (Human-Art; Body7 - COCO, AI Challenger,
+CrowdPose, MPII and others, Halpe), some of which allow research use only; OpenMMLab publishes the weights under
+Apache-2.0 - whether that settles the datasets' terms for a use is for the operator to judge.
+
 ## Embeddings image
 
 `ghcr.io/xprojects-de/alpdesk-ai-embeddings` (built from `Backend/podman/ollama/Dockerfile`, optional) is Ollama's

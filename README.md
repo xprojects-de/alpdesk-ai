@@ -14,6 +14,7 @@ the template of the settings and this guide. The images come from the GitHub Con
 |---|---|
 | `ghcr.io/xprojects-de/alpdesk-ai:<version>` | The application: a Micronaut (Java 25) backend with the web frontend baked in |
 | `ghcr.io/xprojects-de/alpdesk-ai-sandbox:<version>` | Optional: the sandbox in which the chat runs Python and shell commands, one per tenant |
+| `ghcr.io/xprojects-de/alpdesk-ai-sandbox-video:<version>` | Optional, instead of the sandbox for a tenant that examines videos: the same with ffmpeg and pose estimation (about 1 GB) - see "Code execution" |
 | `ghcr.io/xprojects-de/alpdesk-ai-embeddings:latest` | Optional: Ollama with the embedding model `bge-m3` baked in, for the company's knowledge without a cloud provider (about 5 GB) |
 
 Every release is a tag `v<version>` here, its compose files pinned to the images of that version; `main` is always
@@ -31,6 +32,8 @@ the latest release.
   pages through an image model), embedded and found by every user in the chat without seeing the list.
 - **A chat that works with files.** Files in the conversation (text, images, scans, audio, video), files created as
   answers (DOCX, XLSX, PDF, CSV, ...), chat templates, and an agent loop with tools.
+- **A handbook beside the chat.** A static website for the whole company and one per knowledge area, uploaded as a
+  ZIP and shown sandboxed to the people it is meant for.
 - **Any provider, or your own models.** Anthropic, OpenAI, Gemini - with the tenant's own keys or the operator's
   (then billed) - or models on own hardware through Ollama or any OpenAI-compatible server (vLLM, LM Studio, Mistral).
 - **Connected to the company's software.** The client software uses the API at `/api/v1` with the tenant's API key
@@ -38,7 +41,7 @@ the latest release.
   reading ones directly, changing ones only after the user's decision - and Claude Code or Copilot can ask the
   assistant through the tenant's own MCP server.
 - **Single sign-on** through a WAM proxy that passes the signed-in person on in a header (optional).
-- **Branding** per installation and per tenant: name, colour and logo.
+- **Branding** per installation and per tenant: name, colour and logo - with a login page of its own for every tenant.
 
 ## Screenshots
 
@@ -136,7 +139,7 @@ The app's environment variables, set through the file `.env` next to `docker-com
 | `APP_SECRET_KEY` | AES key encrypting the stored AI provider keys - `openssl rand -base64 32`. **Back it up**: losing or changing it makes every stored key unreadable (they must be entered again) |
 | `JWT_GENERATOR_SIGNATURE_SECRET` | JWT signing secret (at least 32 characters) - `openssl rand -base64 48`; changing it logs everyone out - change it together with a leaked `APP_PASSWORD`, whose admin sessions a new password alone does not end |
 | `DB_PASSWORD` | The database password - `openssl rand -base64 48` |
-| `APP_BRANDING_NAME` / `APP_BRANDING_PRIMARY_COLOR` / `APP_BRANDING_LOGO` | Optional, the installation's look (default "Alpdesk AI", `#49732a`, the Alpdesk AI logo; `APP_BRANDING_LOGO=` empty = no logo) - the login page, the admin's dashboard and every tenant the admin gave no look of its own. The logo is a PNG, JPEG or WebP of at most 512 KB: copy it into the volume `files` (`podman cp logo.png alpdesk-ai:/home/app/files/branding-logo.png`) and set `/home/app/files/branding-logo.png` |
+| `APP_BRANDING_NAME` / `APP_BRANDING_PRIMARY_COLOR` / `APP_BRANDING_LOGO` | Optional, the installation's look (default "Alpdesk AI", `#49732a`, the Alpdesk AI logo; `APP_BRANDING_LOGO=` empty = no logo) - the admin's dashboard and every tenant the admin gave no look of its own. The logo is a PNG, JPEG or WebP of at most 512 KB: copy it into the volume `files` (`podman cp logo.png alpdesk-ai:/home/app/files/branding-logo.png`) and set `/home/app/files/branding-logo.png` |
 | `APP_AI_PLAIN_HTTP_HOSTS` | Optional: the hosts of own model servers reached over plain HTTP, comma separated (e.g. `ollama,10.0.0.5`) - every other server needs HTTPS. See "Own model servers". A listed host is also exempt from the "no internal address" rule, and the exemption counts for the addresses of connected software (MCP) that every tenant admin may enter: any port of it becomes reachable to the app's requests - never list `localhost` or the app's own container |
 | `USE_SYSTEM_CA_CERTS` | Optional: `1` trusts the certificates of the company's own authorities in the volume's `certificates/` - see "Own model servers" |
 | `JAVA_TOOL_OPTIONS` | Optional JVM options |
@@ -144,9 +147,12 @@ The app's environment variables, set through the file `.env` next to `docker-com
 | `APP_WAM_ENABLED` / `APP_WAM_USER_HEADER` / `APP_WAM_NAME_HEADER` | Optional: sign-in through a WAM proxy - see "Sign-in through a WAM proxy" |
 | `APP_WAM_GROUPS_HEADER` / `APP_WAM_GROUPS_SEPARATOR` | Optional: the person's IDM groups from the WAM proxy, checked against the user groups' WAM groups - see "Sign-in through a WAM proxy" |
 | `APP_MONITORING_MAIL_TO` / `APP_MAIL_*` / `APP_MONITORING_DAILY_REPORT_CRON` | Optional: the daily report by e-mail - see "Daily report" |
+| `APP_CHAT_VIDEO_MAX_SIZE` / `APP_CHAT_VIDEO_ROUNDS` | Optional: the size a video in the chat may have (default `500MB`, at most `512MB`), and the rounds the assistant may take for an answer about one (default `16` - each round costs tokens) - see "Code execution" |
+| `APP_CHAT_VIDEO_RETENTION_HOURS` / `APP_CHAT_FILE_RETENTION_DAYS` / `APP_CHAT_CLEANUP_CRON` | Optional: how long the chat's files stay before they are deleted - an uploaded video the hours after its upload (default `8`), every other file, uploaded or created, the days after it was stored (default `14`); set one empty to keep those files until they or their conversation are deleted. The conversation keeps a deleted file listed as expired. The cleanup runs every hour (a cron expression, seconds first) |
 
 Data lives in PostgreSQL with pgvector (`./pgdata`; the schema is migrated on startup): the management database and
-every tenant's own database. The chat's files (uploaded and created) live in the named volume `alpdesk-ai_files`
+every tenant's own database. The chat's files (uploaded and created; deleted after 14 days, a video after 8 hours -
+`APP_CHAT_FILE_RETENTION_DAYS`, `APP_CHAT_VIDEO_RETENTION_HOURS`) live in the named volume `alpdesk-ai_files`
 (mounted at `/home/app/files`; a named volume, not a bind mount, so the non-root app user can write to it). **Back up
 both** - the databases only hold the files' keys.
 
@@ -405,6 +411,17 @@ instance runs one answer's code at a time and deletes everything of it after. Th
 and their token at the tenant (page "Mandanten", dialog of the tenant) and checks them on the tenant's page ("Sandbox
 prüfen"); without them the tools are simply not offered. Nothing of it is in `.env`.
 
+**Videos** are examined this way too, in the **video sandbox** (`ghcr.io/xprojects-de/alpdesk-ai-sandbox-video`): the
+same sandbox with ffmpeg and pose estimation (RTMPose - a person's joints, offline, its models in the image). The model
+cuts frames out of a video, looks at them, measures a person's posture and hands out a strip of stills with the
+skeleton and the changes drawn in, or a clip. Give it to the tenants that need it: in the tenant's file in
+`sandboxes/` add `SANDBOX_IMAGE=ghcr.io/xprojects-de/alpdesk-ai-sandbox-video` - every instance of a tenant the same -
+and start it as below; "Sandbox prüfen" at the tenant then shows "Video". A tenant without it (or without a sandbox)
+gets a video upload refused. A video may have `APP_CHAT_VIDEO_MAX_SIZE` (500 MB) - every other file 50 MB - and is
+deleted `APP_CHAT_VIDEO_RETENTION_HOURS` (8) after its upload; the conversation keeps its entry, marked expired (see
+"Configuration"). A larger video setting needs a larger `/work` for the sandbox (a tmpfs of 1 GB in
+`docker-compose.tenant-sandbox.yml`, which holds a video of 500 MB with room to work) and `SANDBOX_FILE_MB` (512).
+
 An idle instance takes about 20 MB of memory and next to no CPU; while code runs it may take up to the container's
 limit (2 GB). Size the server by the answers running code at the same time, not by the number of tenants: 100 idle
 tenants are about 2 GB.
@@ -521,7 +538,7 @@ installation there is the proof still missing. What each pod needs:
 |---|---|---|---|---|
 | `ghcr.io/xprojects-de/alpdesk-ai` (the app) | 999 / 999 | `/home/app/files` (a PersistentVolumeClaim, ReadWriteOnce), `/tmp` (emptyDir: ZIP imports up to 512 MB, media conversion) | HTTP `/watchdog`, port 19100 | **one replica, strategy `Recreate`**: the sandbox leases and the streamed answers live in the one process; the variables of "Configuration" (plus `DATASOURCES_DEFAULT_URL`, `_USERNAME`, `_PASSWORD` for the database), the secrets from a Secret |
 | `pgvector/pgvector:pg18` | 999 / 999 | `/var/lib/postgresql` (a PersistentVolumeClaim; `PGDATA` is `18/docker` below it), `/var/run/postgresql` and `/tmp` (emptyDir) | exec `pg_isready` | the app's role creates and drops the tenants' databases (CREATEDB): a PostgreSQL operator instead of this image needs pgvector in its image and that right |
-| `ghcr.io/xprojects-de/alpdesk-ai-sandbox` | 10001 / - | `/work`, `/tmp` (emptyDir, `medium: Memory`) | HTTP `/health`, port 8080 | one per tenant - "Code execution" |
+| `ghcr.io/xprojects-de/alpdesk-ai-sandbox` (or `-sandbox-video`) | 10001 / - | `/work`, `/tmp` (emptyDir, `medium: Memory`) | HTTP `/health`, port 8080 | one per tenant - "Code execution"; the video image for a tenant that examines videos |
 | `ghcr.io/xprojects-de/alpdesk-ai-embeddings` | 10001 (any) / - | `/tmp` (emptyDir) | HTTP `/api/tags`, port 11434 | the model is in the image; memory for it (bge-m3 well over 1 GB) |
 
 The security context every one of them takes (the users as in the table):
