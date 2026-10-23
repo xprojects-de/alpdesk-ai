@@ -5,6 +5,80 @@ What changed in each release of Alpdesk AI, newest first. Versions follow [Seman
 features, updating needs nothing by hand; **patch** - fixes and small improvements. Every release is a tag `v<version>`
 with its images `ghcr.io/xprojects-de/alpdesk-ai:<version>` and `-sandbox:<version>`; updating: see the README.
 
+## [1.7.0] - 2026-10-23
+
+### Added
+
+- **File stores**: tenant admins (and the admin) enter the tenant's SFTP and FTPS servers on the new page
+  "Dateiablagen" and check them; the password goes out only after they confirmed the server's fingerprint. A file
+  store in the internal network needs its host in `APP_FILE_STORE_INTERNAL_HOSTS`; FTPS servers of the company's own
+  certificate authorities are trusted with `USE_SYSTEM_CA_CERTS`.
+- **Scheduled tasks** (switched on per tenant by the admin in the tenant's master data): a task reads the new lines of
+  files on a file store, lets the tenant's chat model check them against check points, verifies the findings and
+  mails them - only when something is wrong, or when a run failed or stayed unclear. It runs on a schedule
+  (`every: 5h` or a cron expression, at most every 15 minutes), by hand, from the client software or through the MCP
+  server. Tenant admins keep them on the new page "Aufgaben": the task written in YAML with its steps drawn beside it,
+  the format's reference, the runs with what each step found. **Chains of prompts**: a `prompt` step answers freely
+  and hands its answer to the next one; with `choices` the model picks a word that decides where the run goes, e.g.
+  back to refine the answer. **Draft with AI**: describe a task (or a change) in your own words, the tenant's chat
+  model writes it and the check corrects it - you read and save it.
+- `/api/v1/tasks`: the client software lists the tasks assigned to its API key, starts a run (`202` with the run's id)
+  and reads what it found and the answers it hands on. A tenant admin assigns the tasks on the key (`taskIds`).
+- MCP server: `list_tasks`, `run_task` (waits up to a minute for the result) and `task_run` for the tasks opened to it.
+- `APP_DOC_SITE_MAX_ZIP_SIZE`: the largest ZIP of a handbook's website (default `100MB`, at most `512MB`).
+- **Web search in the chat** (Tavily): for what the company's documents do not answer - current facts, a law, a
+  price. The admin enters it in the model catalog (kind "Websuche", priced per 1,000 searches) and assigns it to a
+  tenant like a model; the Tavily key goes under API keys. Tenant admins turn it on per user group, per API key and
+  for the MCP server - off by default. The documents always come first, at most three searches per answer, only the
+  search query goes out; the pages found are shown as links under the answer and in the `sources` of `/api/v1/chat`.
+  With "documents only" the assistant then answers from the documents and the web pages, not from general knowledge.
+
+### Changed
+
+- The videos of one chat conversation may have at most the video size (`APP_CHAT_VIDEO_MAX_SIZE`, default 500 MB)
+  together; a second large video goes into a new conversation. Before, a second one filled the code execution's space
+  and stopped every analysis in that conversation until the first expired.
+- The handbook's upload dialog shows the ZIP's limit and refuses a larger ZIP at once, instead of after uploading it.
+- The chat on a phone leaves more room for the answers: the input starts with one line and a short placeholder, the
+  model (its name only) and template choice sit in one row, and the note below the input shows only on an empty chat.
+
+### Fixed
+
+- The tenant databases are reached with the same parameters as the management database: `sslmode`, a certificate
+  or any other parameter in `DATASOURCES_DEFAULT_URL` now applies to every tenant's connection too.
+- "Software": a switch or level whose change the backend refuses (the server out of reach, a tool no longer
+  offered) shows the stored value again instead of the clicked one.
+- The run view of a scheduled task keeps refreshing after a single failed request (a timeout, "try again"); before,
+  it stayed at "running" until the page was reloaded.
+- "New task" always starts from the template - a text imported or duplicated earlier and left unsaved no longer
+  reappears; an imported text counts as unsaved, so leaving the editor asks first.
+- A large video in the chat no longer fails over a slow connection after 6 minutes: the timeout counts from the
+  upload's last progress, no longer from its start.
+- A scanned PDF with one page holding an image too large to render no longer fails as a whole after its other pages
+  were read (and paid): that page keeps its own text, the document becomes ready.
+- A PDF that breaks while its pages are checked for scans is refused (or skipped in a ZIP archive) instead of ending
+  the whole archive's import with an error.
+- A connected software that refuses a prompt's values or a tool call with HTTP 400 now always gets the answer "could
+  not carry out the request"; before, the request could end with an internal error instead.
+- On a phone the page fits the visible screen: before, the browser's toolbars pushed the top bar out of sight.
+- On the page "Firmenwissen" the upload buttons wait until the knowledge areas are loaded: before, a file uploaded in
+  that moment (or after the areas failed to load) went into the company knowledge without asking which area.
+- A document whose embedding broke off without a state written is now an error in the application log and the daily
+  report.
+
+### Security
+
+- Sandbox (Python and shell in the chat): under Podman a file a session wrote into `/run/lock` was left for the next
+  session of the same instance - another user of the tenant. Every session's end now empties it too; update the
+  sandbox image.
+- The address of a handbook's website without its trailing slash no longer redirects a made-up token to another site
+  (an open redirect on the installation's domain).
+- A failed web search logs only the kind of failure and Tavily's HTTP status - no longer Tavily's answer, which could
+  repeat the search query.
+- Micronaut 5.2.3: an upload answered before all of its files arrived no longer leaks memory, and neither does a
+  broken or cancelled request body; a request with a malformed chunk is no longer taken as an empty one.
+- The PDF files the chat creates are rendered with PDFBox 3.0.8, the same version that reads uploaded PDFs.
+
 ## [1.6.0] - 2026-10-21
 
 **Before updating**: chat files are now deleted 14 days after they were stored - also the existing ones, within an

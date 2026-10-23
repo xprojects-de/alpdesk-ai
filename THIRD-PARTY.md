@@ -7,7 +7,7 @@ unmodified libraries, or offer a permissive option.
 
 The licenses were read out of the resolved artifacts - POM metadata, `Bundle-License` in the jar manifests,
 `META-INF/LICENSE` files and source headers for the backend, the `license` field of each installed package for the
-frontend - not assumed. As of: backend `runtimeClasspath` and frontend `dependencies` of 12 October 2026.
+frontend - not assumed. As of: backend `runtimeClasspath` and frontend `dependencies` of 23 October 2026.
 
 ## Backend (Java, shipped in the jar)
 
@@ -19,13 +19,15 @@ Most of the stack. Apache-2.0 asks for the license and the NOTICE contents to be
 | Component | Role |
 |---|---|
 | `io.micronaut*:*` (core, http, data, security, serde, sql, flyway, reactor, jsonschema, mcp) | Application framework, MCP server and client |
-| `dev.langchain4j:*` (core, anthropic, open-ai, google-ai-gemini, ollama, http-client, pgvector) | AI provider clients, vector store |
+| `dev.langchain4j:*` (core, anthropic, open-ai, google-ai-gemini, ollama, http-client, pgvector, web-search-engine-tavily) | AI provider clients, vector store, the chat's web search |
 | `org.apache.tika:*` (core and parser modules) | Text extraction from documents |
 | `org.apache.poi:*`, `org.apache.xmlbeans:xmlbeans` | Office formats |
 | `org.apache.pdfbox:*` (pdfbox, fontbox, pdfbox-io, xmpbox, pdfbox-tools, jempbox, jbig2-imageio), `de.rototor.pdfbox:graphics2d` | PDF reading and rendering |
 | `org.apache.commons:*`, `commons-io`, `commons-codec`, `commons-logging` | Utilities |
 | `org.apache.james:apache-mime4j-*`, `org.apache.opennlp:opennlp-tools`, `org.apache.logging.log4j:log4j-api`, `log4j-to-slf4j` | Tika's parsing, Log4j bridge |
 | `org.flywaydb:flyway-core`, `flyway-database-postgresql` (Community edition) | Database migrations |
+| `org.apache.sshd:sshd-core`, `sshd-common`, `sshd-sftp` (Apache MINA SSHD) | SFTP to the tenants' file stores |
+| `commons-net:commons-net` | FTPS to the tenants' file stores |
 | `io.netty:*`, `io.netty.contrib:netty-codec-multipart-core` | Network layer of the HTTP server |
 | `com.fasterxml.jackson.core:*`, `tools.jackson.*` | JSON, YAML |
 | `com.nimbusds:nimbus-jose-jwt` | JWT |
@@ -41,6 +43,7 @@ Most of the stack. Apache-2.0 asks for the license and the NOTICE contents to be
 | `com.pgvector:pgvector` | MIT | pgvector types for JDBC |
 | `org.slf4j:slf4j-api`, `jcl-over-slf4j` | MIT | Logging API |
 | `org.jsoup:jsoup` | MIT | HTML clean-up |
+| `org.bsc.langgraph4j:langgraph4j-core`, `langgraph4j-postgres-saver`, `org.bsc.async:async-generator` | MIT | The engine of scheduled tasks and its checkpoints |
 | `com.knuddels:jtokkit`, `com.googlecode.plist:dd-plist`, `org.checkerframework:checker-qual`, `org.brotli:dec` | MIT | Tokenizer and support libraries |
 | `org.reactivestreams:reactive-streams` | MIT-0 | Reactive Streams API |
 | `org.bouncycastle:bcprov-jdk18on`, `bcpkix`, `bcutil`, `bcjmail` | Bouncy Castle Licence (MIT-style) | Cryptography for Tika |
@@ -87,6 +90,9 @@ is not among the file types Alpdesk AI reads.
 | `@jsverse/transloco`, `@jsverse/transloco-locale` (the frontend's languages, with `@jsverse/utils`) | MIT |
 | `marked` | MIT; its license includes John Gruber's original Markdown notice (BSD-3-Clause style) |
 | `highlight.js` (the chat's code blocks, only the languages of `code-highlight.util.ts`) | BSD-3-Clause |
+| `@codemirror/*` (state, view, language, streamparser, commands, lang-yaml, autocomplete), `@lezer/*` (common, lr, highlight, yaml), `style-mod`, `w3c-keyname`, `crelt`, `@marijn/find-cluster-break` - the task editor (CodeMirror 6) | MIT |
+| `@foblex/flow` with `@foblex/2d`, `utils`, `mediator`, `platform` - the task graph | MIT |
+| `@dagrejs/dagre`, `@dagrejs/graphlib` - the task graph's layout | MIT |
 | `rxjs` | Apache-2.0 |
 | `@material/material-color-utilities` | Apache-2.0 |
 | `tslib` | 0BSD |

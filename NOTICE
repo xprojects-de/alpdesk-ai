@@ -12,8 +12,8 @@ Apache License 2.0 (copy: https://www.apache.org/licenses/LICENSE-2.0)
   further components.
 - This product includes software developed at The Apache Software Foundation (https://www.apache.org/):
   Apache Tika, Apache POI, Apache XMLBeans, Apache PDFBox (with FontBox, XmpBox, JempBox), Apache Commons
-  (Codec, IO, Logging, Lang, Compress, CSV, Exec, Collections, Math), Apache James Mime4j, Apache OpenNLP and
-  Apache Log4j API.
+  (Codec, IO, Logging, Lang, Compress, CSV, Exec, Collections, Math, Net), Apache James Mime4j, Apache OpenNLP,
+  Apache MINA SSHD and Apache Log4j API.
 - Apache POI and XMLBeans contain parts originally developed by BEA Systems (2000-2003), W3C XML Schema documents
   (Copyright 2001-2003 W3C (MIT, ERCIM, Keio)), chunks_parse_cmds.tbl from vsdump (Copyright 2006-2007 Valek
   Filippov), parts of the eID Applet project (Copyright 2009-2018 FedICT, e-Contract.be) and code derived from

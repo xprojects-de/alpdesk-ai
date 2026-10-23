@@ -11,7 +11,8 @@ runs on your server, and the author never receives any of it.
 - **Each tenant** (a company using the installation) is the **controller** for the data its people and its client
   software put in: its documents, its users' chats and files.
 - **The AI providers** (Anthropic, OpenAI, Google, or the operator's or tenant's own model servers) receive data
-  to answer and are **sub-processors** - see "What leaves the server".
+  to answer and are **sub-processors** - see "What leaves the server". So is **Tavily**, where a tenant uses the
+  chat's web search.
 
 A company running Alpdesk AI for itself only is operator and controller at once.
 
@@ -19,10 +20,13 @@ A company running Alpdesk AI for itself only is operator and controller at once.
 
 | Data | Where | Personal data in it |
 |------|-------|---------------------|
-| Tenants, users (username, display name, password hash, the frontend's language), admin flags, user groups and their members (each group's knowledge areas and levels for connected software), access requests (WAM user name and name) | management database | yes - the employees' accounts |
+| Tenants, users (username, display name, password hash, the frontend's language, the last login, since when its sessions are valid), admin flags, user groups and their members (each group's knowledge areas and levels for connected software), access requests (WAM user name and name) | management database | yes - the employees' accounts |
 | With the WAM proxy's IDM groups checked (`APP_WAM_GROUPS_HEADER`): the IDM groups the proxy sent on each user's last request | management database, replaced on every change, deleted with the user - and all of them when the app starts without the check | yes - which groups of the company's directory a person is in |
 | API keys of the client software, MCP keys | management database | SHA-256 hash and a display prefix only |
-| Provider keys, keys of connected software, the token of a tenant's sandbox | management database | encrypted (`APP_SECRET_KEY`) |
+| Provider keys, keys of connected software, the token of a tenant's sandbox, the passwords of file stores | management database | encrypted (`APP_SECRET_KEY`) |
+| File stores (name, server, user name, folder, the confirmed fingerprint, the last check's outcome) | management database | the user name on the tenant's server |
+| Scheduled tasks (their text, check points, recipients) | management database | the e-mail addresses of the recipients |
+| A task's runs: what each step did, the lines read from the store's files (after the task's filter), the findings with their evidence lines; how far each file was read | the tenant's own database | whatever the files contain (log files often hold names, user names, addresses) - until a tenant admin deletes the run, or its task |
 | Usage per call (tenant, user, provider, model, tokens, amount, time) | management database | yes - who used which model when |
 | The company's documents: their text, chunks and embeddings | the tenant's own database (`tenant_...`) | whatever the documents contain |
 | Conversations and messages of the chat, pending tool calls | the tenant's own database | yes - questions and answers belong to a user |
@@ -34,8 +38,10 @@ A company running Alpdesk AI for itself only is operator and controller at once.
 | Backups | wherever the operator puts them | everything above |
 
 Besides the session's token, user name and roles (removed at logout), the browser keeps the colour scheme, the chat
-model chosen last and the width of the chat's conversation list (`localStorage`) - these three stay after a logout, so
-the next user of the same browser starts with them. The frontend's language before the login is the browser's own.
+model chosen last, the width of the chat's conversation list and the key of the tenant's own login page, if it was
+used (`localStorage`) - these four stay after a logout, so the next user of the same browser starts with them; the
+last one tells which company's login page was used. With WAM a logout marks the browser tab (`sessionStorage`, gone
+with the tab). The frontend's language before the login is the browser's own.
 
 Not stored: the model's reasoning shown while it thinks, and - with an API key whose "Verlauf speichern" is off -
 anything of the client software's questions but the usage. Questions through the MCP server (Claude Code, GitHub
@@ -59,8 +65,31 @@ Every model call sends data to the provider of the model in use:
   to the chat model like any tool result, and so do the images the model asks to see of what the code wrote (e.g.
   frames cut out of a video) - only those, not the file they came from. A file of the session the model hands to the
   user (a marked still, a clip) is stored as a file of the conversation like one it created.
+- **Checking a file store** (SFTP, FTPS) connects to the tenant's own server: the user name and - once the server's
+  fingerprint is confirmed - the password go there, and the names of the folder's first entries come back; they are
+  shown, not stored.
+- **A scheduled task's run** reads the matching files of the tenant's own store; the lines its filter keeps go to the
+  tenant's chat model (the provider of that model, with the tenant's or the admin's key) together with the task's
+  check points - and the findings with their evidence lines to the verifying model. Without new lines nothing goes to
+  a provider. Its mails (the findings with up to 20 evidence lines each, a failure, unclear findings) go to the task's
+  recipients through the installation's mail server. A `prompt` step sends its prompt and the answers, lines or
+  findings of its inputs to the tenant's chat model; its answers are kept with the run like the findings, until the run
+  or the task is deleted.
+- **"Draft with AI"** sends the tenant admin's description, the names of the tenant's file stores (with their folders
+  and the names of up to 20 of the newest files in each folder) and chat models, and - when a task is changed - its
+  current text to the tenant's chat model; no file's content. The draft is not stored. The client software with a key
+  the task is assigned to, and an MCP client for a task opened to the MCP server, get a run's findings with their
+  evidence lines and the answers it hands on (the last answers of the prompt steps it mails) - not the other lines
+  read.
 - **An image asked for in the chat** sends the instruction the chat model wrote and the conversation's images it names
   to the tenant's image model (Google Gemini for now); the image it creates is stored as a file of the conversation.
+- **A web search in the chat** (only where the admin assigned the web search to the tenant and a tenant admin turned
+  it on for the asker's group, API key or the MCP server) sends the search query the chat model wrote to Tavily, with
+  the tenant's or the admin's Tavily key - never a document, a file or the conversation. The model is told to put only
+  the public topic into a query, never names, numbers or details from the company's documents or files; that it never
+  does cannot be guaranteed - a model may still carry a word of a document (a product name) into a query. The pages
+  found go to the chat model like a document's excerpts, and their addresses are shown as the answer's sources; the
+  usage records the number of searches.
 - **A prompt of connected software** sends the values a user typed into its form to that software (the tenant's
   own), which makes the text that lands in the user's input field.
 - **An answer through the MCP server** goes to the MCP client that holds the tenant's MCP key (Claude Code, GitHub
@@ -85,10 +114,17 @@ For the big providers, check before use:
 ## Deleting
 
 - **A tenant**: deleting it drops its database (`DROP DATABASE`) - documents, embeddings, conversations - and removes
-  its users, keys and usage. Its files in the file storage are removed too; what cannot be removed stays behind
+  its users, keys and usage. A database that cannot be dropped stays behind unreachable; its name is logged, and the
+  operator drops it by hand. Its files in the file storage are removed too; what cannot be removed stays behind
   unreachable and is logged. A file still being uploaded at that moment (a chat file, a document, a logo) may land
   after the removal and stays behind unreachable - the tenant's id is never given out again. Its sandbox's addresses
   and token go with the tenant row; the operator takes the sandbox container down (it holds nothing between answers).
+- **A file store**: deleting it removes its server, user name and password at once; nothing of the server's files is
+  kept by the app - except the lines a task's runs read, which stay with those runs. A store a task reads cannot be
+  deleted before the task. They go with the tenant too.
+- **A scheduled task**: deleting it deletes its runs - with the lines read, the findings and the state kept between
+  steps - and its read positions; a tenant admin deletes one run, or every ended run of a task, while the admin allows
+  the tenant tasks (otherwise the admin does). They go with the tenant too.
 - **A user**: deleting it deletes its conversations with their files. Likewise **an API key**: revoking it deletes
   the client software's conversations it started. A conversation or file that cannot be removed (the database or the
   file storage briefly out of reach) stays behind unreachable, is logged and goes with the tenant. A question still
@@ -120,7 +156,8 @@ organisational rule with your tenants if they need it.
 
 Tell the tenants' employees, e.g. in your privacy notice:
 
-- that their questions, files and the company's documents are sent to the AI providers named,
+- that their questions, files and the company's documents are sent to the AI providers named - and, with the web
+  search on for them, the search queries the assistant writes to Tavily,
 - that their usage (who, when, which model, how much) is recorded,
 - that the tenant's admins and the operator can set their password and so see their chats,
 - that answers of an AI can be wrong and are not checked by a person.

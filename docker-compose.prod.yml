@@ -29,7 +29,7 @@ services:
     restart: always
 
   alpdesk-ai:
-    image: ghcr.io/xprojects-de/alpdesk-ai:1.6.0
+    image: ghcr.io/xprojects-de/alpdesk-ai:1.7.0
     container_name: alpdesk-ai
 
     expose:
@@ -50,6 +50,8 @@ services:
       APP_BRANDING_LOGO: "${APP_BRANDING_LOGO-classpath:branding/default-logo.png}"
       # Own model servers (optional): the hosts reached over plain HTTP - everything else needs HTTPS.
       APP_AI_PLAIN_HTTP_HOSTS: "${APP_AI_PLAIN_HTTP_HOSTS:-}"
+      # Optional: the hosts of file stores (SFTP, FTPS) in the internal network that tenant admins may enter.
+      APP_FILE_STORE_INTERNAL_HOSTS: "${APP_FILE_STORE_INTERNAL_HOSTS:-}"
       # Optional: 1 = trust the company's own certificate authorities in the volume's certificates/ (README "Own model
       # servers").
       USE_SYSTEM_CA_CERTS: "${USE_SYSTEM_CA_CERTS:-}"
@@ -65,6 +67,8 @@ services:
       APP_CHAT_VIDEO_RETENTION_HOURS: "${APP_CHAT_VIDEO_RETENTION_HOURS-8}"
       APP_CHAT_FILE_RETENTION_DAYS: "${APP_CHAT_FILE_RETENTION_DAYS-14}"
       APP_CHAT_CLEANUP_CRON: "${APP_CHAT_CLEANUP_CRON:-0 0 * * * *}"
+      # The largest ZIP of a handbook's website (README.md "Configuration"), at most 512MB.
+      APP_DOC_SITE_MAX_ZIP_SIZE: "${APP_DOC_SITE_MAX_ZIP_SIZE:-100MB}"
       APP_MONITORING_MAIL_TO: "${APP_MONITORING_MAIL_TO:-}"
       APP_MONITORING_DAILY_REPORT_CRON: "${APP_MONITORING_DAILY_REPORT_CRON:-0 0 6 * * *}"
       APP_MAIL_HOST: "${APP_MAIL_HOST:-}"

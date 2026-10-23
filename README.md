@@ -31,7 +31,8 @@ the latest release.
   company's software - are read (PDF, DOCX, ODT, RTF, TXT, Markdown, HTML, PPTX, XLSX, ODS, CSV; images and scanned
   pages through an image model), embedded and found by every user in the chat without seeing the list.
 - **A chat that works with files.** Files in the conversation (text, images, scans, audio, video), files created as
-  answers (DOCX, XLSX, PDF, CSV, ...), chat templates, and an agent loop with tools.
+  answers (DOCX, XLSX, PDF, CSV, ...), chat templates, and an agent loop with tools - also a web search for current
+  facts through Tavily (optional, per user group and key, always after the company's documents).
 - **A handbook beside the chat.** A static website for the whole company and one per knowledge area, uploaded as a
   ZIP and shown sandboxed to the people it is meant for.
 - **Any provider, or your own models.** Anthropic, OpenAI, Gemini - with the tenant's own keys or the operator's
@@ -141,13 +142,15 @@ The app's environment variables, set through the file `.env` next to `docker-com
 | `DB_PASSWORD` | The database password - `openssl rand -base64 48` |
 | `APP_BRANDING_NAME` / `APP_BRANDING_PRIMARY_COLOR` / `APP_BRANDING_LOGO` | Optional, the installation's look (default "Alpdesk AI", `#49732a`, the Alpdesk AI logo; `APP_BRANDING_LOGO=` empty = no logo) - the admin's dashboard and every tenant the admin gave no look of its own. The logo is a PNG, JPEG or WebP of at most 512 KB: copy it into the volume `files` (`podman cp logo.png alpdesk-ai:/home/app/files/branding-logo.png`) and set `/home/app/files/branding-logo.png` |
 | `APP_AI_PLAIN_HTTP_HOSTS` | Optional: the hosts of own model servers reached over plain HTTP, comma separated (e.g. `ollama,10.0.0.5`) - every other server needs HTTPS. See "Own model servers". A listed host is also exempt from the "no internal address" rule, and the exemption counts for the addresses of connected software (MCP) that every tenant admin may enter: any port of it becomes reachable to the app's requests - never list `localhost` or the app's own container |
-| `USE_SYSTEM_CA_CERTS` | Optional: `1` trusts the certificates of the company's own authorities in the volume's `certificates/` - see "Own model servers" |
+| `USE_SYSTEM_CA_CERTS` | Optional: `1` trusts the certificates of the company's own authorities in the volume's `certificates/` - see "Own model servers" (FTPS file stores too) |
+| `APP_FILE_STORE_INTERNAL_HOSTS` | Optional: the hosts of file stores (SFTP, FTPS) in the internal network, comma separated (e.g. `logs.intern,10.0.5.20`) - every other file store must be a public host. Every tenant admin may enter a listed host, on any port: never list `localhost`, the database or the app's own container |
 | `JAVA_TOOL_OPTIONS` | Optional JVM options |
 | `MICRONAUT_SERVER_CONTEXT_PATH` | Optional: the sub-path behind a reverse proxy - see "Behind a reverse proxy under a sub-path" |
 | `APP_WAM_ENABLED` / `APP_WAM_USER_HEADER` / `APP_WAM_NAME_HEADER` | Optional: sign-in through a WAM proxy - see "Sign-in through a WAM proxy" |
 | `APP_WAM_GROUPS_HEADER` / `APP_WAM_GROUPS_SEPARATOR` | Optional: the person's IDM groups from the WAM proxy, checked against the user groups' WAM groups - see "Sign-in through a WAM proxy" |
 | `APP_MONITORING_MAIL_TO` / `APP_MAIL_*` / `APP_MONITORING_DAILY_REPORT_CRON` | Optional: the daily report by e-mail - see "Daily report" |
 | `APP_CHAT_VIDEO_MAX_SIZE` / `APP_CHAT_VIDEO_ROUNDS` | Optional: the size a video in the chat may have (default `500MB`, at most `512MB`), and the rounds the assistant may take for an answer about one (default `16` - each round costs tokens) - see "Code execution" |
+| `APP_DOC_SITE_MAX_ZIP_SIZE` | Optional: the largest ZIP a handbook's website may be uploaded as (default `100MB`, at most `512MB`); unpacked it may hold five times as much |
 | `APP_CHAT_VIDEO_RETENTION_HOURS` / `APP_CHAT_FILE_RETENTION_DAYS` / `APP_CHAT_CLEANUP_CRON` | Optional: how long the chat's files stay before they are deleted - an uploaded video the hours after its upload (default `8`), every other file, uploaded or created, the days after it was stored (default `14`); set one empty to keep those files until they or their conversation are deleted. The conversation keeps a deleted file listed as expired. The cleanup runs every hour (a cron expression, seconds first) |
 
 Data lives in PostgreSQL with pgvector (`./pgdata`; the schema is migrated on startup): the management database and

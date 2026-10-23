@@ -27,7 +27,8 @@ protected by the software:
   HTTPS and redirects plain HTTP. Never add a plain-HTTP site or publish the app's port 19100 directly: passwords,
   tokens and API keys would travel unencrypted. The app itself answers every request with `X-Frame-Options: DENY`,
   `Content-Security-Policy: frame-ancestors 'none'` and `X-Content-Type-Options: nosniff`: no page of it can be framed
-  by another site (clickjacking), and no file it serves is sniffed into a script - whatever proxy is in front.
+  by another site (clickjacking), and no file it serves is sniffed into a script - whatever proxy is in front. The one
+  exception are a handbook's website files, which the app's own page frames (see below).
 - **PostgreSQL is never reachable from outside.** It gets no published port in production; every tenant's database
   lives on it.
 - **The secrets are the installation's own.** Outside the environments "dev" and "test" the app refuses to start
@@ -38,8 +39,9 @@ protected by the software:
 - **A leaked admin password is changed together with `JWT_GENERATOR_SIGNATURE_SECRET`.** The admin's token is valid
   for a day and nothing on the server ends it: a new `APP_PASSWORD` alone leaves whoever logged in with the old one
   inside until then. A new JWT secret ends every session at once (tenant users log in again too).
-- **`APP_SECRET_KEY` is kept safe and backed up.** It encrypts the stored AI provider keys and the keys of connected
-  software and of own model servers (AES-256-GCM); whoever has it and a database dump has those keys.
+- **`APP_SECRET_KEY` is kept safe and backed up.** It encrypts the stored AI provider keys, the keys of connected
+  software and of own model servers, the file stores' passwords and the sandboxes' tokens (AES-256-GCM); whoever has
+  it and a database dump has those secrets.
 - **Sign-in through a WAM proxy** (`APP_WAM_ENABLED`, off by default) trusts the user header completely. With it on,
   the proxy must strip that header from every request from outside, and the app must be reachable through the proxy
   only - otherwise anyone can sign in as anyone. The same holds for the IDM groups header (`APP_WAM_GROUPS_HEADER`,
@@ -75,8 +77,26 @@ protected by the software:
   HTTPS and "no internal address" - for own model servers (the admin) *and* for the addresses of connected software,
   which every tenant admin enters: any port and path of such a host becomes reachable to the app's requests. List
   only hosts that are meant for it (a model server of the installation), never `localhost` or the app's own pod.
+- **`APP_FILE_STORE_INTERNAL_HOSTS` opens its hosts to every tenant admin's file stores.** A file store (SFTP, FTPS)
+  that a tenant admin enters must not lie in an internal network - unless its host is on this list: then any port of
+  it can be connected to by the app on behalf of every tenant. List only the file servers meant for it, never
+  `localhost`, the database or the app's own pod.
+- **A file store's server proves itself before the password goes out.** For SFTP a tenant admin confirms the
+  fingerprint of the server's host key, which a check shows first; for FTPS the certificate must come from an
+  authority the installation trusts, or its fingerprint is confirmed the same way. Until then, and whenever the
+  server later presents another key or certificate, the app does not log in. Plain FTP is never used, and an FTPS
+  data connection always goes to the server of the control connection, whatever address the server names - and is
+  refused when it presents a certificate the server did not prove itself with.
+- **A scheduled task's text is data, never code.** A tenant admin writes a task in YAML or JSON; it is checked against
+  a fixed format before it is stored - no expressions beyond comparing counts, no scripts, no anchors -, and its steps
+  are the app's own. Its agent steps reach no tool but searching and reading the lines the task read, and no tool of
+  connected software. Only the admin's switch lets a tenant have tasks at all. From outside a task is started only with
+  an API key a tenant admin assigned it to, or through the tenant's MCP server when the task is opened to it - one run
+  of a task at a time, and a schedule at most every 15 minutes. A task drafted with AI is checked like one written by hand and never saved by the
+  draft itself - a tenant admin reads and saves it.
 - **The certificate check is never switched off.** With `USE_SYSTEM_CA_CERTS=1` the app also trusts every certificate
-  in the volume's `certificates/` - for the requests to model servers, AI providers and connected software alike.
+  in the volume's `certificates/` - for the requests to model servers, AI providers, connected software and FTPS
+  file stores alike.
   Whoever can write into that volume can therefore make the app trust any server: put only the company's own root
   authority there.
 
@@ -96,7 +116,8 @@ So nobody has to find it out the hard way:
   handbook's website, reached through an address a signed-in user gets for one website and one hour.
 - **A handbook's website runs its own scripts - sandboxed.** A tenant admin (or the admin) uploads a static website as
   a ZIP; its HTML and JavaScript are served as they are, every file with `Content-Security-Policy: sandbox` (scripts
-  and new tabs only, no same origin) and framed only by the app. The browser treats them as a foreign site: they reach
+  and new tabs only, no same origin) and framed only by the app (and by the origins allowed for CORS,
+  `http://localhost:4300` by default - the frontend's development server). The browser treats them as a foreign site: they reach
   neither the user's session nor the API. An address handed out stays valid for its hour also after the user was
   deactivated or taken out of the knowledge area; it sends no referrer, so it does not reach the sites the website
   links to. The address is a URL: for its hour it can also show in a reverse proxy's access log, the browser's history
@@ -104,8 +125,15 @@ So nobody has to find it out the hard way:
 - **Data goes to the AI providers the admin configures.** Documents, questions, chat files and tool results are sent to
   the provider of the model in use (Anthropic, OpenAI, Google, or a server of your own). What happens there is governed
   by that provider's terms - see [docs/privacy.md](docs/privacy.md).
-- **Models can be misled.** A document, an uploaded file or a connected software's answer may contain instructions
-  aimed at the model (prompt injection). The design limits the damage - links other than http(s)/mailto and content
+- **The web search sends the model's queries out.** Where a tenant admin turned it on (a user group, an API key, the
+  MCP server - off by default, and only where the admin assigned the web search to the tenant), the chat model writes
+  search queries that go to Tavily. Documents and files never go along, and the model is told to put only the public
+  topic into a query - but a model may still carry a word of a document into one. Turn it on only for the groups and
+  keys that need it.
+- **Models can be misled.** A document, an uploaded file, a web page the web search found or a connected software's
+  answer may contain instructions
+  aimed at the model (prompt injection). The design limits the damage - web pages reach the model marked as unchecked
+  material whose instructions are never followed, at most three web searches per answer, links other than http(s)/mailto and content
   the browser loads by itself are not rendered, changing tools of connected software run only after the user's
   decision in the chat, the client software and the MCP key never get changing tools, addresses of connected software
   must not resolve to internal addresses, a file a connected software returns is offered only as a download with a
