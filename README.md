@@ -151,6 +151,7 @@ The app's environment variables, set through the file `.env` next to `docker-com
 | `APP_MONITORING_MAIL_TO` / `APP_MAIL_*` / `APP_MONITORING_DAILY_REPORT_CRON` | Optional: the daily report by e-mail - see "Daily report" |
 | `APP_CHAT_VIDEO_MAX_SIZE` / `APP_CHAT_VIDEO_ROUNDS` | Optional: the size a video in the chat may have (default `500MB`, at most `512MB`), and the rounds the assistant may take for an answer about one (default `16` - each round costs tokens) - see "Code execution" |
 | `APP_DOC_SITE_MAX_ZIP_SIZE` | Optional: the largest ZIP a handbook's website may be uploaded as (default `100MB`, at most `512MB`); unpacked it may hold five times as much |
+| `APP_TASK_RUN_RETENTION_DAYS` | Optional: how many days a scheduled task's run stays after it ended (default `14`) - with the lines its steps read, its findings and its steps; checked every hour. Set empty to keep runs until a tenant admin deletes them or their task. The read positions stay: the next run goes on where the last one stopped |
 | `APP_CHAT_VIDEO_RETENTION_HOURS` / `APP_CHAT_FILE_RETENTION_DAYS` / `APP_CHAT_CLEANUP_CRON` | Optional: how long the chat's files stay before they are deleted - an uploaded video the hours after its upload (default `8`), every other file, uploaded or created, the days after it was stored (default `14`); set one empty to keep those files until they or their conversation are deleted. The conversation keeps a deleted file listed as expired. The cleanup runs every hour (a cron expression, seconds first) |
 
 Data lives in PostgreSQL with pgvector (`./pgdata`; the schema is migrated on startup): the management database and
@@ -459,9 +460,36 @@ Then, at the tenant: "Sandbox-Adressen" `http://alpdesk-ai-sandbox-musterfirma:8
 podman network create --internal alpdesk-ai-sandbox     # once; then: podman network connect alpdesk-ai-sandbox alpdesk-ai
 podman run -d --name alpdesk-ai-sandbox-musterfirma --network alpdesk-ai-sandbox --read-only \
   --tmpfs /work:rw,size=1g,mode=1777 --tmpfs /tmp:rw,size=512m,mode=1777 \
-  --cap-drop ALL --security-opt no-new-privileges --memory 2g --cpus 2 --pids-limit 512 --restart always \
+  --cap-drop ALL --security-opt no-new-privileges --security-opt apparmor=unconfined \
+  --memory 2g --cpus 2 --pids-limit 512 --restart always \
   -e SANDBOX_TOKEN="$(openssl rand -hex 32)" ghcr.io/xprojects-de/alpdesk-ai-sandbox:<version>
 ```
+
+**AppArmor** (`apparmor=unconfined` above and in `docker-compose.tenant-sandbox.yml`): the sandbox runs without the
+host's AppArmor profile. On Ubuntu 24.04 with Podman the host's profile for crun stacks its label under the
+container's default profile, which allows signals to its own label only - the sandbox could then not end a session's
+processes, and after the first answer it took no further session ("Sandbox prüfen" showed "needs a restart", the chat
+"the code execution is busy"). The option only concerns this container; the others on the host keep their profile, and
+on a host without AppArmor it does nothing. The sandbox's isolation does not rest on AppArmor: no root, no
+capabilities, read-only, a seccomp filter for every program, the internal network (SECURITY.md "Code execution").
+A sandbox that may not send signals says so at its start (its log: "this container may not send signals") and in
+"Sandbox prüfen" ("needs a restart") - also where another profile does the same.
+
+**Checking the image on the host** - `selftest.py` from the source archive of the release
+(`Backend/podman/sandbox/selftest.py`) runs every check of the sandbox (signals, the cleanup, the seccomp filter, the
+writable places - what the runtime of the host decides) against an instance started for it, on the loopback address
+with a short call timeout (the check of a runaway call waits for it; a tenant's instance has 300 s):
+
+```shell
+podman run -d --rm --name alpdesk-ai-sandbox-check -p 127.0.0.1:8080:8080 --read-only \
+  --tmpfs /work:rw,size=1g,mode=1777 --tmpfs /tmp:rw,size=512m,mode=1777 \
+  --cap-drop ALL --security-opt no-new-privileges --security-opt apparmor=unconfined --pids-limit 512 \
+  -e SANDBOX_TIMEOUT_SECONDS=30 -e SANDBOX_TOKEN=check-check-check-check-check-check ghcr.io/xprojects-de/alpdesk-ai-sandbox:<version>
+python3 selftest.py http://127.0.0.1:8080 check-check-check-check-check-check
+podman rm -f alpdesk-ai-sandbox-check
+```
+
+It ends with `selftest passed`; a failed check names what the host does differently.
 
 **With Docker** instead of Podman the commands are the same (`docker network create`, `docker run`, `docker compose`),
 with two differences:

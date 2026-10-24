@@ -18,7 +18,7 @@ services:
   sandbox:
     # Not root, a read-only root, every capability dropped, memory and CPU limited, only the internal network: it
     # reaches nothing but the app, and holds no secret but its token.
-    image: ${SANDBOX_IMAGE:-ghcr.io/xprojects-de/alpdesk-ai-sandbox}:1.7.0
+    image: ${SANDBOX_IMAGE:-ghcr.io/xprojects-de/alpdesk-ai-sandbox}:1.7.1
     container_name: "alpdesk-ai-sandbox-${SANDBOX_NAME:?set SANDBOX_NAME in the sandbox's env file}"
     environment:
       SANDBOX_TOKEN: "${SANDBOX_TOKEN:?set SANDBOX_TOKEN in the sandbox's env file}"
@@ -31,6 +31,11 @@ services:
       - ALL
     security_opt:
       - no-new-privileges
+      # No AppArmor profile: on Ubuntu 24.04 with Podman the host's profile for crun stacks its label under the
+      # container's, which allows signals to its own label only - then the sandbox cannot end a session's processes
+      # and takes no further session ("Sandbox prüfen": "needs a restart"). The isolation does not rest on it: no root,
+      # no capabilities, read-only, seccomp for every program, the internal network (README.md "Code execution").
+      - apparmor=unconfined
     mem_limit: 2g
     cpus: 2
     pids_limit: 512

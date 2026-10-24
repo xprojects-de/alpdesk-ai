@@ -61,7 +61,12 @@ protected by the software:
   `docker-compose.prod.yml` (`internal: true`) keeps the internet out, but it is one network for the app's unproxied
   port and every tenant's sandbox: there, only the sandbox's seccomp filter (no network socket for a session's
   program) keeps code from reaching the app or another tenant's instance. It needs no root or capabilities: run it as
-  shipped (not root, read-only, all capabilities dropped). The app reads back only files the code wrote below its
+  shipped (not root, read-only, all capabilities dropped). It runs without an AppArmor profile (`apparmor=unconfined`
+  in its compose file): on Ubuntu 24.04 with Podman the host's profile for crun stacks its label under the
+  container's, which allows signals to its own label only, and the sandbox could not end a session's processes any
+  more. What that profile forbids - mounts, writes to `/proc/sys` and `/sys` - is already impossible without root and
+  capabilities; the isolation rests on those, the seccomp filter and the network (README.md "Code execution" of the
+  installation guide). The app reads back only files the code wrote below its
   session's directory (images the model looks at, files it hands to the user) - checked on the opened file, so a link
   the code made reaches nothing outside it, not the sandbox's own token.
 - **The daily report goes to the operator only.** It is mailed to `APP_MONITORING_MAIL_TO` over the mail server of

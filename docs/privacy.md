@@ -26,7 +26,7 @@ A company running Alpdesk AI for itself only is operator and controller at once.
 | Provider keys, keys of connected software, the token of a tenant's sandbox, the passwords of file stores | management database | encrypted (`APP_SECRET_KEY`) |
 | File stores (name, server, user name, folder, the confirmed fingerprint, the last check's outcome) | management database | the user name on the tenant's server |
 | Scheduled tasks (their text, check points, recipients) | management database | the e-mail addresses of the recipients |
-| A task's runs: what each step did, the lines read from the store's files (after the task's filter), the findings with their evidence lines; how far each file was read | the tenant's own database | whatever the files contain (log files often hold names, user names, addresses) - until a tenant admin deletes the run, or its task |
+| A task's runs: what each step did, the lines read from the store's files (after the task's filter, with what it masks replaced by `***`), the findings with their evidence lines; how far each file was read | the tenant's own database | whatever the files contain and the task does not mask (log files often hold names, user names, addresses) - 14 days after the run ended (`APP_TASK_RUN_RETENTION_DAYS`; set empty: until a tenant admin deletes the run, or its task) |
 | Usage per call (tenant, user, provider, model, tokens, amount, time) | management database | yes - who used which model when |
 | The company's documents: their text, chunks and embeddings | the tenant's own database (`tenant_...`) | whatever the documents contain |
 | Conversations and messages of the chat, pending tool calls | the tenant's own database | yes - questions and answers belong to a user |
@@ -72,7 +72,9 @@ Every model call sends data to the provider of the model in use:
   tenant's chat model (the provider of that model, with the tenant's or the admin's key) together with the task's
   check points - and the findings with their evidence lines to the verifying model. Without new lines nothing goes to
   a provider. Its mails (the findings with up to 20 evidence lines each, a failure, unclear findings) go to the task's
-  recipients through the installation's mail server. A `prompt` step sends its prompt and the answers, lines or
+  recipients through the installation's mail server. **What a step masks** (`mask`: a password, a token, an e-mail
+  address in the files) is replaced with `***` before a line is kept - it is neither stored with the run nor sent to a
+  provider or in a mail; what a task does not mask goes as it is in the file. A `prompt` step sends its prompt and the answers, lines or
   findings of its inputs to the tenant's chat model; its answers are kept with the run like the findings, until the run
   or the task is deleted.
 - **"Draft with AI"** sends the tenant admin's description, the names of the tenant's file stores (with their folders

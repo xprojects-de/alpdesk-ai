@@ -29,7 +29,7 @@ services:
     restart: always
 
   alpdesk-ai:
-    image: ghcr.io/xprojects-de/alpdesk-ai:1.7.0
+    image: ghcr.io/xprojects-de/alpdesk-ai:1.7.1
     container_name: alpdesk-ai
 
     expose:
@@ -52,6 +52,8 @@ services:
       APP_AI_PLAIN_HTTP_HOSTS: "${APP_AI_PLAIN_HTTP_HOSTS:-}"
       # Optional: the hosts of file stores (SFTP, FTPS) in the internal network that tenant admins may enter.
       APP_FILE_STORE_INTERNAL_HOSTS: "${APP_FILE_STORE_INTERNAL_HOSTS:-}"
+      # How many days a scheduled task's run stays with the lines it read after it ended (set empty: kept).
+      APP_TASK_RUN_RETENTION_DAYS: "${APP_TASK_RUN_RETENTION_DAYS-14}"
       # Optional: 1 = trust the company's own certificate authorities in the volume's certificates/ (README "Own model
       # servers").
       USE_SYSTEM_CA_CERTS: "${USE_SYSTEM_CA_CERTS:-}"

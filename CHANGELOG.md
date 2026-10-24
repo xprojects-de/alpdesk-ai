@@ -5,6 +5,82 @@ What changed in each release of Alpdesk AI, newest first. Versions follow [Seman
 features, updating needs nothing by hand; **patch** - fixes and small improvements. Every release is a tag `v<version>`
 with its images `ghcr.io/xprojects-de/alpdesk-ai:<version>` and `-sandbox:<version>`; updating: see the README.
 
+## [1.7.1] - 2026-10-24
+
+### Added
+
+- **Scheduled tasks: `firstRun: end`** for a `read_files` step - the task's first run reads nothing and only what is
+  written afterwards counts, instead of the files' whole past. For logs with a long history: their first run no longer
+  runs into the size limit and reports on a cut file. Files that appear later (tomorrow's log) are read from their
+  start as before; without the setting nothing changes.
+- **Scheduled tasks: `minLines`** for a `read_files` step - a file that must keep growing (a cron's heartbeat) and
+  read fewer new lines fails the run, and the notify list gets a mail why. Without it a stopped cron left every file
+  quiet, and a quiet run reported nothing.
+- **Scheduled tasks: the model is told the time it asks** - so it can tell "nothing since 03:00" from "nothing in the
+  last minutes".
+- **Scheduled tasks: `mask`** for a `read_files` step - passwords, tokens or personal data in the files are replaced
+  with `***` before a line is kept, so they reach neither the model's provider nor the mail nor the stored run. Simply
+  `- after: 'password="'` (the value after a text) or `- regex: ...` (every match); before, `exclude` could only leave
+  the whole line out.
+- **Scheduled tasks: runs are deleted 14 days after they ended** (`APP_TASK_RUN_RETENTION_DAYS`, set empty to keep
+  them as before) - with the lines their steps read. A task reading files twice a day kept every line it ever read.
+  The read positions stay, so the next run goes on where it stopped. Older runs go with the first cleanup after the
+  update.
+- **Scheduled tasks: `severity: report`** for a check point that is no question but something to hand on - "list
+  every other error", a daily overview. Its note goes into the mail whenever there is anything to report, marked as a
+  report; the verification leaves it as it is. `verify.reports` counts them, so `if: verify.errors > 0 ||
+  verify.reports > 0` mails a report on its own. The client software's API and the MCP server give it as `REPORT`.
+
+### Changed
+
+- **A template needs no question**: with a template chosen, Enter (or Send) with an empty input starts it - the
+  template's name becomes the question in the history. The client software may leave `message` out of
+  `POST /api/v1/chat` and `/api/v1/chat/stream` when it sends a `templateId`.
+- **The chat's files above the input fold behind their count** ("Files of this chat (n)") on a phone and from five
+  files on, and scroll within themselves when opened - the stills of a video analysis no longer fill the screen.
+- **On an iPhone the page no longer zooms in** when a text field is tapped (the chat's input above all) - it had to be
+  scrolled sideways afterwards.
+- **Video analysis**: the model is told to hand out the stills of a movement also when its measurement is uncertain,
+  with the reservation written into them - before, a model that doubted its values left the images out altogether.
+
+### Fixed
+
+- **Code execution on Ubuntu 24.04 with Podman**: the host's AppArmor profiles denied every signal inside the sandbox
+  container, so after the first answer with code the sandbox could not end the session and took no further one - the
+  chat said "the code execution is busy" and "Sandbox prüfen" showed "busy" for ever. The sandbox now runs without an
+  AppArmor profile (`apparmor=unconfined` in `docker-compose.tenant-sandbox.yml` - start every instance again with
+  it, as after any update; its isolation rests on no root, no capabilities, read-only, seccomp and the internal
+  network, see SECURITY.md). A sandbox that cannot end its sessions says so at its start in its log, "Sandbox prüfen"
+  shows "needs a restart", and the chat's model is told the tools are not available instead of "busy".
+- **Scheduled tasks reading one file in two steps** (e.g. split by `include`): a line written between the two steps
+  could be skipped by one of them. Now the step that read more reads it again in the next run; nothing is lost.
+- **Scheduled tasks**: the model now sees which step each file comes from, and a step without new lines is named as
+  such. Before, instructions naming a step could not be followed, and a step without new lines made its check points
+  "unclear" - an unclear mail on almost every run of a task whose step usually reads nothing.
+- **Scheduled tasks**: a step cut at its size limit now tells the model so - before, what came after the cut could be
+  reported as missing (e.g. "no later success") although it was only not read.
+- **FTPS file stores**: reading a file only partly - larger than the step's limit, or still growing like an active
+  log - closed the session on some servers (ProFTPD), and the next file failed with "Connection closed without
+  indication". Such a read now opens a new connection for the next file.
+- **Scheduled tasks: a file pattern with many `*`** (e.g. `***x.log`) could take minutes per file name it did not
+  match - the run hung in its `read_files` step, could not be cancelled, and two such tasks held up every other run of
+  the installation. Patterns are now matched without a regular expression and answer at once.
+- **Scheduled tasks**: a run whose verification failed (or that broke off before it) no longer hands the client
+  software and the MCP server the checking step's findings, which were never verified - the run's error says what
+  happened.
+- **Scheduled tasks with a model that cannot call tools**: a file too large for the question was cut and the model
+  only asked to mention it - it could still call everything ok, and the cut lines were never judged. The model is now
+  told nobody judges the rest, so what depends on it is to be called unclear.
+- **Chat: a file the connected software returns for a confirmed change is kept** when the assistant's answer after it
+  fails (e.g. the provider's rate limit). The change had been made and cannot run again; its file was deleted with the
+  failed answer. It now shows below the answer that asked for the decision.
+- **Chat: a stopped answer that fails afterwards now says so** - before, its question simply disappeared. A stopped
+  decision that fails shows its call as it is now.
+- **Chat: a lost connection** now says the answer may still be stored and to open the chat again before asking again -
+  asking at once answered the question twice.
+- **Chat: searching a large file sent with the question** no longer skips a long matching line that did not fit the
+  result while showing shorter ones after it; "go on with from_line" now leads back to it.
+
 ## [1.7.0] - 2026-10-23
 
 ### Added
