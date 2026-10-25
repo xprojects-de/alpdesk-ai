@@ -39,8 +39,12 @@ the latest release.
   (then billed) - or models on own hardware through Ollama or any OpenAI-compatible server (vLLM, LM Studio, Mistral).
 - **Connected to the company's software.** The client software uses the API at `/api/v1` with the tenant's API key
   (documented at `/swagger` of an installation). The chat can call the tools of the company's software over MCP -
-  reading ones directly, changing ones only after the user's decision - and Claude Code or Copilot can ask the
-  assistant through the tenant's own MCP server.
+  reading ones directly, changing ones only after the user's decision. Through the tenant's own MCP server Claude
+  Code, claude.ai, Claude Desktop, Cowork or Copilot ask the assistant or search and read the company's documents
+  themselves - with MCP keys the tenant admin creates, each with its own knowledge areas, connected software and web
+  search; claude.ai and Cowork take the server as a custom connector with the key as a request header. A connected
+  software switched "Direkt an MCP-Clients" reaches them directly: its reading tools and prompts appear among the
+  server's tools (`<software>__<tool>`), while its address and key stay in the installation.
 - **Single sign-on** through a WAM proxy that passes the signed-in person on in a header (optional).
 - **Branding** per installation and per tenant: name, colour and logo - with a login page of its own for every tenant.
 
@@ -72,12 +76,18 @@ running an installation for others, read:
 
 ## Installation
 
-Needs a Linux server (`linux/amd64`) with Podman and `podman-compose` (Docker with `docker compose` works the same),
-a domain pointing at it and the ports 80 and 443 free: Caddy fetches the certificate itself and serves HTTPS only.
+Needs a Linux server with Podman and `podman-compose` (Docker with `docker compose` works the same), a domain pointing
+at it and the ports 80 and 443 free: Caddy fetches the certificate itself and serves HTTPS only. Where the two ports are
+taken - a Synology NAS, a server whose own proxy serves other applications - the stack runs without Caddy behind that
+proxy ("Behind an own reverse proxy"). The images come for
+`linux/amd64` and `linux/arm64` under the same tags - an x86 server, an ARM server or a Raspberry Pi 5 with a 64-bit
+OS pull the right one; Podman or Docker on an Apple Silicon Mac runs the arm64 images natively.
 
 **Sizing** (measured on a test installation): the app takes about 1 GB of memory, PostgreSQL and Caddy together less
 than 150 MB - plan **at least 4 GB of RAM and 2 CPUs**. With the local embeddings image ("Embeddings with a local
-Ollama") plan **8 GB**: it takes about 2 GB while it embeds. A tenant's sandbox ("Code execution") takes about 20 MB
+Ollama") plan **8 GB**: it takes about 2 GB while it embeds - a Raspberry Pi 5 with 8 GB meets both, a NAS with 2 GB
+does not. On a Raspberry Pi the embedding model runs on the CPU alone and embeds noticeably slower than on a server;
+the chat itself is answered by the provider. A tenant's sandbox ("Code execution") takes about 20 MB
 when idle and up to 2 GB while an answer runs code. The images take about 2 GB of disk, the embeddings image about
 5 GB more; the documents, the databases and the chat's files come on top.
 
@@ -299,6 +309,48 @@ podman-compose -f docker-compose.embeddings.yml up -d          # after docker-co
 - It needs memory for the model (well over 1 GB) and runs as any user but root (10001 in the image) on a read-only
   root; `/tmp` must be writable (Ollama writes a key of its own there at every start).
 
+## Behind an own reverse proxy
+
+Where the ports 80 and 443 are taken - a Synology NAS (DSM serves them itself), a server whose nginx or Traefik already
+serves other applications - the stack runs without its Caddy: `docker-compose.proxy.yml` is `docker-compose.prod.yml`
+without Caddy, the app's port published on the loopback interface (`127.0.0.1:19100`), where a proxy on the same
+machine reaches it; that proxy terminates HTTPS. The same `.env` (`APP_DOMAIN` is not needed), the same project name:
+the database in `./pgdata`, the volume `files` and the networks are the same, the tenants' sandboxes and the embeddings
+image work unchanged, and an installation can switch between the two files (`down` with the one, `up` with the other).
+
+```shell
+podman-compose -f docker-compose.proxy.yml up -d
+```
+
+What the proxy has to do - the app brings the rest itself (the security headers, no indexing, a keep-alive on a
+streamed answer every 20 seconds, `X-Accel-Buffering: no` so an nginx-based proxy passes the chat's stream on as it
+comes):
+
+- HTTPS to the browser, plain HTTP to `http://127.0.0.1:19100` - and HSTS, which only the proxy can send. Never publish
+  the app's port to others; `APP_LISTEN` in `.env` only when the proxy runs on another machine of a trusted network or
+  the port is taken.
+- The path unchanged, with the `Host` header and `X-Forwarded-Proto` (nginx: the `proxy_set_header` lines of the next
+  section). A read timeout above 20 seconds (nginx's default of 60 is enough).
+- Request bodies up to 512 MB (ZIP archives of documents; nginx: `client_max_body_size 512m`). An upload refused with
+  413 is the proxy's limit, not the app's.
+
+**On a Synology NAS** (DSM 7.2 with Container Manager; a model with at least 4 GB of memory - "Installation", Sizing):
+
+1. A shared folder for the installation, e.g. `/volume1/docker/alpdesk-ai`, with the files of a release ("Code" →
+   "Download ZIP" on the tag's page) and `.env` from `.env.example` (`APP_DOMAIN` may stay).
+2. Container Manager → Project → Create: the folder as its path, `docker-compose.proxy.yml` as its file. Container
+   Manager runs Docker Compose, which reads `.env` next to the file as on a server.
+3. Control Panel → Login Portal → Advanced → Reverse Proxy → Create: source HTTPS, the host name (e.g.
+   `ai.example.com`), port 443, HSTS on; destination HTTP, `localhost`, port 19100. No custom header is needed.
+4. Control Panel → Security → Certificate: a certificate for that host name (DSM fetches one from Let's Encrypt),
+   assigned to the reverse proxy entry under "Settings".
+5. Open `https://ai.example.com` and log in - the rest is as on a server. The tenants' sandboxes ("Code execution") and
+   the embeddings image are started over SSH with `docker compose` ("With Docker" there: the `tmpfs` entries take
+   `uid=10001,gid=10001`); backups as in "Backups".
+
+Most Synology models with Container Manager are Intel machines and take the `amd64` images; an ARM model takes the
+`arm64` ones - the sizing decides, not the architecture.
+
 ## Behind a reverse proxy under a sub-path
 
 Alpdesk AI can run under a sub-path of another web server, e.g. `https://intranet.example.com/alpdesk-ai/` behind an
@@ -340,8 +392,8 @@ location /alpdesk-ai/ {
 ```
 
 - `proxy_pass` points at where the app's port is published on the nginx machine: behind nginx the stack's Caddy is not
-  needed - publish the app's port on `127.0.0.1` instead (`ports: ["127.0.0.1:19100:19100"]`), or run nginx in the
-  stack's network and use `http://alpdesk-ai:19100`.
+  needed - start `docker-compose.proxy.yml` instead ("Behind an own reverse proxy"), which publishes the app's port on
+  `127.0.0.1:19100`.
 - nginx terminates HTTPS. Plain HTTP between nginx and the app only on the same machine or a trusted network.
 - The `location` and `MICRONAUT_SERVER_CONTEXT_PATH` must name the same path.
 

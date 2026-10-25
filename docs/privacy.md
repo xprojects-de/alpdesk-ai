@@ -26,7 +26,8 @@ A company running Alpdesk AI for itself only is operator and controller at once.
 | Provider keys, keys of connected software, the token of a tenant's sandbox, the passwords of file stores | management database | encrypted (`APP_SECRET_KEY`) |
 | File stores (name, server, user name, folder, the confirmed fingerprint, the last check's outcome) | management database | the user name on the tenant's server |
 | Scheduled tasks (their text, check points, recipients) | management database | the e-mail addresses of the recipients |
-| A task's runs: what each step did, the lines read from the store's files (after the task's filter, with what it masks replaced by `***`), the findings with their evidence lines; how far each file was read | the tenant's own database | whatever the files contain and the task does not mask (log files often hold names, user names, addresses) - 14 days after the run ended (`APP_TASK_RUN_RETENTION_DAYS`; set empty: until a tenant admin deletes the run, or its task) |
+| A task's runs: what each step did, the lines read from the store's files (after the task's filter, with what it masks replaced by `***`), the findings with their evidence lines | the tenant's own database | whatever the files contain and the task does not mask (log files often hold names, user names, addresses) - 14 days after the run ended (`APP_TASK_RUN_RETENTION_DAYS`; set empty: until a tenant admin deletes the run, or its task) |
+| How far a task has read each file: its path, the position and when the file last changed | the tenant's own database | the files' paths - kept with the task until it is deleted, also for a store it no longer reads |
 | Usage per call (tenant, user, provider, model, tokens, amount, time) | management database | yes - who used which model when |
 | The company's documents: their text, chunks and embeddings | the tenant's own database (`tenant_...`) | whatever the documents contain |
 | Conversations and messages of the chat, pending tool calls | the tenant's own database | yes - questions and answers belong to a user |
@@ -80,7 +81,7 @@ Every model call sends data to the provider of the model in use:
 - **"Draft with AI"** sends the tenant admin's description, the names of the tenant's file stores (with their folders
   and the names of up to 20 of the newest files in each folder) and chat models, and - when a task is changed - its
   current text to the tenant's chat model; no file's content. The draft is not stored. The client software with a key
-  the task is assigned to, and an MCP client for a task opened to the MCP server, get a run's findings with their
+  the task is assigned to, and an MCP client with an MCP key the task is assigned to, get a run's findings with their
   evidence lines and the answers it hands on (the last answers of the prompt steps it mails) - not the other lines
   read.
 - **An image asked for in the chat** sends the instruction the chat model wrote and the conversation's images it names
@@ -96,6 +97,17 @@ Every model call sends data to the provider of the model in use:
   own), which makes the text that lands in the user's input field.
 - **An answer through the MCP server** goes to the MCP client that holds the tenant's MCP key (Claude Code, GitHub
   Copilot) - with the files the answer created and the files a connected software's tool returned in it.
+- **A search through the MCP server** (`search_knowledge`, `read_document`) sends the passages found and the parts of
+  documents read - with the documents' paths and ids - to that MCP client, from the company knowledge and the areas
+  of the MCP key it was asked with. The client's own model reads them: with claude.ai, Claude Desktop or Cowork they reach
+  Anthropic under the plan of whoever added the connector. Only the search query is embedded (by the tenant's
+  embedding model); nothing of it is stored but the usage.
+- **Connected software passed through to an MCP client** (a connection switched "Direkt an MCP-Clients", given to
+  the MCP key): the client's arguments go to that software, and its results - text, the files it returns, a prompt's
+  text - go unchanged to the MCP client, whose own model reads them (with claude.ai, Claude Desktop or Cowork under the
+  plan of whoever added the connector). Nothing of the call is stored. The instructions the software gives about its
+  tools are kept on the connection (at most 2,000 characters, until its address changes or it is deleted) and go to
+  every MCP client of a key given it and into the assistant's prompt when the software's tools are offered.
 
 Besides the model calls, **the daily report** (when the operator set a mail server and recipients) goes by e-mail to
 the operator's addresses over the configured mail server, every morning: the active tenants' names with counts (users,
@@ -122,8 +134,9 @@ For the big providers, check before use:
   after the removal and stays behind unreachable - the tenant's id is never given out again. Its sandbox's addresses
   and token go with the tenant row; the operator takes the sandbox container down (it holds nothing between answers).
 - **A file store**: deleting it removes its server, user name and password at once; nothing of the server's files is
-  kept by the app - except the lines a task's runs read, which stay with those runs. A store a task reads cannot be
-  deleted before the task. They go with the tenant too.
+  kept by the app - except the lines a task's runs read, which stay with those runs, and how far a task read each of
+  its files (path and position), which stays with the task. A store a task reads cannot be deleted before the task.
+  They go with the tenant too.
 - **A scheduled task**: deleting it deletes its runs - with the lines read, the findings and the state kept between
   steps - and its read positions; a tenant admin deletes one run, or every ended run of a task, while the admin allows
   the tenant tasks (otherwise the admin does). They go with the tenant too.
@@ -131,8 +144,8 @@ For the big providers, check before use:
   the client software's conversations it started. A conversation or file that cannot be removed (the database or the
   file storage briefly out of reach) stays behind unreachable, is logged and goes with the tenant. A question still
   being answered at that moment may store its conversation afterwards - reachable by no one, it goes with the tenant;
-  so do the client software's conversations from before they belonged to a key. Its usage records stay (without the
-  user) for billing.
+  so do the client software's conversations from before they belonged to a key. Its usage records stay for billing,
+  with nothing of the user but its former id, which names no one any more.
 - **A file of the chat** (uploaded, created, handed out or returned by a connected software) is deleted from the file
   storage `APP_CHAT_FILE_RETENTION_DAYS` (14) after it was stored, an uploaded video `APP_CHAT_VIDEO_RETENTION_HOURS`
   (8) after its upload - by an hourly job, together with its text in the tenant database (extracted on upload, a

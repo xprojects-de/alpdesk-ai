@@ -29,7 +29,7 @@ services:
     restart: always
 
   alpdesk-ai:
-    image: ghcr.io/xprojects-de/alpdesk-ai:1.7.1
+    image: ghcr.io/xprojects-de/alpdesk-ai:1.8.0
     container_name: alpdesk-ai
 
     expose:

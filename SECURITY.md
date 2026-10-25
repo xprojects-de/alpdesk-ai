@@ -14,7 +14,8 @@ time. Feel free to ask again if nothing came back after two weeks.
 
 Especially welcome are findings about the boundaries the design depends on: one tenant reaching another tenant's
 documents, chats, keys or database; a tenant user reaching the tenant admins' or the admin's API; the client software's
-API key or the MCP key reaching more than its endpoints; a provider key leaving the server in plain text; a prompt
+API key or the MCP key reaching more than its endpoints or an MCP key's search reading a document outside the company
+knowledge and that key's areas; a provider key leaving the server in plain text; a prompt
 injection in a document or a tool result that gets data out or runs a changing tool without the user's decision.
 
 ## What the software assumes
@@ -25,7 +26,9 @@ protected by the software:
 
 - **HTTPS only.** The production stack puts Caddy in front of the app (the installation's `Caddyfile`), which serves
   HTTPS and redirects plain HTTP. Never add a plain-HTTP site or publish the app's port 19100 directly: passwords,
-  tokens and API keys would travel unencrypted. The app itself answers every request with `X-Frame-Options: DENY`,
+  tokens and API keys would travel unencrypted. Behind an own reverse proxy (`docker-compose.proxy.yml`: a NAS, an
+  nginx serving other applications) that proxy terminates HTTPS, and the app's port is published on the loopback
+  interface only - plain HTTP between the two stays on the machine. The app itself answers every request with `X-Frame-Options: DENY`,
   `Content-Security-Policy: frame-ancestors 'none'` and `X-Content-Type-Options: nosniff`: no page of it can be framed
   by another site (clickjacking), and no file it serves is sniffed into a script - whatever proxy is in front. The one
   exception are a handbook's website files, which the app's own page frames (see below).
@@ -146,6 +149,13 @@ So nobody has to find it out the hard way:
   answer of the MCP server, images are created only from the conversation's own images and with at
   most three calls of the image model per answer (each one billed, also a refused one), code runs in the tenant's own sandbox only,
   one answer at a time per instance, without network and with nothing of another answer left - but no model is immune. Turn on only the tools a company needs.
+- **Connected software passed through to MCP clients.** An MCP key reaches only the connected software a tenant admin
+  gave it - through `ask_assistant` and, where a connection is switched "Direkt an MCP-Clients" (off by default),
+  directly: the client's model then calls its reading tools and prompts itself and reads their raw results, which
+  leave the installation for the client (with claude.ai or Cowork, Anthropic). The software's address and key stay in
+  the installation; its changing tools are never passed through. The software's tool descriptions, prompts and the
+  instructions it gives (at most 2,000 characters, after ours) are text of another server that the client's and our
+  model read - enter only software you trust, and leave a module whose knowledge must not leave answer-only.
 
 ## Supported versions
 

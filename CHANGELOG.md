@@ -5,6 +5,107 @@ What changed in each release of Alpdesk AI, newest first. Versions follow [Seman
 features, updating needs nothing by hand; **patch** - fixes and small improvements. Every release is a tag `v<version>`
 with its images `ghcr.io/xprojects-de/alpdesk-ai:<version>` and `-sandbox:<version>`; updating: see the README.
 
+## [1.8.0] - 2026-10-25
+
+### Added
+
+- **Images for ARM**: the app, the sandboxes and the embeddings image are published for `linux/amd64` and `linux/arm64`
+  under the same tags, so an installation on an ARM server, a Raspberry Pi 5 (64-bit OS, 8 GB) or an Apple Silicon Mac
+  pulls the right image without a change to the compose files.
+- **Behind an own reverse proxy**: `docker-compose.proxy.yml` runs the stack without Caddy, the app's port published on
+  `127.0.0.1:19100` for a reverse proxy on the same machine - a Synology NAS (DSM's reverse proxy), an nginx or Traefik
+  serving other applications. The app now sends `X-Robots-Tag: noindex, nofollow` itself (the Caddyfile did) and tells
+  nginx-based proxies not to buffer the chat's streamed answers (`X-Accel-Buffering: no`).
+- **claude.ai, Claude Desktop and Cowork**: the MCP key card (and the card on the page "Account") shows what to enter
+  for a custom connector - the address, "No sign-in", the request header `authorization` and its value
+  `Bearer <MCP-KEY>` to copy. The company's assistant then answers in Claude's apps as it does in Claude Code.
+- **The MCP server searches and reads**: two new tools, `search_knowledge` (the passages that answer a query, with
+  their document's name and id) and `read_document` (a document found, whole or in parts), let Claude or another MCP
+  client read the company knowledge itself and answer with its own model - only the query's embedding is used, no
+  second chat model. They find what `ask_assistant` finds: the company knowledge and the MCP key's areas.
+- **Several MCP keys**: a tenant has as many MCP keys as it needs, each with a name, its own knowledge areas and its own
+  web search - e.g. one for development, one for the management - created, renewed and removed on the MCP key card.
+  The key a tenant has keeps working after the update, named "Standard" with the areas and web search set so far.
+- **Connected software straight to Claude Code and Cowork**: a connected software (e.g. a licensed module in a pod of
+  its own) switched "Direkt an MCP-Clients" on the page "Software" offers its reading tools and prompts to the MCP keys
+  given it, named `<software>__<tool>` (a name too long is cut and ends in the tool's number, which it keeps) - the
+  client's model calls them itself, its address and token stay with Alpdesk AI. The software's own instructions go to the client after the assistant's and into the assistant's prompt. Off by
+  default: a software not switched on is used through `ask_assistant` only, its raw results never reach the client.
+
+### Changed
+
+- **The MCP key chooses its software**: which connected software an MCP key may use (for `ask_assistant` and
+  directly) is chosen per key on the MCP key card ("Software"), no longer per connection for all keys - the switch "für
+  den MCP-Server" on the page "Software" is gone. After the update every key has the software opened to the MCP server
+  so far. Admin API: `PUT .../mcp-connections/{id}/mcp-server` is replaced by `.../pass-through`, `connectionIds` on
+  the MCP keys.
+- **The MCP key chooses its tasks**: which scheduled tasks Claude Code or Cowork may list, start and read through an
+  MCP key is chosen per key on the MCP key card ("Aufgaben"), like for the API keys - no longer with the switch "Für den
+  MCP-Server freigegeben" in the task editor for all keys; the editor shows which keys may start the task. After the
+  update every key has the tasks opened to the MCP server so far. Admin API: `openToMcp` is gone from the tasks,
+  `taskIds` on the MCP keys.
+- **API keys choose their software too**: which connected software the client software's API key may use through the
+  chat is chosen per key on the API key card ("Software"), no longer per connection for all keys - the row "API-Keys"
+  on the page "Software" is gone. After the update every key has the software opened to it so far. Admin API:
+  `PUT .../mcp-connections/{id}/client-software` is removed, `connectionIds` on the API keys.
+- **Keys in a dialog**: API keys and MCP keys are created and changed in a dialog with all their rights - name, areas,
+  software, tasks, web search and, for an API key, the history - each with a sentence on what it means; the tables show
+  a key's rights in short. Tasks can now be given to a key when it is created.
+- **A group's software in its dialog**: the user group dialog sets the level for each connected software ("Kein
+  Zugriff", "Nur lesen", "Lesen und ändern") together with members, areas and web search, saved in one step; the groups'
+  table shows each group's software. The software's access list on the page "Software" now only shows the groups'
+  levels - they are changed in the group's dialog. Admin API: `levels` on the groups; `PUT
+  .../mcp-connections/{id}/access/groups/{groupId}` is removed.
+
+### Fixed
+
+- **A scanned page the PDF library cannot draw** (a broken colour space or image) no longer fails the whole document:
+  the page keeps its own text, the other pages are read and the document becomes ready - before, every retry paid for
+  the pages read before it and failed again. A chat file with such a page is refused as unreadable instead of an
+  internal error.
+- **Web search after a failed document search**: when searching the company's documents failed (e.g. the embedding
+  provider refusing its key), the web search was allowed all the same and could become the answer's only source - it
+  now waits for a document search that came back.
+- **Chat, connection lost**: an answer whose connection a proxy or the network tore off showed "could not be
+  answered" although the backend still stored it, so asking again doubled the exchange - it now says the answer may
+  still be stored and to open the chat again first.
+- **Scheduled tasks**: the run view showed a failed run's message without its values in German ("Der Schritt  hat
+  neue Zeilen gelesen, mindestens  erwartet") - a failed step now keeps the values of its error, and the message is
+  shown whole.
+- **Sandbox**: code that left a named pipe where a file was expected (and had it shown or handed out) blocked the
+  sandbox until its restart - it is now refused like any other non-file.
+- **MCP server**: an unexpected failure in one of its tools (the database briefly out of reach, a provider's key no
+  longer readable) ended the MCP client's session with an error and left nothing in the log - it is now an answer the
+  client's model reads ("try again later"), and the log names it.
+- **Connected software after a new `APP_SECRET_KEY`**: a connection's stored key that can no longer be read broke off
+  the chat's answer and made "Werkzeuge neu laden" fail with an unexpected error - both now say to enter the key again
+  in the connection.
+- **User groups**: two messages of the group dialog (an unknown connected software, a missing level) were shown in
+  English to German users.
+- **Scheduled tasks, rotated logs**: a log rotated and grown past where the last run stopped before the next run was
+  read from the old position - its beginning was never checked, and the line numbers in the mail were wrong. It is now
+  recognised as rotated and read from its start.
+- **Scheduled tasks, a run broken off**: a run that broke off outside its steps (the tenant's database briefly out of
+  reach at its end) blocked every start of its task until the server's next start, and cancelling it did nothing -
+  cancelling now ends it at once.
+- **Scheduled tasks, files of one name**: a task reading two folders or file stores with a file of the same name (two
+  servers' `app.log`) mixed their lines - the run's files of such a task are now named with their store and folder
+  (`Webserver:logs/app.log`).
+- **Scheduled tasks, editor**: what was typed while a save went out was replaced by the saved text - it now stays as an
+  unsaved change.
+- **File stores**: FTPS read file names with umlauts wrong (a pattern like `Störung-*.log` never matched); names are
+  now read in UTF-8. An SFTP server hanging with its connection open held a task for 10 minutes per request - now
+  60 seconds.
+
+### Security
+
+- **Server log**: a model server's error answer to a call asked again (HTTP 5xx, 429) no longer reaches the log, the
+  page "Application log" or the daily report - such an answer may repeat the request, a document's text.
+- **FTPS file stores**: a host whose name server answers with another address while connecting is refused before its
+  certificate is shown or the password is sent - the address checked against the internal networks is the one used.
+- **Connected software**: when the host of a connection's address cannot be resolved at a call, the message to the
+  chat, its user and an MCP client names the connection only, no longer the host.
+
 ## [1.7.1] - 2026-10-24
 
 ### Added
