@@ -5,6 +5,83 @@ What changed in each release of Alpdesk AI, newest first. Versions follow [Seman
 features, updating needs nothing by hand; **patch** - fixes and small improvements. Every release is a tag `v<version>`
 with its images `ghcr.io/xprojects-de/alpdesk-ai:<version>` and `-sandbox:<version>`; updating: see the README.
 
+## [1.9.0] - 2026-11-02
+
+### Added
+
+- **Knowledge sources**: a folder of a file store (SFTP, FTPS, S3, SharePoint / OneDrive) is read into the company knowledge
+  or an area, subfolders included, and kept up to date: changed files are embedded again, deleted ones removed. Saving
+  a source only lists its folder and shows what is open; "Jetzt synchronisieren" reads everything, a schedule (hourly to
+  daily) at most 100 files or 250 MB per run. Files of a type that is not read are skipped by their extension, refused
+  files are listed with the reason. Removing a source deletes its documents or keeps them as uploaded ones; a file
+  store a source reads keeps its server and folder until the source is changed. On the page
+  "Firmenwissen" and the admin's tab of a tenant. The folder is typed or chosen by clicking through the store's folders;
+  a source on the same folder as another one, above or below it, is pointed out.
+- Log files (`.log`) are read as text - as documents and as files in the chat.
+- **S3 as a file store**: a bucket of Amazon S3 or of an S3-compatible store (an own endpoint) - optionally a folder
+  in it - read with an access key, for scheduled tasks and knowledge sources alike. Its check reads the folder at once;
+  plain `http://` only to a host in `APP_FILE_STORE_INTERNAL_HOSTS`.
+- **SharePoint and OneDrive as a file store**: a document library of a SharePoint site or a OneDrive - optionally a
+  folder in it - read through Microsoft Graph by an app registration of the company's Entra ID (`Sites.Selected`,
+  client secret), for scheduled tasks and knowledge sources alike. An expired client secret is named as such.
+- **Reranking, switchable per tenant**: a reranker reorders what the knowledge search finds by how well each passage
+  answers the question - in the chat, `/api/v1/chat`, the MCP server and scheduled tasks. New model kind "Reranker" in
+  the catalog on a server speaking the `/rerank` API of Text Embeddings Inference (TEI); assigned to a tenant, switched
+  on and off on the page "Firmenwissen" - off unless chosen, nothing is embedded again. If the reranker fails or takes
+  longer than 30 seconds, the search keeps its own order. On a CPU it takes about a second per passage, so it reorders
+  a search's best 10 candidates - the new optional setting `APP_SEARCH_RERANK_CANDIDATES` (2 to 40, default 10; 20 with
+  a GPU).
+- **A local reranker**: `docker-compose.reranker.yml` (CPU) and `docker-compose.reranker-gpu.yml` (NVIDIA GPU) start
+  Hugging Face's Text Embeddings Inference with `bge-reranker-v2-m3` (multilingual) in the app's network - one reranker
+  serves every tenant; the GPU file is not tried on a GPU yet. See the README, "Reranking with a local reranker".
+
+- **What a scheduled task's run cost**: the run list and the run view show the cost of every run and of each of its
+  steps next to the tokens, as the usage recorded it.
+- **Price tiers and cache prices in the model catalog**: a model may bill a request with a long prompt at higher prices
+  (Claude Haiku 5.5 above 100 000 tokens) and a cached token at its own price - both optional per model, entered in the
+  model dialog under "Preisstufe und Cache".
+- **Prompt caching with Claude**: the rounds of an answer - in the chat, `/api/v1/chat`, the MCP server's
+  `ask_assistant` and scheduled tasks - let Anthropic cache what they share; the model sees exactly the same, an
+  answer with several rounds costs about 40% less. OpenAI requests carry a cache key so their rounds reach the same cache.
+
+### Changed
+
+- `GET /api/v1/documents` lists the documents of knowledge sources too: origin `SOURCE`, with the new field `sourceId`
+  (null for the others).
+- Documents of several tenants are embedded in turn: one tenant's large import no longer holds up another tenant's
+  uploads. Within a tenant the order stays; the page "Firmenwissen" says how many documents wait.
+- The task format's reference says that a `verify` step's `model` may be a cheaper one than the checking step's.
+- A task naming a file store that is not ready yet now says so in general terms ("check it on the page File stores
+  first") instead of speaking of a fingerprint.
+- The usage pages show the tokens read from and written to a provider's cache; they count into the tokens and are
+  priced at the model's cache prices.
+
+### Fixed
+
+- Tokens that OpenAI and Gemini serve from their cache were counted at the full input price - now at the cache price
+  the catalog gives (or still the input price where none is entered).
+- Gemini's thinking tokens, reported apart from the answer, were missing from the usage - they count as output now.
+- A scheduled task's step that failed after calling its model showed no tokens - it now keeps the tokens and cost of
+  its calls, which were in the usage all along.
+- A rare failure while connecting to an SFTP store (a race in the key exchange) is fixed by the update of the SSH
+  library; an answer of an OpenAI-compatible server that fails midway is now reported as a failure instead of ending
+  the answer silently.
+- A scheduled task with `firstRun: end` whose first run found no file yet started at the end again on its next run -
+  the lines written in between were never read. The file that appears later is now read from its start.
+- The run view of a task no longer stays at "running" on a slow connection: it waits for an answer instead of asking
+  again every two seconds and cancelling the request still on its way.
+- An answer stopped because the model ran away in blanks or repeated its reasoning was recorded with no tokens and no
+  cost - its input is now estimated from the text sent and billed.
+- A restart while an uploaded audio file was being transcribed left the file in the storage for good, beyond its
+  retention time - the transcript is now written before anything is stored.
+
+### Security
+
+- A folder of an SFTP, FTPS or S3 store with more than 50 000 entries is refused while it is listed (FTPS: a listing
+  is cut off after 32 MB): a server that answers without end can no longer fill the memory of the installation.
+- Pointing a knowledge source at another area, folder, store or pattern now holds the source: a run can no longer
+  start in the moment of the change and file new documents under the old area.
+
 ## [1.8.0] - 2026-10-25
 
 ### Added

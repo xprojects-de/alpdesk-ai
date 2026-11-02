@@ -1,0 +1,48 @@
+# Optional: the local reranker of docker-compose.reranker.yml on an NVIDIA GPU (README.md "Reranking with a local
+# reranker") - a search's candidates in well under a second instead of about a second each on a CPU. Needs the NVIDIA
+# driver and the NVIDIA Container Toolkit with CDI on the server (podman: `nvidia-ctk cdi generate`). The model is
+# downloaded at the first start into the volume "models" (about 2.3 GB). Started after docker-compose.prod.yml, whose
+# network it joins - the app reaches it as http://alpdesk-ai-reranker:8080:
+#
+#   podman-compose -f docker-compose.reranker-gpu.yml up -d
+#
+# The same project name as the CPU file: one of the two runs, never both.
+name: alpdesk-ai-reranker
+
+services:
+
+  reranker:
+    # TEI has one image per GPU generation (RERANKER_IMAGE in .env): 89-1.9.4 Ada Lovelace (RTX 4000 Ada, L4, L40),
+    # 86-1.9.4 Ampere 8.6 (A10, A40, RTX 30x0), 1.9.4 Ampere 8.0 (A100), hopper-1.9.4 (H100), turing-1.9.4 (T4).
+    image: ${RERANKER_IMAGE:-ghcr.io/huggingface/text-embeddings-inference:89-1.9.4}
+    container_name: alpdesk-ai-reranker
+    # The model of one fixed revision, as on the CPU. A GPU has the memory for the model's full batch.
+    command: >-
+      --model-id BAAI/bge-reranker-v2-m3 --revision 953dc6f6f85a1b2dbfca4c34a2796e7dde08d41e
+      --port 8080 --max-client-batch-size 64
+    volumes:
+      - models:/data
+    # The server's GPUs through CDI (podman). Docker instead: deploy.resources.reservations.devices with
+    # driver nvidia, count all, capabilities [gpu].
+    devices:
+      - nvidia.com/gpu=all
+    # TEI has neither TLS nor keys: no published port - only the containers of the app's network reach it.
+    read_only: true
+    tmpfs:
+      - /tmp:rw,size=64m,mode=1777
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges
+    networks:
+      - default
+    restart: always
+
+volumes:
+  models:
+
+networks:
+  # Created by docker-compose.prod.yml (project alpdesk-ai: the app, the database and Caddy).
+  default:
+    external: true
+    name: alpdesk-ai_default

@@ -1,0 +1,47 @@
+# Optional: a local reranker for the company's knowledge search - its results reordered by how well each answers the
+# question (README.md "Reranking with a local reranker"). Hugging Face's Text Embeddings Inference (TEI) on the CPU with
+# the model bge-reranker-v2-m3, downloaded from Hugging Face at the first start into the volume "models" (about 2.3 GB)
+# - afterwards it needs no internet. One reranker serves every tenant. With a GPU: docker-compose.reranker-gpu.yml
+# instead. Started after docker-compose.prod.yml, whose network it joins - the app reaches it as
+# http://alpdesk-ai-reranker:8080:
+#
+#   podman-compose -f docker-compose.reranker.yml up -d
+#
+# Its own project name: the app's stack is not touched by an up or down of this file.
+name: alpdesk-ai-reranker
+
+services:
+
+  reranker:
+    # TEI has one image per architecture: cpu-1.9.4 for x86_64, cpu-arm64-1.9.4 for ARM (RERANKER_IMAGE in .env).
+    image: ${RERANKER_IMAGE:-ghcr.io/huggingface/text-embeddings-inference:cpu-1.9.4}
+    container_name: alpdesk-ai-reranker
+    # The model of one fixed revision: a later upload to Hugging Face never changes it unnoticed. At most 2048 tokens
+    # per batch: TEI warms up with its largest batch - at the model's 8192 it takes more than 8 GB of memory. The
+    # app's search sends chunks of 1000 characters, a few hundred tokens with the question.
+    command: >-
+      --model-id BAAI/bge-reranker-v2-m3 --revision 953dc6f6f85a1b2dbfca4c34a2796e7dde08d41e
+      --port 8080 --max-batch-tokens 2048 --max-client-batch-size 64
+    volumes:
+      - models:/data
+    # TEI has neither TLS nor keys: no published port - only the containers of the app's network reach it. A read-only
+    # root, every capability dropped - TEI writes to the volume and /tmp only.
+    read_only: true
+    tmpfs:
+      - /tmp:rw,size=64m,mode=1777
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges
+    networks:
+      - default
+    restart: always
+
+volumes:
+  models:
+
+networks:
+  # Created by docker-compose.prod.yml (project alpdesk-ai: the app, the database and Caddy).
+  default:
+    external: true
+    name: alpdesk-ai_default

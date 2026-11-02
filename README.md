@@ -130,7 +130,8 @@ podman image prune -f                                      # removes the previou
 ```
 
 The embeddings image ("Embeddings with a local Ollama") has no version of its own and changes rarely; update it when
-you like with `podman-compose -f docker-compose.embeddings.yml pull` and `up -d`.
+you like with `podman-compose -f docker-compose.embeddings.yml pull` and `up -d`. The reranker ("Reranking with a local
+reranker") names a fixed TEI version - a newer one is a new tag in `RERANKER_IMAGE`.
 
 A new optional setting of a release shows up in its `.env.example`; compare it with your `.env`
 (`diff .env.example .env`). A new **required** one stops `podman-compose` with its name. The loop starts every
@@ -152,14 +153,15 @@ The app's environment variables, set through the file `.env` next to `docker-com
 | `DB_PASSWORD` | The database password - `openssl rand -base64 48` |
 | `APP_BRANDING_NAME` / `APP_BRANDING_PRIMARY_COLOR` / `APP_BRANDING_LOGO` | Optional, the installation's look (default "Alpdesk AI", `#49732a`, the Alpdesk AI logo; `APP_BRANDING_LOGO=` empty = no logo) - the admin's dashboard and every tenant the admin gave no look of its own. The logo is a PNG, JPEG or WebP of at most 512 KB: copy it into the volume `files` (`podman cp logo.png alpdesk-ai:/home/app/files/branding-logo.png`) and set `/home/app/files/branding-logo.png` |
 | `APP_AI_PLAIN_HTTP_HOSTS` | Optional: the hosts of own model servers reached over plain HTTP, comma separated (e.g. `ollama,10.0.0.5`) - every other server needs HTTPS. See "Own model servers". A listed host is also exempt from the "no internal address" rule, and the exemption counts for the addresses of connected software (MCP) that every tenant admin may enter: any port of it becomes reachable to the app's requests - never list `localhost` or the app's own container |
-| `USE_SYSTEM_CA_CERTS` | Optional: `1` trusts the certificates of the company's own authorities in the volume's `certificates/` - see "Own model servers" (FTPS file stores too) |
-| `APP_FILE_STORE_INTERNAL_HOSTS` | Optional: the hosts of file stores (SFTP, FTPS) in the internal network, comma separated (e.g. `logs.intern,10.0.5.20`) - every other file store must be a public host. Every tenant admin may enter a listed host, on any port: never list `localhost`, the database or the app's own container |
+| `USE_SYSTEM_CA_CERTS` | Optional: `1` trusts the certificates of the company's own authorities in the volume's `certificates/` - see "Own model servers" (FTPS file stores and S3 endpoints too) |
+| `APP_FILE_STORE_INTERNAL_HOSTS` | Optional: the hosts of file stores (SFTP, FTPS, S3 endpoints) in the internal network, comma separated (e.g. `logs.intern,10.0.5.20`) - every other file store must be a public host. Every tenant admin may enter a listed host, on any port: never list `localhost`, the database or the app's own container. A listed host may be an S3 endpoint over plain `http://` (see "File stores") |
 | `JAVA_TOOL_OPTIONS` | Optional JVM options |
 | `MICRONAUT_SERVER_CONTEXT_PATH` | Optional: the sub-path behind a reverse proxy - see "Behind a reverse proxy under a sub-path" |
 | `APP_WAM_ENABLED` / `APP_WAM_USER_HEADER` / `APP_WAM_NAME_HEADER` | Optional: sign-in through a WAM proxy - see "Sign-in through a WAM proxy" |
 | `APP_WAM_GROUPS_HEADER` / `APP_WAM_GROUPS_SEPARATOR` | Optional: the person's IDM groups from the WAM proxy, checked against the user groups' WAM groups - see "Sign-in through a WAM proxy" |
 | `APP_MONITORING_MAIL_TO` / `APP_MAIL_*` / `APP_MONITORING_DAILY_REPORT_CRON` | Optional: the daily report by e-mail - see "Daily report" |
 | `APP_CHAT_VIDEO_MAX_SIZE` / `APP_CHAT_VIDEO_ROUNDS` | Optional: the size a video in the chat may have (default `500MB`, at most `512MB`), and the rounds the assistant may take for an answer about one (default `16` - each round costs tokens) - see "Code execution" |
+| `APP_SEARCH_RERANK_CANDIDATES` | Optional: how many of a search's candidates a tenant's reranker reorders, 2 to 40 (default `10`, for a reranker on a CPU) - `20` with a GPU, see "Reranking with a local reranker" |
 | `APP_DOC_SITE_MAX_ZIP_SIZE` | Optional: the largest ZIP a handbook's website may be uploaded as (default `100MB`, at most `512MB`); unpacked it may hold five times as much |
 | `APP_TASK_RUN_RETENTION_DAYS` | Optional: how many days a scheduled task's run stays after it ended (default `14`) - with the lines its steps read, its findings and its steps; checked every hour. Set empty to keep runs until a tenant admin deletes them or their task. The read positions stay: the next run goes on where the last one stopped |
 | `APP_CHAT_VIDEO_RETENTION_HOURS` / `APP_CHAT_FILE_RETENTION_DAYS` / `APP_CHAT_CLEANUP_CRON` | Optional: how long the chat's files stay before they are deleted - an uploaded video the hours after its upload (default `8`), every other file, uploaded or created, the days after it was stored (default `14`); set one empty to keep those files until they or their conversation are deleted. The conversation keeps a deleted file listed as expired. The cleanup runs every hour (a cron expression, seconds first) |
@@ -233,6 +235,34 @@ shows at once, not at 06:00; the log names the setting. To try the settings, the
 on the page "Application log" - a refused mail is shown there with the mail server's reason. The same page shows the
 recent warnings and errors at any time, searchable, with their stack traces - for the admin only.
 
+## File stores
+
+Tenant admins add the servers their scheduled tasks and knowledge sources read files from: SFTP and FTPS servers
+(confirmed by the fingerprint of their key or certificate before the password is sent), buckets of Amazon S3 or an
+S3-compatible store (an own endpoint such as `https://s3.example.com`; plain `http://` only to a host in
+`APP_FILE_STORE_INTERNAL_HOSTS`) and document libraries of SharePoint or a OneDrive. An S3 store reads with an access
+key of its own - give it read rights on the bucket only, for example:
+
+```json
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {"Effect": "Allow", "Action": "s3:ListBucket", "Resource": "arn:aws:s3:::example-logs"},
+    {"Effect": "Allow", "Action": "s3:GetObject", "Resource": "arn:aws:s3:::example-logs/*"}
+  ]
+}
+```
+
+A SharePoint store reads through Microsoft Graph with an app registration of the company's Entra ID:
+
+1. Register an app, create a client secret (it expires - two years at most; the store's check then says so).
+2. Add the application permission `Sites.Selected` (Microsoft Graph) and grant admin consent - nothing else.
+3. Grant the app read on the one site or OneDrive it is to read, through Graph
+   (`POST /sites/{site-id}/permissions` with `{"roles": ["read"], "grantedToIdentities": [{"application": {"id":
+   "<client id>"}}]}`) or PnP PowerShell (`Grant-PnPAzureADAppSitePermission`).
+4. Enter the directory (tenant) ID, the client ID, the secret and the site's address - a OneDrive's is
+   `https://<company>-my.sharepoint.com/personal/<name>`.
+
 ## Own model servers
 
 The admin enters an own model server with its model in the catalog (page "KI-Modelle"): provider "Ollama" (its own
@@ -254,6 +284,10 @@ farm or `https://api.mistral.ai/v1`), the server's address and, if it asks for o
   ```
   The context length is sent with every request (catalog field "Kontextlänge", default 32768) - the Ollama server needs
   no `OLLAMA_CONTEXT_LENGTH`, only enough memory for it.
+- **Keep the model loaded between the rounds of an answer**: the chat and scheduled tasks send the whole conversation
+  again in every round, and both servers reuse what a prompt shares with the one before - much faster, at no cost.
+  Ollama does so while the model stays loaded (`OLLAMA_KEEP_ALIVE`, e.g. `30m`) and the conversation fits its context
+  length; vLLM with its prefix caching (`--enable-prefix-caching`, on by default in recent versions).
 - **The company's knowledge needs an embedding model** - a local one: "Embeddings with a local Ollama".
 - **Choose the tenant's search language** when creating it (the tenant dialog; later under "Company knowledge"): the
   language its documents are written in, so the search finds other forms of a word too. Without a choice the tenant is
@@ -308,6 +342,51 @@ podman-compose -f docker-compose.embeddings.yml up -d          # after docker-co
   reachable, copy it, `podman load -i embeddings.tar` - the same for the app's images.
 - It needs memory for the model (well over 1 GB) and runs as any user but root (10001 in the image) on a read-only
   root; `/tmp` must be writable (Ollama writes a key of its own there at every start).
+
+## Reranking with a local reranker
+
+Optional: a reranker reorders what the company's knowledge search finds by how well each passage answers the question -
+it reads question and passage together (a cross-encoder), which the embedding alone cannot. Often the right passage
+comes first then. It runs as Hugging Face's [Text Embeddings Inference](https://github.com/huggingface/text-embeddings-inference)
+(TEI, their official image) with the model `bge-reranker-v2-m3` (multilingual), started with one of two compose files:
+
+- **`docker-compose.reranker.yml` - on the CPU.** About a second per passage: a search hands it its best 10
+  candidates (`APP_SEARCH_RERANK_CANDIDATES`, default `10`), about 10-15 seconds per search - measured almost the whole
+  gain. Each search of an answer is reranked, so in the chat it is noticeable: switch it on where accuracy matters more
+  than speed, or for scheduled tasks. TEI has an image per architecture: on an ARM server set
+  `RERANKER_IMAGE=ghcr.io/huggingface/text-embeddings-inference:cpu-arm64-1.9.4` in `.env`.
+- **`docker-compose.reranker-gpu.yml` - on an NVIDIA GPU**, well under a second per search; set
+  `APP_SEARCH_RERANK_CANDIDATES=20` (measured: the whole gain). Needs the NVIDIA driver and the NVIDIA Container Toolkit
+  with CDI (`sudo nvidia-ctk cdi generate --output=/etc/cdi/nvidia.yaml`). TEI has an image per GPU generation -
+  `RERANKER_IMAGE` in `.env`, default `89-1.9.4` (Ada Lovelace: RTX 4000 Ada, L4, L40); `86-1.9.4` (A10, A40, RTX 30x0),
+  `1.9.4` (A100), `hopper-1.9.4` (H100), `turing-1.9.4` (T4). Not tried by us on a GPU yet.
+
+```shell
+podman-compose -f docker-compose.reranker.yml up -d         # or -gpu.yml; after docker-compose.prod.yml
+podman logs -f alpdesk-ai-reranker                           # "Ready" once the model is loaded
+```
+
+- **The first start downloads the model** from Hugging Face into the volume `models` (about 2.3 GB, a fixed
+  revision) - after that it starts without internet. A server without internet: start it once where the internet is
+  reachable and move image and volume (`podman save` the image, `podman volume export` the volume; `load` and
+  `import` on the server).
+- **`.env`**: add `alpdesk-ai-reranker` to `APP_AI_PLAIN_HTTP_HOSTS` (e.g.
+  `APP_AI_PLAIN_HTTP_HOSTS=alpdesk-ai-embeddings,alpdesk-ai-reranker`), then `podman-compose -f docker-compose.prod.yml
+  up -d` - plain HTTP is fine here: the container has no published port and is reached inside the stack's network only.
+- **The catalog entry** (page "KI-Modelle"): provider "TEI server", kind "Reranker", address
+  `http://alpdesk-ai-reranker:8080`, model name `bge-reranker-v2-m3`, no key, price 0. Any other server speaking TEI's
+  `/rerank` API works too.
+- **Assign it** to the tenants that may use it, like a model; the tenant admin (or the admin) switches it on and off
+  under "Company knowledge" - off unless chosen. Nothing is embedded again: switching changes only the order of what the
+  search finds, so answers can be compared with and without it. One reranker serves every tenant: it keeps nothing, and
+  the search hands it only what the asking tenant may find.
+- Keep `APP_SEARCH_RERANK_CANDIDATES` above the tenants' number of search results (usually 5): the reranker picks the
+  best of more; at the same number it only reorders what comes anyway.
+- If the reranker fails or does not answer within 30 seconds, the search keeps its own order and the log says so - the
+  answer does not fail.
+- On the CPU it needs about 3.5 GB of memory. Its root is read-only and every capability dropped; it writes to its
+  volume and `/tmp` only.
+- **Updating**: a newer TEI is a new tag in `RERANKER_IMAGE` (the files name 1.9.4), then `up -d`.
 
 ## Behind an own reverse proxy
 

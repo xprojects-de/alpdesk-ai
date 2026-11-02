@@ -7,7 +7,7 @@ unmodified libraries, or offer a permissive option.
 
 The licenses were read out of the resolved artifacts - POM metadata, `Bundle-License` in the jar manifests,
 `META-INF/LICENSE` files and source headers for the backend, the `license` field of each installed package for the
-frontend - not assumed. As of: backend `runtimeClasspath` and frontend `dependencies` of 23 October 2026.
+frontend - not assumed. As of: backend `runtimeClasspath` and frontend `dependencies` of 23 October 2026, the AWS SDK and MSAL added 29 October 2026.
 
 ## Backend (Java, shipped in the jar)
 
@@ -28,6 +28,7 @@ Most of the stack. Apache-2.0 asks for the license and the NOTICE contents to be
 | `org.flywaydb:flyway-core`, `flyway-database-postgresql` (Community edition) | Database migrations |
 | `org.apache.sshd:sshd-core`, `sshd-common`, `sshd-sftp` (Apache MINA SSHD) | SFTP to the tenants' file stores |
 | `commons-net:commons-net` | FTPS to the tenants' file stores |
+| `software.amazon.awssdk:*` (AWS SDK for Java 2: s3, url-connection-client and their modules), `software.amazon.eventstream:eventstream` | S3 to the tenants' file stores |
 | `io.netty:*`, `io.netty.contrib:netty-codec-multipart-core` | Network layer of the HTTP server |
 | `com.fasterxml.jackson.core:*`, `tools.jackson.*` | JSON, YAML |
 | `com.nimbusds:nimbus-jose-jwt` | JWT |
@@ -40,6 +41,7 @@ Most of the stack. Apache-2.0 asks for the license and the NOTICE contents to be
 | Component | License | Role |
 |---|---|---|
 | `io.modelcontextprotocol.sdk:mcp-core` | MIT | MCP Java SDK |
+| `com.microsoft.azure:msal4j`, `com.azure:azure-json` | MIT | The token of a SharePoint store's app registration (Microsoft Authentication Library) |
 | `com.pgvector:pgvector` | MIT | pgvector types for JDBC |
 | `org.slf4j:slf4j-api`, `jcl-over-slf4j` | MIT | Logging API |
 | `org.jsoup:jsoup` | MIT | HTML clean-up |
@@ -177,6 +179,14 @@ official image `ollama/ollama` (MIT; Ubuntu-based, with the GPU runtime librarie
 terms) with the embedding model **bge-m3** of the Beijing Academy of Artificial Intelligence (MIT) pulled into it,
 unmodified. The sources of Ollama are at https://github.com/ollama/ollama, the model's card and license at
 https://huggingface.co/BAAI/bge-m3, those of the Ubuntu packages from Ubuntu as above.
+
+## Reranker (not shipped)
+
+`docker-compose.reranker.yml` and `docker-compose.reranker-gpu.yml` (optional) start Hugging Face's official image of
+Text Embeddings Inference `ghcr.io/huggingface/text-embeddings-inference` (Apache-2.0,
+https://github.com/huggingface/text-embeddings-inference), which downloads the reranker **bge-reranker-v2-m3** of the
+Beijing Academy of Artificial Intelligence (Apache-2.0, https://huggingface.co/BAAI/bge-reranker-v2-m3) from Hugging
+Face at its first start. Neither is part of the release; both come from Hugging Face directly.
 
 ## Tools (not shipped)
 

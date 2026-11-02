@@ -41,7 +41,9 @@ protected by the software:
   development only - they are not the defaults of an installation.
 - **A leaked admin password is changed together with `JWT_GENERATOR_SIGNATURE_SECRET`.** The admin's token is valid
   for a day and nothing on the server ends it: a new `APP_PASSWORD` alone leaves whoever logged in with the old one
-  inside until then. A new JWT secret ends every session at once (tenant users log in again too).
+  inside until then. A new JWT secret ends every session at once (tenant users log in again too). A tenant user's
+  logout, too, happens in the browser only: a copied token stays valid for its day unless an admin sets a new
+  password; deactivating the user or the tenant refuses it only while they stay deactivated.
 - **`APP_SECRET_KEY` is kept safe and backed up.** It encrypts the stored AI provider keys, the keys of connected
   software and of own model servers, the file stores' passwords and the sandboxes' tokens (AES-256-GCM); whoever has
   it and a database dump has those secrets.
@@ -85,16 +87,31 @@ protected by the software:
   HTTPS and "no internal address" - for own model servers (the admin) *and* for the addresses of connected software,
   which every tenant admin enters: any port and path of such a host becomes reachable to the app's requests. List
   only hosts that are meant for it (a model server of the installation), never `localhost` or the app's own pod.
-- **`APP_FILE_STORE_INTERNAL_HOSTS` opens its hosts to every tenant admin's file stores.** A file store (SFTP, FTPS)
-  that a tenant admin enters must not lie in an internal network - unless its host is on this list: then any port of
-  it can be connected to by the app on behalf of every tenant. List only the file servers meant for it, never
-  `localhost`, the database or the app's own pod.
+- **`APP_FILE_STORE_INTERNAL_HOSTS` opens its hosts to every tenant admin's file stores.** A file store (SFTP, FTPS,
+  an S3 endpoint) that a tenant admin enters must not lie in an internal network - unless its host is on this list:
+  then any port of it can be connected to by the app on behalf of every tenant. List only the file servers meant for
+  it, never `localhost`, the database or the app's own pod. A listed host may also be an S3 endpoint over plain
+  `http://` (an own S3 server without a certificate): the access key's secret never goes over the wire, but the files
+  do, unencrypted inside that network.
 - **A file store's server proves itself before the password goes out.** For SFTP a tenant admin confirms the
   fingerprint of the server's host key, which a check shows first; for FTPS the certificate must come from an
   authority the installation trusts, or its fingerprint is confirmed the same way. Until then, and whenever the
   server later presents another key or certificate, the app does not log in. Plain FTP is never used, and an FTPS
   data connection always goes to the server of the control connection, whatever address the server names - and is
   refused when it presents a certificate the server did not prove itself with.
+- **An S3 store reads with its own access key only.** The app never takes credentials, a profile or an endpoint from
+  the server it runs on (environment variables, `~/.aws`, an instance role) - a tenant admin's store cannot read with
+  the operator's rights. Its requests are signed with the secret, which is not sent. The endpoint's host is checked
+  against the internal networks when the store is saved and before every session; the HTTP client resolves the name
+  once more when it connects, so a name server that answers differently in between (rebinding on purpose) could lead
+  a request elsewhere - a known limit, shared with the connections to the tenants' software. Give the key read rights
+  on the bucket only (`s3:ListBucket`, `s3:GetObject`).
+- **A SharePoint store reads with the customer's app registration.** Its client secret goes to Microsoft's login only
+  (`login.microsoftonline.com`), the token to Microsoft Graph only - a redirect is not followed, a next page outside
+  Graph is refused, and a file's download address (pre-authenticated by Microsoft) is fetched without the token and
+  only from a `*.sharepoint.com` host. Give the app the application permission `Sites.Selected` and read on the one
+  site or OneDrive it is to read - nothing else: `Files.Read.All` or `User.Read.All` next to it can widen what it
+  reaches, `Sites.Read.All` reads every site of the company.
 - **A scheduled task's text is data, never code.** A tenant admin writes a task in YAML or JSON; it is checked against
   a fixed format before it is stored - no expressions beyond comparing counts, no scripts, no anchors -, and its steps
   are the app's own. Its agent steps reach no tool but searching and reading the lines the task read, and no tool of
@@ -156,6 +173,12 @@ So nobody has to find it out the hard way:
   the installation; its changing tools are never passed through. The software's tool descriptions, prompts and the
   instructions it gives (at most 2,000 characters, after ours) are text of another server that the client's and our
   model read - enter only software you trust, and leave a module whose knowledge must not leave answer-only.
+- **MCP clients that act on the computer read the company's documents as text.** What `search_knowledge`,
+  `read_document` and `ask_assistant` hand to an MCP client reaches an agent that may write files or run commands
+  there (Claude Code, Cowork). The MCP server offers no changing tool and marks its own as read-only, but a document's
+  content - uploaded, pushed by the client software or read from a file store - is unchecked text to that agent: a
+  prepared document is prompt injection on the user's computer. Give MCP keys only to people who know this, and keep
+  the client's own permissions tight.
 
 ## Supported versions
 

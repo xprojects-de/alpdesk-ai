@@ -24,17 +24,20 @@ A company running Alpdesk AI for itself only is operator and controller at once.
 | With the WAM proxy's IDM groups checked (`APP_WAM_GROUPS_HEADER`): the IDM groups the proxy sent on each user's last request | management database, replaced on every change, deleted with the user - and all of them when the app starts without the check | yes - which groups of the company's directory a person is in |
 | API keys of the client software, MCP keys | management database | SHA-256 hash and a display prefix only |
 | Provider keys, keys of connected software, the token of a tenant's sandbox, the passwords of file stores | management database | encrypted (`APP_SECRET_KEY`) |
-| File stores (name, server, user name, folder, the confirmed fingerprint, the last check's outcome) | management database | the user name on the tenant's server |
+| File stores (name, server, user name, folder, the confirmed fingerprint, the last check's outcome; for S3 the endpoint, region, bucket and access key id; for SharePoint / OneDrive the directory and app id, site and library) - the password, S3's secret access key and SharePoint's client secret encrypted like the keys above | management database | the user name on the tenant's server |
+| Knowledge sources (name, store, folder, area, file pattern, schedule, the last run's numbers and error code) | management database | none beyond the folder's name |
+| What a knowledge source saw: each file's path, size and time, its document or the code why it was refused | the tenant's own database | the files' paths - deleted with the file's document when the file vanishes, and with the source |
 | Scheduled tasks (their text, check points, recipients) | management database | the e-mail addresses of the recipients |
 | A task's runs: what each step did, the lines read from the store's files (after the task's filter, with what it masks replaced by `***`), the findings with their evidence lines | the tenant's own database | whatever the files contain and the task does not mask (log files often hold names, user names, addresses) - 14 days after the run ended (`APP_TASK_RUN_RETENTION_DAYS`; set empty: until a tenant admin deletes the run, or its task) |
 | How far a task has read each file: its path, the position and when the file last changed | the tenant's own database | the files' paths - kept with the task until it is deleted, also for a store it no longer reads |
 | Usage per call (tenant, user, provider, model, tokens, amount, time) | management database | yes - who used which model when |
 | The company's documents: their text, chunks and embeddings | the tenant's own database (`tenant_...`) | whatever the documents contain |
+| The original of an image or a scanned document, until it was read | file storage (`APP_STORAGE_PATH`) | whatever the image shows - deleted once its text was read; if reading fails, until the document is deleted or embedded again |
 | Conversations and messages of the chat, pending tool calls | the tenant's own database | yes - questions and answers belong to a user |
 | Files in the chat (uploaded, created, and returned by a tool of connected software), converted copies of audio, page images of scans | file storage (`APP_STORAGE_PATH`, volume `files`) | whatever the files contain - until `APP_CHAT_FILE_RETENTION_DAYS` (14) after they were stored, an uploaded video `APP_CHAT_VIDEO_RETENTION_HOURS` (8) after its upload (set empty: until they or their conversation are deleted); then deleted with their text, their name, type and size stay listed in the conversation |
 | The handbook's websites (static websites uploaded as a ZIP for everyone or a knowledge area) | file storage, their list in the tenant's own database | whatever the tenant puts on them - read by people only, never sent to an AI provider |
 | The question's files while its code runs (sent files and conversation files, what the code writes) | the tenant's own sandbox, in memory (`/work`, `/tmp` and the other writable places) | whatever the files contain - deleted when the answer ends, after 5 minutes idle at the latest; never in another tenant's sandbox |
-| Server log | container log | ids of tenants and users in errors and warnings; never a document's content, a prompt or a provider's answer |
+| Server log | container log | ids of tenants and users in errors and warnings, the path of a file store's file that could not be read; never a document's content, a prompt or a provider's answer |
 | The last 1000 warnings and errors of the log, for the daily report and the admin's page "Application log" | the app's memory - a restart empties it | as the server log |
 | Backups | wherever the operator puts them | everything above |
 
@@ -59,6 +62,9 @@ Every model call sends data to the provider of the model in use:
   (and, when the model reads on, larger parts of those documents - at most 30,000 characters per answer),
   the files read in that conversation and the results of tools (including answers of connected software) to the chat
   model.
+- **Prompt caching**: the rounds of one answer (and of a task's step) ask Anthropic to cache the prompt they share -
+  Anthropic keeps it up to 5 minutes for the next round to read, isolated per organisation; OpenAI and Gemini cache
+  repeated prompts on their own. Nothing else is sent for it.
 - **Audio** is transcribed by the catalog's transcription model.
 - **Code execution** (when the tenant has a sandbox of its own): the question's files go to that sandbox, a container
   of the installation itself - not to a provider, not to another tenant's -, and are deleted there when the answer
@@ -68,7 +74,15 @@ Every model call sends data to the provider of the model in use:
   user (a marked still, a clip) is stored as a file of the conversation like one it created.
 - **Checking a file store** (SFTP, FTPS) connects to the tenant's own server: the user name and - once the server's
   fingerprint is confirmed - the password go there, and the names of the folder's first entries come back; they are
-  shown, not stored.
+  shown, not stored. An S3 store (Amazon S3 or a compatible one the tenant names) gets the access key's ID and
+  requests signed with its secret - the secret itself is not sent; the same names come back. A SharePoint store
+  sends the app's client secret to Microsoft's login and reads through Microsoft Graph with the token it gets; the
+  files already lie with Microsoft 365, nothing of Alpdesk AI goes there. So are the folder names listed when a knowledge source's folder is chosen.
+- **A knowledge source** reads the files of a folder of the tenant's own store - subfolders included, only files of a
+  type that is read - and stores them as documents of the company knowledge or an area: their text in the tenant's
+  database, embedded with the tenant's embedding model (the text's chunks go to that model's provider, scans and
+  images to the image model, as for an upload). A file that vanishes from the folder is deleted from the knowledge at
+  the next complete listing; a document deleted by hand comes back when its file changes.
 - **A scheduled task's run** reads the matching files of the tenant's own store; the lines its filter keeps go to the
   tenant's chat model (the provider of that model, with the tenant's or the admin's key) together with the task's
   check points - and the findings with their evidence lines to the verifying model. Without new lines nothing goes to
@@ -93,6 +107,10 @@ Every model call sends data to the provider of the model in use:
   does cannot be guaranteed - a model may still carry a word of a document (a product name) into a query. The pages
   found go to the chat model like a document's excerpts, and their addresses are shown as the answer's sources; the
   usage records the number of searches.
+- **A search with a reranker** (only where the admin assigned one to the tenant and the tenant chose it) sends the
+  question and the passages the search found - up to 40, from the asker's documents only - to the reranker's server,
+  an own server the operator runs (e.g. Text Embeddings Inference in the app's network); it keeps nothing and answers only
+  scores. The usage records the call.
 - **A prompt of connected software** sends the values a user typed into its form to that software (the tenant's
   own), which makes the text that lands in the user's input field.
 - **An answer through the MCP server** goes to the MCP client that holds the tenant's MCP key (Claude Code, GitHub
@@ -112,8 +130,8 @@ Every model call sends data to the provider of the model in use:
 Besides the model calls, **the daily report** (when the operator set a mail server and recipients) goes by e-mail to
 the operator's addresses over the configured mail server, every morning: the active tenants' names with counts (users,
 documents, questions, the users who asked), database sizes and usage amounts, and the warnings and errors of the log of
-the last 24 hours. No document or file names, no questions or answers, no names of people other than what a log line
-holds.
+the last 24 hours. No document names, no questions or answers, no names of people other than what a log line holds -
+a file store's file that could not be read is named by its path.
 
 Which providers a tenant's data may reach is decided by the admin (models assigned per tenant) - audio never goes to a
 provider the tenant is not assigned. For data that must not leave the company, use models on your own servers
@@ -137,6 +155,9 @@ For the big providers, check before use:
   kept by the app - except the lines a task's runs read, which stay with those runs, and how far a task read each of
   its files (path and position), which stays with the task. A store a task reads cannot be deleted before the task.
   They go with the tenant too.
+- **A knowledge source**: removing it deletes its documents (text, chunks, a scan's original) and what it saw of each
+  file - or, if the tenant admin chooses "Dokumente behalten", keeps its documents as ordinary uploaded ones, no longer
+  kept up to date. A store a source reads cannot be deleted before the source. They go with the tenant too.
 - **A scheduled task**: deleting it deletes its runs - with the lines read, the findings and the state kept between
   steps - and its read positions; a tenant admin deletes one run, or every ended run of a task, while the admin allows
   the tenant tasks (otherwise the admin does). They go with the tenant too.
