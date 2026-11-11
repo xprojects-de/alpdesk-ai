@@ -325,7 +325,7 @@ mailhog -p 1025:1025 -p 8025:8025 docker.io/mailhog/mailhog`; then "Tagesbericht
 `application-dev.properties` (start it first with `./gradlew devDbStart`); `DATASOURCES_DEFAULT_*` environment
 variables still override it. **The tests have their own database**: `application-test.properties` sets a
 Testcontainers JDBC URL (`jdbc:tc:pgvectortest:pg18:///alpdesk_ai_test`, the same pgvector image as production, with
-1 GB of shared memory through `services.tenant.TestDatabaseProvider`), so specs
+1 GB of shared memory and 300 connections through `services.tenant.TestDatabaseProvider`), so specs
 never write into the dev database. With Podman, the Podman machine's socket is the Docker socket
 Testcontainers uses.
 
