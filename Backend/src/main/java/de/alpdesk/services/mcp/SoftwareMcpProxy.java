@@ -36,8 +36,8 @@ import java.util.regex.Pattern;
  * software through to MCP clients", roadmap point 41): the reading tools of the connections an MCP key may use and that
  * pass through ("Direkt an MCP-Clients") appear in the key's tools/list, and their calls go to the software as they
  * are - the client's model calls them itself, no second model answers. Where the key may change in a software (level
- * WRITE, roadmap point 68) its changing tools come too, marked as not read-only: the MCP client asks its user before
- * each call - the decision the chat asks for itself. Their software's instructions join the server's
+ * WRITE, roadmap point 68) its changing tools come too, marked as not read-only: whether a person is asked before
+ * a call is then the MCP client's matter, by its own permission rules. Their software's instructions join the server's
  * in initialize, their turned-on prompts its prompts/list. {@link BrandedMcpServer} answers all of it; the SDK never
  * sees these tools and prompts.
  * <p>
@@ -57,8 +57,9 @@ public class SoftwareMcpProxy {
     private static final Pattern PLAIN_PART = Pattern.compile("[A-Za-z0-9-]+(_[A-Za-z0-9-]+)*");
     private static final McpSchema.ToolAnnotations READ_ONLY = new McpSchema.ToolAnnotations(null, true, false, null, null, null);
     /**
-     * Not read-only and nothing more: a client takes such a tool for one that may destroy and asks before each call. The
-     * software's own destructiveHint is not kept (mcp_tool keeps readOnlyHint only).
+     * Not read-only and nothing more: Claude Code repeats a read-only tool by itself after a dropped connection and
+     * runs it in parallel - never a changing one. The software's own destructiveHint is not kept (mcp_tool keeps
+     * readOnlyHint only).
      */
     private static final McpSchema.ToolAnnotations CHANGING = new McpSchema.ToolAnnotations(null, false, null, null, null, null);
     private static final Logger LOG = LoggerFactory.getLogger(SoftwareMcpProxy.class);

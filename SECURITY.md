@@ -249,7 +249,7 @@ So nobody has to find it out the hard way:
   the browser loads by itself are not rendered, changing tools of connected software run only after the user's
   decision in the chat, the client software and `ask_assistant` never get changing tools (they may start a scheduled
   task a tenant admin assigned to their key, which does what its text says) and an MCP key gets them only passed
-  through to its client, which asks its user before each call (below), addresses of connected software
+  through to its client, where the client's own permission rules decide whether its user is asked (below), addresses of connected software
   must not resolve to internal addresses - also the address of a file it returns as a link, which our server fetches
   at once (every redirect checked again, at most 50 MB, our key or token only to the connection's own host and never
   to another download host) -, a file a connected software returns is offered only as a download with a
@@ -262,9 +262,13 @@ So nobody has to find it out the hard way:
   directly: the client's model then calls its reading tools and prompts itself and reads their raw results, which
   leave the installation for the client (with claude.ai or Cowork, Anthropic). The software's address and key stay in
   the installation. Its changing tools are passed through only to a key a tenant admin let change in that software
-  ("Darf ändern in", off by default), marked as not read-only so the client asks its user before each call. That
-  question is the only stop between a prompt injection the client read and a change in the software: a user who lets
-  the client always allow such a tool gives it up, and whoever holds the key may change what it may change - as the
+  ("Darf ändern in", off by default), marked as not read-only. **Whether a person is asked before such a call is the
+  MCP client's matter, not ours**: Claude Code asks at a tool's first use, lets its user allow the tool for good, and
+  asks nothing in a mode or with a rule that allows it (auto mode, bypassed permissions, an allow rule) - an agent
+  running without a person changes without any question. Nothing else stands between a prompt injection the client
+  read and a change in the software. An organisation that wants the question enforces it in the client (Claude
+  Code's managed settings: `permissions.ask` or `permissions.deny` for `mcp__<server>__<tool>`); give the level only
+  to keys whose clients you know. Whoever holds the key may change what it may change - as the
   connection's one account in the software, not as a person. Every changing call is logged (key, tool, software). The software's tool descriptions, prompts and the
   instructions it gives (at most 2,000 characters, after ours) are text of another server that the client's and our
   model read - enter only software you trust, and leave a module whose knowledge must not leave answer-only: its raw

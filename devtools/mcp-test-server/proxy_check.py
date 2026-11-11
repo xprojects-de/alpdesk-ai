@@ -114,7 +114,7 @@ async def may_change(session: ClientSession, initialized: types.InitializeResult
     check("changing: the changing tool is listed", cancel is not None, str(list(tools)))
     if cancel is None:
         return
-    check("changing: marked as not read-only - the client asks first",
+    check("changing: marked as not read-only",
           cancel.annotations is not None and cancel.annotations.readOnlyHint is False, str(cancel.annotations))
     check("changing: a reading tool stays read-only", tools[f"{PREFIX}__echo"].annotations.readOnlyHint is True)
     cancelled = await session.call_tool(f"{PREFIX}__cancel_order", {"number": "4711"})

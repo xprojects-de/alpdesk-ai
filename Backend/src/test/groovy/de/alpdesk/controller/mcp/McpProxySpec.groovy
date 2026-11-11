@@ -21,8 +21,8 @@ import java.util.zip.ZipOutputStream
  * The connected software passed through the tenant's MCP server (roadmap point 41): an MCP key with a software that
  * passes through ("Direkt an MCP-Clients") gets its reading tools in tools/list and calls them itself - no model answers
  * in between. A key without the software, or a software that does not pass through, gets none of them. A key that may
- * change in the software (roadmap point 68) gets its changing tools too, marked as not read-only - the client asks its
- * user before each call; ask_assistant stays reading.
+ * change in the software (roadmap point 68) gets its changing tools too, marked as not read-only - whether its user is
+ * asked is the client's matter; ask_assistant stays reading.
  */
 @MicronautTest(transactional = false)
 class McpProxySpec extends Specification {

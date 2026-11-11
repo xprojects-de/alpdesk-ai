@@ -2668,7 +2668,7 @@
     "noSoftware": "no software",
     "changing": "May change in",
     "noChanging": "nowhere - reading only",
-    "changingHint": "Its client (Claude Code, Copilot) may call the changing tools of this software too - e.g. create a ticket - and asks its user before each call. Only software that goes directly to MCP clients.",
+    "changingHint": "Its client (Claude Code, Copilot) may call the changing tools of this software too - e.g. create a ticket - without a question from Zirmo. Whether its user is asked is the client's matter: Claude Code asks at a tool's first use, and not at all in auto mode or with an allow rule. Only software that goes directly to MCP clients.",
     "tasks": "Tasks",
     "noTasks": "no task",
     "webSearch": "Web search",

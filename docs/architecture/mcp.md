@@ -332,15 +332,27 @@ who gets what. `services.mcp.SoftwareMcpProxy`, answered by
   passing through takes the level off its keys** (`McpConnectionRepository.mcpKeysReadOnly` in `setPassThrough`): a
   level left would be in force again the day the switch is turned back on, and no dialog shows it meanwhile.
   - **Why it is right here and nowhere else**: in the chat a changing call waits for the user's decision; a key has no
-    user. Passed through, the person sits at the MCP client: a tool not marked read-only is asked about before each
-    call (Claude Code, Cowork, Copilot) - the client's question takes the place of ours. `ask_assistant`, `/a2a` and
+    user. Passed through, the decision is the MCP client's: its own permission rules say whether its user is asked
+    ("What the client does" below) - the tenant admin giving the key the level is our approval, as naming a tool in
+    a task's text is. `ask_assistant`, `/a2a` and
     the client software's API keys stay reading: there the tenant's model would call the tool and nobody sees the call
     before it runs (`McpTools.forMcpKey` is unchanged).
   - **Which tools**: those turned on (a tenant admin turns on each, a delete left off reaches no key) and marked
     changing (`changes`). `tools/list` and `tools/call` take the same list (`SoftwareMcpProxy.passed`,
     `McpTools.usable(tool, level)`): a key with `READ` neither lists nor calls a changing tool - the call is the
-    unknown tool of above. Marked `readOnlyHint: false` and nothing more: a client then takes the tool for one that may
-    destroy and asks; the software's own `destructiveHint` is not kept.
+    unknown tool of above. Marked `readOnlyHint: false` and nothing more; the software's own `destructiveHint` is not
+    kept. The mark matters: Claude Code repeats a tool marked read-only by itself after a dropped connection and
+    runs it in parallel with others - a changing tool must never be listed as read-only.
+  - **What the client does** (Claude Code's documentation, read 11 November 2026 - corrected the same day: the first
+    text said "the client asks before each call"): Claude Code asks at the **first use** of every MCP tool, whatever
+    its annotations, and its user may allow the tool for good; in auto mode a classifier decides, with bypassed
+    permissions or an allow rule (`mcp__<server>__<tool>`) nothing is asked - an agent without a person changes
+    without a question. `readOnlyHint` does not steer the question. An organisation enforces it in the client
+    (managed settings: `permissions.ask` / `permissions.deny`). **Not built, on purpose**: forcing the question from
+    our side (`_meta["anthropic/requiresUserInteraction"]: true` on the tool - Claude Code then asks at every call in
+    every mode and refuses it without a person): decided against 11 November 2026, since agents working without a
+    person are the case this was built for; if wanted later, a choice of the tenant admin, not fixed. What claude.ai,
+    Cowork and Copilot do is their documentation's matter and not checked.
   - **A changing call that failed after it was sent** - no answer in time, an answer without content or too large
     (`mcpServer.timeout`, `.requestFailed`, `.tooLarge`) - may have run at the software all the same; its tool error
     says "... the change may have been made; check before calling again" (`SoftwareMcpProxy.failure`) - the client's
@@ -349,9 +361,9 @@ who gets what. `services.mcp.SoftwareMcpProxy`, answered by
     keeps who decided what (`PendingAction`), this is the proxy's trace. The software's names go in without control
     characters - a tool's name is the other server's text, and a line break in it would forge a line.
   - **What it costs**: a key is a shared secret - whoever holds it changes what it may change; every call reaches the
-    software as the connection's one account (its key or its OAuth sign-in), not as the person at the client; the
-    client's question is the only stop between a prompt injection read there and the change - a user who lets the
-    client always allow a tool gives it up. A tool takes JSON arguments only (a binary file would be base64 written
+    software as the connection's one account (its key or its OAuth sign-in), not as the person at the client;
+    between a prompt injection read at the client and the change stands only what the client asks - nothing where it
+    is told not to ask. A tool takes JSON arguments only (a binary file would be base64 written
     out by the client's model), and asks no values back during the call (elicitation, point 30 - `/mcp` is
     stateless).
   - Not built: a question back over A2A (the calling agent confirming, `input-required` - roadmap point 68 "Noted for
@@ -544,7 +556,8 @@ call - is not built: when a module needs it.
     conversation went on - also when it was only a decided call's answer stored meanwhile, which errs to the safe
     side. Both answer 409 "This action expired - ask again".
   - Another user's call answers 404. The client software and `ask_assistant` never get changing tools: they have no
-    user. An MCP key gets them only passed through to its client, which asks its user (above, roadmap point 68).
+    user. An MCP key gets them only passed through to its client, whose own rules decide whether its user is asked
+    (above, roadmap point 68).
   - What a tool may change at all is the other side's decision: its tools and the rights of our key there.
 - **Files in tool results** (e.g. a tool returning a generated project as a ZIP archive): a tool may return files the way MCP provides for them - an `EmbeddedResource` in the `CallToolResult`, as
   `BlobResourceContents` (base64) or `TextResourceContents`, and images as `ImageContent`. `McpClient.callTool`

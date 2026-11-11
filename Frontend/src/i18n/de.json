@@ -2668,7 +2668,7 @@
     "noSoftware": "keine Software",
     "changing": "Darf ändern in",
     "noChanging": "nirgends – nur lesen",
-    "changingHint": "Sein Client (Claude Code, Copilot) darf auch die ändernden Werkzeuge dieser Software aufrufen – z. B. ein Ticket anlegen – und fragt seinen Benutzer vor jedem Aufruf. Nur Software, die direkt an MCP-Clients geht.",
+    "changingHint": "Sein Client (Claude Code, Copilot) darf auch die ändernden Werkzeuge dieser Software aufrufen – z. B. ein Ticket anlegen – ohne Rückfrage von Zirmo. Ob sein Benutzer gefragt wird, entscheidet der Client: Claude Code fragt beim ersten Aufruf eines Werkzeugs, im Auto-Modus oder mit einer Erlaubnisregel gar nicht. Nur Software, die direkt an MCP-Clients geht.",
     "tasks": "Aufgaben",
     "noTasks": "keine Aufgabe",
     "webSearch": "Websuche",
