@@ -12,6 +12,6 @@ et_xmlfile==2.0.0
 fonttools==4.66.1
 kiwisolver==1.5.1
 packaging==26.3
-pillow==12.3.0
+pillow==13.0.0
 pyparsing==3.3.3
 six==1.17.0
