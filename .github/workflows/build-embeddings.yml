@@ -1,0 +1,116 @@
+name: Build Embeddings Image
+
+# Started by hand (Actions -> this workflow -> Run workflow), never automatically: the image holds the embedding model
+# (about 5 GB) and changes only with the model or Ollama, not with a release of the app.
+#
+# Builds Backend/podman/ollama (Ollama with the model baked in, Backend/podman/README.md "Embeddings with a local
+# Ollama"), checks that it embeds started as restricted as it runs, and pushes it as
+# ghcr.io/xprojects-de/alpdesk-ai-embeddings:latest - one image, replaced by every run, for the installations that
+# cannot build it themselves (no internet, a proxy in the way). Every release and pre-release (build.yml) tags the
+# "latest" of its moment with its version, and the release's docker-compose.embeddings.yml names that tag:
+# a new "latest" reaches installations with the next release. An image no version names any more stays in the package
+# as an untagged version until it is deleted there.
+#
+# For linux/amd64 and linux/arm64 like the app's images (build.yml): one job per architecture pushes latest-<arch>, the
+# last job joins both under "latest". The arm64 job runs under QEMU on the x86 runner - the pull while building only
+# downloads, and the server starts under the emulation, but embedding there would take minutes: on arm64 the check is
+# that the server starts and lists the model, the embedding itself is checked natively on amd64.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+
+  build-embeddings:
+    name: Build, Check and Push the Embeddings Image (${{ matrix.arch }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        arch: [amd64, arm64]
+    permissions:
+      contents: read
+      packages: write
+    env:
+      IMAGE: ghcr.io/xprojects-de/alpdesk-ai-embeddings:latest-${{ matrix.arch }}
+      ARCH: ${{ matrix.arch }}
+      PLATFORM: linux/${{ matrix.arch }}
+    steps:
+      # The image is about 5 GB on top of Ollama's base image: the runner's disk holds it only without the toolchains
+      # it comes with (the first run for two architectures, 9 November 2026, ran out of space).
+      - name: Free Disk Space
+        run: |
+          df -h /
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /usr/local/.ghcup /opt/hostedtoolcache/CodeQL
+          docker image prune -af > /dev/null
+          df -h /
+
+      - name: Checkout Repository
+        uses: actions/checkout@v7
+
+      - name: Set up QEMU
+        if: matrix.arch != 'amd64'
+        uses: docker/setup-qemu-action@v4
+
+      # The source names this repository, like the app's images (build.yml). Built by Docker's own builder, not
+      # a Buildx container: that one keeps the image in its cache and loads a second copy into Docker - twice the
+      # disk the runner does not have. With QEMU it builds arm64 as well.
+      - name: Build Image
+        run: |
+          docker build --platform "$PLATFORM" \
+            --label org.opencontainers.image.title="Zirmo Embeddings" \
+            --label org.opencontainers.image.description="Ollama with the embedding model bge-m3 for Zirmo" \
+            --label org.opencontainers.image.source=https://github.com/xprojects-de/alpdesk-ai \
+            --label org.opencontainers.image.licenses=MIT \
+            -t "$IMAGE" Backend/podman/ollama
+
+      # Not root, a read-only root with /tmp the only place written to, every capability dropped - as Kubernetes'
+      # "restricted" pod security runs it. 1024 numbers back: bge-m3 is in the image and answers (amd64); under QEMU
+      # (arm64) the server must start and list the model.
+      - name: Check the Image
+        run: |
+          docker run -d --name embeddings --platform "$PLATFORM" -p 127.0.0.1:11434:11434 --read-only \
+            --tmpfs /tmp:rw,size=64m,mode=1777 --cap-drop ALL --security-opt no-new-privileges "$IMAGE"
+          for _ in $(seq 1 120); do curl -sf http://127.0.0.1:11434/api/tags > /dev/null && break; sleep 1; done
+          curl -sf http://127.0.0.1:11434/api/tags > tags.json || { docker logs embeddings; exit 1; }
+          python3 -c 'import json, sys; names = [m["name"] for m in json.load(open("tags.json"))["models"]]; print(names); sys.exit(not any(n.startswith("bge-m3") for n in names))'
+          if [ "$ARCH" = amd64 ]; then
+            curl -sf http://127.0.0.1:11434/api/embed -d '{"model":"bge-m3","input":"Kalibrierung"}' > embedding.json \
+              || { docker logs embeddings; exit 1; }
+            python3 -c 'import json, sys; n = len(json.load(open("embedding.json"))["embeddings"][0]); print(n); sys.exit(n != 1024)'
+          fi
+          docker rm -f embeddings
+
+      - name: Push Image
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "$GITHUB_TOKEN" | docker login ghcr.io -u "$GITHUB_ACTOR" --password-stdin
+          docker push "$IMAGE"
+          docker logout ghcr.io
+
+  # "latest" is a manifest list pointing at latest-amd64 and latest-arm64: docker-compose.embeddings.yml names no
+  # architecture. The annotations repeat the labels on the list, so ghcr.io links the package to this repository.
+  publish-embeddings:
+    name: Publish the Image for Both Architectures
+    needs: build-embeddings
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    env:
+      IMAGE: ghcr.io/xprojects-de/alpdesk-ai-embeddings
+    steps:
+      - name: Join the Architectures
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "$GITHUB_TOKEN" | docker login ghcr.io -u "$GITHUB_ACTOR" --password-stdin
+          docker buildx imagetools create -t "${IMAGE}:latest" \
+            --annotation "index:org.opencontainers.image.source=https://github.com/xprojects-de/alpdesk-ai" \
+            --annotation "index:org.opencontainers.image.licenses=MIT" \
+            "${IMAGE}:latest-amd64" "${IMAGE}:latest-arm64"
+          docker buildx imagetools inspect "${IMAGE}:latest"
+          docker logout ghcr.io

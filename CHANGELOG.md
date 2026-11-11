@@ -1,9 +1,281 @@
 # Changelog
 
-What changed in each release of Alpdesk AI, newest first. Versions follow [Semantic Versioning](https://semver.org):
-**major** - updating needs a step by hand (a setting, the compose file, the client software's API); **minor** - new
-features, updating needs nothing by hand; **patch** - fixes and small improvements. Every release is a tag `v<version>`
-with its images `ghcr.io/xprojects-de/alpdesk-ai:<version>` and `-sandbox:<version>`; updating: see the README.
+What changed in each release of Zirmo (up to 1.9.x called Alpdesk AI), newest first. Versions follow
+[Semantic Versioning](https://semver.org): **major** - updating needs a step by hand (a setting, the compose file,
+the client software's API); **minor** - new features, updating needs nothing by hand; **patch** - fixes and small
+improvements. Every release is a tag `v<version>` with its images `ghcr.io/xprojects-de/alpdesk-ai:<version>` and
+`-sandbox:<version>`; updating: see `Backend/podman/public/README.md`.
+
+## [2.0.0] - unreleased
+
+A major version, and a new name: **Alpdesk AI is now Zirmo** - a product of Alpdesk. Only the name changes: the
+images, containers, volumes, the database and `/api/v1` keep theirs. This repository now holds the source code as well;
+the installation's files moved into `Backend/podman/public`. Four changes need a look by hand (the details under
+"Changed"):
+
+- **An installation cloned from this repository moves once** into `Backend/podman/public` - stop, check out
+  `v2.0.0`, move `.env`, `pgdata/` and `sandboxes/` there, start (installation guide, "From 1.x to 2.0.0").
+- **Access needs a group**: a user who is no tenant admin signs in only through a user group. Put every user who is
+  in no group yet into the new group **Standard** (page **Benutzer**) - until then they cannot sign in.
+- **A user group with a WAM group takes its members from the IDM alone**: members assigned in Zirmo count no
+  longer. Check your groups with a WAM group, and who set them.
+- **A username is unique per tenant**, no longer per installation: a name that exists in several tenants signs in on
+  the tenant's own login page only.
+
+Nothing in `.env` or `/api/v1` needs a hand; the new settings have defaults.
+
+### Added
+
+- **Pre-releases**: a version can now be tried before its release - tags such as `v2.0.0-rc.1` here, with their
+  images, marked pre-release. A pre-release is not meant for an installation you depend on.
+- **An app on the phone's home screen**: added to the home screen, Zirmo now opens without the browser's bars,
+  using the whole screen, with the installation's name and logo (`APP_BRANDING_NAME`, `APP_BRANDING_LOGO`) as its
+  name and icon.
+- **Files a connected software hands out as a link**: when a tool of an MCP server returns a file as a link (a
+  temporary download, e.g. a document from a document management system), Zirmo fetches it at once - in the
+  chat, in a scheduled task's documents and for MCP clients alike. Up to 50 MB; an expired or refused link is named
+  to the assistant instead of failing the call. Your software's key goes only to its own host, never to another
+  download address.
+- **Claude through Amazon Bedrock**: the model catalog takes Bedrock's chat models with an AWS account of your own -
+  Claude in an EU region (e.g. Frankfurt with an `eu.` inference profile), with thinking, tools and prompt caching.
+  Address of the region and an IAM user's access key per catalog entry; the README's "Own model servers" says how.
+  GPT through Azure OpenAI's v1 endpoint works as an OpenAI-compatible server. `GET /api/v1/models` may name the
+  provider `BEDROCK`.
+- **Connected software that signs in with OAuth**: a hosted MCP server or A2A agent that accepts no fixed key is
+  connected by signing in once in the browser (page "Software", button "Anmelden"); the sign-in renews itself, and
+  "Anmeldung nötig" (and the daily report) says when it has to be repeated. Two new anonymous routes for it:
+  `/oauth/connections/callback` and `/oauth/client-metadata.json`.
+- **A2A agents as connected software**: a company's admins can connect an A2A agent (A2A 1.0) on the page "Software"
+  next to MCP software - the admin allows it per company. The chat's model asks the agent through one tool; its card's
+  skills show on the page, a check button reads and times it.
+- **A company answering through its A2A agent**: one agent per company can answer every question - the chat, the
+  client software and the MCP server -, streamed, with its context kept per conversation, a question back answered by
+  the next message, new uploads sent along and who asks (user, groups, language) in the message. Its skills are the
+  chips to choose from in the chat (`excludedSkillIds`, also in `/api/v1/chat`).
+- **Scheduled tasks and A2A**: the step `call_agent` sends a task's rows to an agent; a `prompt` step with
+  `assistant: true` is answered by the assistant with the knowledge areas, connected software, agents, web search and
+  template it names.
+- **The company's assistant as an A2A agent** at `/a2a`: questions answered as a message or, streamed, as a task kept
+  for the key, the scheduled tasks assigned to the key started as A2A tasks, webhooks for tasks (public HTTPS only);
+  a neutral public agent card and the key's extended card. A scheduled task's run sends its events for its first
+  30 minutes - a client waiting for a longer run asks with `GetTask`.
+
+- **One person in several tenants**: the same person may now have a user in several tenants of one installation (e.g.
+  a topic's chat and a general chat) and switches between them in the user menu. With a WAM proxy the sign-in asks
+  once which tenant (the browser remembers the choice) and the switch needs nothing more; without WAM the switch asks
+  for the password of the user in the other tenant. The admin adds a person's user to another tenant from the
+  tenant's users ("Benutzer aus anderem Mandanten") - without WAM it gets no password, so set one there (the dialog
+  says so): until then the person cannot switch to it.
+- **A description per MCP key**: what the key releases, in the tenant admin's words (at most 500 characters). Every
+  client of the key gets it with the server's instructions and in the descriptions of `search_knowledge` and
+  `ask_assistant` - so a general chat asking several tenants tells them apart.
+- **A tenant says what it can do for its asker**: with the key's description, the server's instructions, the
+  description of `ask_assistant` and the A2A card name what the assistant offers beyond the documents - the web
+  search, Python and shell, the connected software - as the key allows. A general chat now hands those parts of a
+  question to the topic instead of saying it has no such tool. Nothing to enter. Software is named only where a
+  reading tool of it is on; a company answering through its agent offers none of these.
+- **Topics to choose per conversation**: with two or more connected software reached, the chat shows a chip for each
+  above the input - a click leaves one out of the conversation's questions. The choice is kept with the conversation.
+  The client software does the same with `excludedConnectionIds` on `POST /api/v1/chat` and `/chat/stream`; the new
+  `GET /api/v1/software` lists the key's connected software to choose from.
+- **A frontend of your own for the users**: signing in, the account and the chat are now documented in `/swagger`
+  next to `/api/v1` (groups "Users - sign-in" and "Users") and kept compatible like it; the README says how. A frontend
+  on another origin is listed in the new setting `APP_CORS_ORIGINS` (default as before: `http://localhost:4300`).
+- **A guide "A general chat over several tenants"** in the README: topic tenants and a general chat in one
+  installation, the topics' MCP keys, the connections at the installation's internal address, access from the
+  directory's groups.
+
+- **Documents in scheduled tasks**: the new step `read_documents` reads whole documents of a file store's folder -
+  PDF, Office files, text, and images and scanned pages through the tenant's image model -, each once and again only
+  when it changed. One or several name patterns (upper and lower case alike), subfolders on request, at most 50
+  documents a run (the rest with the next). A document that cannot be read is kept with its reason; the run goes on.
+- **Rows out of documents**: the new task step `extract` takes the same fields out of every document a `read_documents`
+  step read - text, date, amount, number, percent or a choice of words, required or not -, one question per document,
+  every value checked by its type. A row missing a required field, with a value of the wrong type or from a document
+  that could not be read is marked unclear with the reason; `knowledge: true` lets the model search the company
+  knowledge (e.g. accounting rules). The run view shows the rows; a `send_mail` step mails the unclear ones and how many
+  documents and rows the run had.
+- **File stores may be written to by tasks**: a new switch per store, "Aufgaben dürfen hier schreiben", off for every
+  store. SFTP, FTPS, S3 and SharePoint / OneDrive write a file whole (a temporary file renamed over it, an object or
+  item replaced at once); a file open in Office is reported as locked and tried again by the next run. The store's
+  account needs write rights on the folder (the README shows them).
+- **Rows into a CSV**: the new task step `write_file` appends an extract step's rows to a CSV in a file store that lets
+  tasks write - a row of a document already in the file is skipped, so nothing comes twice. The file's name may hold
+  the run's date or a row's own date or choice (`Export/{date:yyyy}/invoices.csv` - each row in the file of its year);
+  separator, decimal separator and date format are set per task; fields added later become new columns. A text that a
+  spreadsheet would take for a formula is written with a leading `'`.
+- **A mailbox as a file store**: a new store type IMAP, read only. Every message of the last days (365 by default) is a
+  folder, its attachments and a `mail.txt` with sender, subject and text the files - so documents mailed to an address
+  of the company's own are read by scheduled tasks and synced by knowledge sources. A mail forwarded as an attachment is
+  unpacked, a signature's embedded logo is no file, nothing in the mailbox is changed or marked as read.
+- **Rows to a connected software**: the new task step `call_tool` sends an extract step's rows to a tool of a connected
+  software (MCP) - one call per row or one with all of them, the row's fields by name plus its `source` and fixed
+  arguments. The arguments are checked against the tool's schema when the task is saved - a fixed argument the tool
+  does not have (a typo) is named there, not sent along. Unclear rows are not sent; a
+  refused call marks its row and the run ends unclear with a mail. The software is expected to recognise a row sent
+  again by its `source`.
+- **A connected software as a source**: a `call_tool` step without input calls a reading tool - the company's own
+  software, e.g. through a small MCP server in front of it - and takes its answer, a JSON array, as rows of
+  typed fields (no model needed), or fetches each listed document's file with a second tool and reads it like a
+  document of a store. `{lastRun:yyyy-MM-dd}` in its arguments asks only for what came since the last successful run.
+- `/api/v1/tasks/{id}/runs/{runId}` and the MCP tool `task_run` give the rows an extract step took out of documents
+  (`rows`: source, values, unclear).
+- **Accounts from the IDM**: with the WAM proxy's groups header configured, a person whom it lists in the IDM group of a
+  user group gets a user in that tenant at the sign-in - active at once, no password, nothing to click in Zirmo.
+  Someone listed in no such group waits for approval as before. With the WAM proxy on, only the admin sets a group's
+  WAM group.
+- **Your own sandbox image**: build a company's sandbox on ours with its own programs (a test framework, a simulator, a
+  command-line tool) and write a README into it (`/opt/extras/README.md`, at most 16 KB) - the assistant gets it with
+  its rules for code and uses the programs. "Sandbox prüfen" shows them per instance. An example to copy is in
+  `sandbox-example/`; nothing to do when updating if you have none.
+
+### Changed
+
+- **The name: Zirmo**, a product of Alpdesk. The installation's default name (`APP_BRANDING_NAME`) is now "Zirmo" -
+  an installation that set its own name keeps it. The default logo is new - a Zirbe cone instead of "AD" (an
+  installation's own logo stays); the colour stays. The public A2A card names Zirmo as its
+  provider, the MCP server and the OAuth sign-in introduce themselves with the installation's name as before.
+- **The source code is in this repository**, the installation's files in `Backend/podman/public` with their image tags
+  pinned to the release. Install and update from a tag `v<version>`, not from `main`. The separate source code archive
+  of a release is gone - GitHub's "Source code" download is the whole of it now.
+
+- **The embeddings image carries the version**: `docker-compose.embeddings.yml` names
+  `ghcr.io/xprojects-de/alpdesk-ai-embeddings:<version>` instead of `latest`, like the other compose files - after an
+  update, `podman-compose -f docker-compose.embeddings.yml up -d` starts the release's one.
+- **More room for the answers on a phone**: the chat's topics and the files of a conversation moved into the bar with
+  "Chats" - the topics are switched in a menu ("Topics 6/8"), the rows above the input are gone; the list of chats
+  closes with its own button, back to the open conversation.
+- **Access needs a group**: a user who is no tenant admin now gets in only through a user group - with a WAM proxy and
+  the directory's groups, a person taken out of every group of a company no longer gets in there. Every company has
+  the group **Standard** without rights (the chat and the company knowledge, as before); users created by hand,
+  access requests assigned and persons added from another company go into it. **After updating**: put every user who
+  should keep chatting and is in no group yet into **Standard** (page **Benutzer**) - until then they cannot sign in
+  (they are told why - after the right password at the login page, through a WAM proxy at once). Tenant admins and
+  users the directory's groups give access need nothing.
+
+- **The language follows the person**: behind a WAM proxy a user's choice of language in the menu now holds in every
+  tenant the person has a user in (without WAM it stays with the user, since the same name in another tenant may be
+  someone else), and someone signing in through a WAM proxy for the first time gets the browser's language (a waiting
+  person's request keeps it for the admin's assignment) instead of English.
+- **MCP keys open doors**: a key opens `/mcp`, `/a2a` or both (existing keys: `/mcp`, as before).
+- **New settings** `APP_A2A_TIMEOUT`, `APP_A2A_MAX_ANSWER_CHARS`, `APP_A2A_TASK_RETENTION_HOURS` - in both compose files;
+  nothing to do when updating.
+
+- **Sizing PostgreSQL**: the compose files carry the database's limits commented out at the `postgres` service
+  (`max_connections`, `shared_buffers`, `maintenance_work_mem`), and the README's new section "Sizing PostgreSQL" says
+  when to raise them - from about 20 tenants or large knowledge bases. The database may also run on a server of its
+  own: `DATASOURCES_DEFAULT_URL` and `DATASOURCES_DEFAULT_USERNAME` in `.env` override the pod's (the README says how,
+  and how to move there later).
+- **A user group with a WAM group takes its members from the IDM alone**: everyone the WAM proxy lists in that IDM
+  group is a member - also without being assigned in Zirmo -, nobody else. Before, a member had to be assigned
+  here and listed in the IDM; members assigned to such a group count no longer. Check your groups with a WAM group
+  after the update - also who set their WAM group: a tenant admin could set one before, and with the groups header
+  configured it now gives every person in that IDM group a user in the tenant at the sign-in.
+- **A username is unique per tenant**, no longer per installation. A name that exists in several tenants signs in with
+  its password on the tenant's own login page only; the neutral login page refuses it like a wrong password and says
+  so. A tenant's own login page now signs in that tenant's users only - a user of another tenant is refused there
+  (the neutral page takes everyone, as before).
+- **A connected software's tool result starts with its name** (`[Software] ...`), and the assistant is told that a
+  document's id holds only within the software that gave it - for a chat asking several tenants' MCP servers.
+- **Documents are read with Apache Tika 4.2** (before 3.3): the same file types are read, but the text a document gives
+  may differ slightly (Markdown is still read as written, headings and paragraphs kept). Documents already in the
+  knowledge stay as they are - "Embed again" reads them anew. Libraries updated besides: Micronaut 5.2.5, Angular 22.2.
+
+### Fixed
+
+- **The embeddings image for ARM**: announced with 1.8.0, `ghcr.io/xprojects-de/alpdesk-ai-embeddings:latest` was
+  still published for `linux/amd64` only - on an ARM server it ran emulated, minutes per document. It now carries
+  `linux/arm64` as well; pull it again.
+- **A scheduled task no longer loses documents silently**: scans waiting for an image model no longer hold back newer
+  documents of a `read_documents` step; a connected software's document whose download link fails for now, or a scan
+  without an image model, fails the run instead of being skipped for good.
+- **A task's assistant prompt step fails when a knowledge area, connected software or chat template it names was
+  deleted** instead of answering without it; `input: []` is refused when the task is checked.
+- **A knowledge source no longer deletes documents after a listing it got only in part**: an FTPS folder that may be
+  entered but not read, an S3 listing announcing more without a way to ask for it, or a SharePoint page answered by a
+  proxy now fail the run (nothing deleted) instead of counting as empty. A task's `read_files` step on such an FTPS
+  folder now reports it instead of finding no files.
+- **Files a knowledge source cannot read no longer hold up its scheduled runs**: they are tried again after the new
+  and changed files, so 100 locked files no longer keep every other new file out of the knowledge until a run by hand.
+  They are listed among the source's files with the reason.
+- A cancel that came just after a source's run ended no longer stopped its next run.
+- **A scheduled task's mask `after: 'password:'` now masks `password: s3cret`**: a space between the text and the
+  value left the value as it was, so it reached the model and the mail. Check the masks of your tasks reading logs.
+- **`{lastRun}` of a task running less often than the run retention** (14 days by default) is kept: the retention no
+  longer deletes a task's last successful run, so a monthly task's source is no longer asked for everything again.
+- **A broken image in a folder a task reads** is reported once instead of failing every run of the task.
+- **A scan read once the admin assigns an image model now reaches the CSV**: its row was skipped as already written,
+  because the unclear row from before had the same source.
+- **A CSV a spreadsheet saved again as Windows-1252** is refused with its reason instead of having its umlauts
+  replaced for good; save it as CSV UTF-8.
+- An extremely large number in a document no longer exhausts the memory.
+- **A scheduled task no longer waits for an unreachable software row by row**: when the connected software as a whole
+  fails (out of reach, no answer in time, the key refused), the rows still to go are marked with that reason at once
+  instead of each waiting for the timeout - one such run could hold the installation's task runs for hours.
+- **A source tool's answer that is too long** for a call now says so, instead of "no JSON array of objects".
+- **A connected software listing a tool or prompt name twice** is refused with a clear reason when its tools are read,
+  instead of a conflict error.
+- **Changing a connected software at the same moment as its tools are reloaded** no longer writes back what was read
+  before the reload - e.g. a tool the software marked as changing stays marked.
+- Many questions through the MCP server at once no longer hold up the sign-in of every user, API key and MCP key.
+- A knowledge source's listing counts folders and files its pattern leaves out towards its limit of 20 000 entries,
+  and "Abbrechen" stops it at once - a folder with very many other files kept the sources of all tenants waiting.
+- Switching to another tenant ends uploads and deletions still waiting, and another open tab of the same browser
+  starts anew when the session changes - neither goes on with the other tenant's sign-in.
+- A video answer looks at no more than 60 images: with more, a provider refused the whole answer.
+- A chat upload that runs into a timeout (several long recordings to transcribe) shows the files stored after all, so
+  a second try does not upload them twice.
+- A topic switched while an answer comes stays switched; a connected software's error on a decided call is shown
+  without the software's name in front.
+- Two templates whose names make the same slash command (e.g. "Code-Review" and "code review"): the older one keeps
+  the command, the newer one gets its number - a template added later no longer takes over an existing command.
+- **An image a connected software returns that cannot be read** (a broken PNG) is offered as a download instead of
+  an image without preview, and no longer ends an answer that asks the image model to change it.
+- The assistant is no longer told to hand out the files of its code where it cannot (the client software without
+  history), which cost it a round.
+- A changing call of the connected software that an answer asks for after you already asked the next question
+  in that conversation no longer waits for a decision: it is shown as expired, like every call a new question
+  finds waiting.
+- A company answering through its A2A agent: an agent that returns nothing is now an error ("gave no answer")
+  for the client software without history, the MCP server and A2A clients too - no longer an empty answer.
+
+### Security
+
+- A spreadsheet that unpacks into an excessive size is refused: a part of an Office file that unpacks into more than
+  200 MB is refused before it is read.
+- Reading certain HTML mails no longer slows down the knowledge sources.
+- **A sign-in to connected software belongs to its address.** After a connection's address was changed and signed in
+  anew, a call still open to the old address could be given the new sign-in's token. A call now gets the token of
+  the address it was started for only.
+- A scheduled task with many large documents reads their text one document at a time, no longer all at once.
+- The sandbox's health check can no longer be read or changed by a session's code. Update every company's sandbox to
+  this release's image.
+- A connected A2A agent's status lines are cut at 500 characters, and an agent of a company the admin took A2A away
+  from is no longer told when a waiting conversation is deleted.
+- SECURITY.md and the privacy notes now name the web search of a scheduled task (`web: true`), the start of a task
+  through the A2A server, a refused further message that stays in an A2A task until it is deleted, what a link named
+  by a connected software may reach, what a handbook's website may show, and a document a task cannot file.
+- `.env.example` suggests a fixed heap for the app and a clean restart when it runs out (`JAVA_TOOL_OPTIONS`).
+- **The sandbox's health check could run code a chat session had left behind**, outside the session's confinement.
+  Update every tenant's sandbox to this release's image.
+- **A connected MCP software that answers only** (not switched "Direkt an MCP-Clients") no longer hands the files its
+  tools return to an MCP client through `ask_assistant` or to an A2A client - its raw results stay in the
+  installation, as the switch says. Switch it on where a client needs the files.
+- **Only the admin sets a user group's WAM group, also while WAM is off** - one a tenant admin set before would give
+  everyone in that IDM group a user in the tenant the day WAM is turned on. Before turning WAM on, check the WAM groups
+  of your tenants' groups.
+- A scheduled task's source no longer calls a tool of the connected software that became a changing one after the
+  task was saved (a tenant admin's correction or a software update) - the run fails and says so.
+- A user without a password (signed in through WAM before, added from another tenant) is refused at the login in the
+  time a wrong password takes - the answer no longer tells that the name exists.
+- A failed task run's log line names its error code only, no longer what the connected software answered.
+- The sandbox refuses a call or a file that arrives while its session ends, instead of running it after the cleanup.
+- CORS no longer allows credentials - the app authenticates with a bearer token only, so no page of an allowed origin
+  can have the browser send a WAM proxy's session cookie along.
+- An update whose change of a company's database fails on that company's data is logged without the values of the
+  row it failed on - like every other database error.
+- The privacy notes now say that a scheduled task's last successful run stays beyond the 14 days (the next run
+  reads on from it), until a later run takes its place or a tenant admin deletes it.
 
 ## [1.9.0] - 2026-11-02
 
@@ -90,7 +362,7 @@ with its images `ghcr.io/xprojects-de/alpdesk-ai:<version>` and `-sandbox:<versi
   under the same tags, so an installation on an ARM server, a Raspberry Pi 5 (64-bit OS, 8 GB) or an Apple Silicon Mac
   pulls the right image without a change to the compose files.
 - **Behind an own reverse proxy**: `docker-compose.proxy.yml` runs the stack without Caddy, the app's port published on
-  `127.0.0.1:19100` for a reverse proxy on the same machine - a Synology NAS (DSM's reverse proxy), an nginx or Traefik
+  `127.0.0.1:19100` for a reverse proxy on the same machine - a NAS's reverse proxy, an nginx or Traefik
   serving other applications. The app now sends `X-Robots-Tag: noindex, nofollow` itself (the Caddyfile did) and tells
   nginx-based proxies not to buffer the chat's streamed answers (`X-Accel-Buffering: no`).
 - **claude.ai, Claude Desktop and Cowork**: the MCP key card (and the card on the page "Account") shows what to enter
@@ -103,8 +375,8 @@ with its images `ghcr.io/xprojects-de/alpdesk-ai:<version>` and `-sandbox:<versi
 - **Several MCP keys**: a tenant has as many MCP keys as it needs, each with a name, its own knowledge areas and its own
   web search - e.g. one for development, one for the management - created, renewed and removed on the MCP key card.
   The key a tenant has keeps working after the update, named "Standard" with the areas and web search set so far.
-- **Connected software straight to Claude Code and Cowork**: a connected software (e.g. a licensed module in a pod of
-  its own) switched "Direkt an MCP-Clients" on the page "Software" offers its reading tools and prompts to the MCP keys
+- **Connected software straight to Claude Code and Cowork**: a connected software (e.g. a module running in its own
+  container) switched "Direkt an MCP-Clients" on the page "Software" offers its reading tools and prompts to the MCP keys
   given it, named `<software>__<tool>` (a name too long is cut and ends in the tool's number, which it keeps) - the
   client's model calls them itself, its address and token stay with Alpdesk AI. The software's own instructions go to the client after the assistant's and into the assistant's prompt. Off by
   default: a software not switched on is used through `ask_assistant` only, its raw results never reach the client.

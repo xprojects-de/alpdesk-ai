@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <title>Sign in</title>
+    <base href="/"/>
+    <!-- viewport-fit=cover: opened from a phone's home screen the app reaches to the screen's edges; the shell keeps its
+         content out of the notch and the home indicator (env(safe-area-inset-*)). -->
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+    <!-- An admin tool, not a website: search engines must not list the login page (Caddy sends X-Robots-Tag too). -->
+    <meta name="robots" content="noindex, nofollow"/>
+    <link rel="icon" type="image/x-icon" href="favicon.ico"/>
+    <!-- Added to a phone's home screen the frontend opens as an app of its own, without the browser's bars, with the
+         installation's name, colour and logo (BrandingController). Relative addresses: under a context path the base
+         href above carries them. With credentials: behind a WAM proxy the manifest is fetched with the proxy's session
+         like every other file. -->
+    <link rel="apple-touch-icon" href="branding/logo"/>
+    <link rel="manifest" href="branding/manifest.webmanifest" crossorigin="use-credentials"/>
+    <meta name="apple-mobile-web-app-capable" content="yes"/>
+    <meta name="mobile-web-app-capable" content="yes"/>
+    <meta name="theme-color" media="(prefers-color-scheme: light)" content="#f5f6f4"/>
+    <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#111311"/>
+</head>
+<body>
+<app-root></app-root>
+</body>
+</html>

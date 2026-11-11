@@ -1,0 +1,10 @@
+# The sandbox's HTTP server (app.py: Starlette on uvicorn), every package pinned - the ones asked for and what they pull
+# in. A venv of its own (/opt/server-venv), apart from the code's (requirements.txt): code never imports the server's
+# packages, and an update of one never touches the other. THIRD-PARTY.md names each with its license.
+starlette==1.7.0
+uvicorn==0.54.0
+anyio==4.15.1
+click==8.5.0
+h11==0.16.0
+idna==3.20
+typing_extensions==4.16.0

@@ -1,0 +1,59 @@
+# Invented people of the test stack (README.md). Every password: Testpasswort-2026 (an argon2id hash below).
+# Take david out of a group here during the test, then `podman restart general-chat-test-authelia` (on macOS its file
+# watcher sees no change) - his next request counts it.
+users:
+  anna:
+    displayname: 'Anna Muster'
+    password: '$argon2id$v=19$m=65536,t=3,p=4$zojBQ9Z+ozNaOmuX0ZkTxA$hbjWozTDU97bkqC4sNB5ByLMwunwgU8ngDLhpG5Qdtk'
+    email: 'anna@example.com'
+    groups:
+      - 'AI-Thema-Wartung'
+  bernd:
+    displayname: 'Bernd Beispiel'
+    password: '$argon2id$v=19$m=65536,t=3,p=4$zojBQ9Z+ozNaOmuX0ZkTxA$hbjWozTDU97bkqC4sNB5ByLMwunwgU8ngDLhpG5Qdtk'
+    email: 'bernd@example.com'
+    groups:
+      - 'AI-Thema-Einkauf'
+      - 'AI-Allgemein'
+  clara:
+    displayname: 'Clara Probe'
+    password: '$argon2id$v=19$m=65536,t=3,p=4$zojBQ9Z+ozNaOmuX0ZkTxA$hbjWozTDU97bkqC4sNB5ByLMwunwgU8ngDLhpG5Qdtk'
+    email: 'clara@example.com'
+    groups: []
+  david:
+    displayname: 'David Test'
+    password: '$argon2id$v=19$m=65536,t=3,p=4$zojBQ9Z+ozNaOmuX0ZkTxA$hbjWozTDU97bkqC4sNB5ByLMwunwgU8ngDLhpG5Qdtk'
+    email: 'david@example.com'
+    groups:
+      - 'AI-Allgemein'
+      - 'AI-Thema-Qualitaet'
+  betrieb:
+    displayname: 'Betrieb (Admin)'
+    password: '$argon2id$v=19$m=65536,t=3,p=4$zojBQ9Z+ozNaOmuX0ZkTxA$hbjWozTDU97bkqC4sNB5ByLMwunwgU8ngDLhpG5Qdtk'
+    email: 'betrieb@example.com'
+    groups: []
+  emil:
+    displayname: 'Emil Neu'
+    password: '$argon2id$v=19$m=65536,t=3,p=4$zojBQ9Z+ozNaOmuX0ZkTxA$hbjWozTDU97bkqC4sNB5ByLMwunwgU8ngDLhpG5Qdtk'
+    email: 'emil@example.com'
+    groups:
+      - 'AI-Allgemein'
+      - 'AI-Thema-Wartung'
+  # The browser walk's people (walk/walk.md): walter waits as an access request and becomes the walk tenant's admin,
+  # vera waits too and is approved by him, ute gets her user there through the IDM group of its user group.
+  walter:
+    displayname: 'Walter Rundgang'
+    password: '$argon2id$v=19$m=65536,t=3,p=4$zojBQ9Z+ozNaOmuX0ZkTxA$hbjWozTDU97bkqC4sNB5ByLMwunwgU8ngDLhpG5Qdtk'
+    email: 'walter@example.com'
+    groups: []
+  ute:
+    displayname: 'Ute Rundgang'
+    password: '$argon2id$v=19$m=65536,t=3,p=4$zojBQ9Z+ozNaOmuX0ZkTxA$hbjWozTDU97bkqC4sNB5ByLMwunwgU8ngDLhpG5Qdtk'
+    email: 'ute@example.com'
+    groups:
+      - 'AI-Rundgang'
+  vera:
+    displayname: 'Vera Rundgang'
+    password: '$argon2id$v=19$m=65536,t=3,p=4$zojBQ9Z+ozNaOmuX0ZkTxA$hbjWozTDU97bkqC4sNB5ByLMwunwgU8ngDLhpG5Qdtk'
+    email: 'vera@example.com'
+    groups: []

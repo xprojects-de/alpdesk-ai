@@ -1,0 +1,17 @@
+{
+  "allowedLicenses": [
+    { "moduleLicense": "Apache-2.0" },
+    { "moduleLicense": "MIT" },
+    { "moduleLicense": "MIT-0" },
+    { "moduleLicense": "0BSD" },
+    { "moduleLicense": "BSD-2-Clause" },
+    { "moduleLicense": "BSD-3-Clause" },
+    { "moduleLicense": "EPL-2.0", "moduleName": "ch\\.qos\\.logback:.*|jakarta\\..*" },
+    { "moduleLicense": "LGPL-2.1-only", "moduleName": "io\\.github\\.openhtmltopdf:.*" },
+    { "moduleLicense": "LGPL-3.0-only", "moduleName": "io\\.github\\.openhtmltopdf:.*" },
+    { "moduleLicense": "MPL-1.1", "moduleName": "com\\.github\\.albfernandez:juniversalchardet" },
+    { "moduleLicense": "CDDL-1.0", "moduleName": "org\\.codelibs:jhighlight" },
+    { "moduleLicense": "Similar to Apache License but with the acknowledgment clause removed", "moduleName": "org\\.jdom:jdom2" },
+    { "moduleLicense": "LICENSE.txt", "moduleName": "com\\.github\\.jai-imageio:jai-imageio-core" }
+  ]
+}

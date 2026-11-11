@@ -1,0 +1,2 @@
+# Pinned: the 1.x line of the official SDK (2.x renamed FastMCP and changed its API).
+mcp==1.30.0

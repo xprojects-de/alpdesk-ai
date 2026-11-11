@@ -1,0 +1,6 @@
+# Ids of the stack's own run (setup.py)
+state.json
+state-plain.json
+# The mode of mode.sh
+.env
+__pycache__/

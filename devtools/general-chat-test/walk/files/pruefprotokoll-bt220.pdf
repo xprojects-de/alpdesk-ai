@@ -1,0 +1,32 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [3 0 R] /Count 1 >>
+endobj
+3 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Contents 4 0 R /Resources << /Font << /F1 5 0 R >> >> >>
+endobj
+4 0 obj
+<< /Length 514 >>
+stream
+BT /F1 12 Tf 50 750 Td 16 TL (Pruefprotokoll \(erfunden\) - Musterfirma, Blechteil BT-220, Los LS-2026-0815) ' (Gemessen: jedes 50. Teil der Serie, Bohrungsabstand Soll 120,0 mm) ' () ' (Messung M-01: 120,1 mm) ' (Messung M-02: 119,9 mm) ' (Messung M-03: 120,4 mm) ' (Messung M-04: 120,0 mm) ' (Messung M-05: 120,1 mm) ' (Messung M-06: 120,4 mm) ' (Messung M-07: 119,9 mm) ' (Messung M-08: 120,2 mm) ' (Messung M-09: 120,0 mm) ' (Messung M-10: 120,1 mm) ' () ' (Pruefer: Qualitaetssicherung, 3. November 2026) ' ET
+endstream
+endobj
+5 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+xref
+0 6
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000115 00000 n 
+0000000241 00000 n 
+0000000806 00000 n 
+trailer
+<< /Size 6 /Root 1 0 R >>
+startxref
+876
+%%EOF

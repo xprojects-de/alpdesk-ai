@@ -1,0 +1,42 @@
+<configuration>
+
+    <!-- One configuration for development and the container: the AOT jar bakes this file in (replaceLogbackXml in
+         build.gradle), so a second file for production would never be read. Date and time in every line, no colour
+         codes - `podman logs` shows the lines as they are. -->
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- The last warnings and errors, kept in memory for the daily report (logging.RecentLogAppender). A restart
+         empties it; the container log keeps everything. -->
+    <appender name="RECENT" class="de.alpdesk.logging.RecentLogAppender">
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>WARN</level>
+        </filter>
+        <maxSize>1000</maxSize>
+    </appender>
+
+    <!-- The MCP SDK logs a connected software's error answer at INFO, with its data - which may quote the tool call's
+         arguments, written by the model from the question or documents. docs/privacy.md: never a prompt in the log. -->
+    <logger name="io.modelcontextprotocol.spec.McpClientSession" level="WARN" />
+
+    <!-- langchain4j logs every failure it asks again after (5xx, 429, a timeout) at WARN with the exception, whose
+         message is the server's whole answer - which may repeat the request: a document's text. AiModels logs the
+         failure that ends a call, without the answer. -->
+    <logger name="dev.langchain4j.internal.RetryUtils" level="ERROR" />
+
+    <!-- MSAL (a SharePoint store's token) logs every token request at INFO and a refused login at WARN - the store's
+         check already answers that refusal with its code, and a warning would also reach the daily report. -->
+    <logger name="com.microsoft.aad.msal4j" level="ERROR" />
+
+    <!-- The A2A SDK logs a webhook's whole address at WARN when a delivery fails - an A2A client's address may carry
+         its secret in the path or query (the webhook's config is stored encrypted). Its ERROR lines name no address. -->
+    <logger name="org.a2aproject.sdk.server.tasks.BasePushNotificationSender" level="ERROR" />
+
+    <root level="info">
+        <appender-ref ref="STDOUT" />
+        <appender-ref ref="RECENT" />
+    </root>
+</configuration>

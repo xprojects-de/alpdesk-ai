@@ -1,0 +1,33 @@
+# Local development: the sandbox for the chat's Python and shell (docs/architecture/code-execution.md), reachable from
+# the host on 127.0.0.1:19180, for the backend started from Gradle or the IDE - application-dev.properties points
+# there. `./gradlew sandboxStart` / `sandboxStop` in Backend/. Without it the backend runs as before, without the tools.
+# Built from the working tree; the token is published like the dev database's password - local only. The video sandbox
+# (ffmpeg, RTMPose - docs/architecture/code-execution.md "Videos") instead: `./gradlew videoSandboxStart` /
+# `videoSandboxStop` - the same container and port, so one of the two at a time; starting one replaces the other.
+# Its own project name: compose names a project after its folder ("podman"), shared with the other compose files here.
+name: alpdesk-ai-sandbox-dev
+
+services:
+
+  sandbox:
+    build:
+      context: ../..
+      dockerfile: Backend/podman/sandbox/Dockerfile
+      target: ${SANDBOX_TARGET:-sandbox}
+    # Each target under a tag of its own (the video image ":video"), so neither build overwrites the other's image.
+    image: localhost/alpdesk/alpdesk-ai-sandbox:${SANDBOX_TARGET:-latest}
+    container_name: alpdesk-ai-dev-sandbox
+    environment:
+      SANDBOX_TOKEN: "local-sandbox-token-change-me-local-sandbox-token"
+    ports:
+      # 19180: next to the backend's 19100, on the loopback interface only.
+      - "127.0.0.1:19180:8080"
+    read_only: true
+    tmpfs:
+      - /work:rw,size=1g,mode=1777
+      - /tmp:rw,size=512m,mode=1777
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges
+    restart: unless-stopped

@@ -1,0 +1,28 @@
+# Invoices sent: the company's own invoices of the folder "ausgang" - the partner is the customer.
+version: 1
+name: Ausgangsrechnungen
+notify: [buchhaltung@example.com]
+steps:
+  - id: documents
+    type: read_documents
+    store: Belege
+    folder: ausgang
+    pattern: "*.pdf"
+  - id: rows
+    type: extract
+    model: Claude Haiku
+    input: documents
+    instructions: The partner is the customer the invoice is addressed to - never Musterfirma, who wrote it.
+    fields:
+      - {name: date, type: date, required: true}
+      - {name: number, type: text, required: true}
+      - {name: partner, type: text, required: true}
+      - {name: net, type: amount}
+      - {name: vat_rate, type: percent}
+      - {name: gross, type: amount, required: true}
+  - id: csv
+    type: write_file
+    input: rows
+    store: Belege
+    file: "export/{date:yyyy}/ausgangsrechnungen.csv"
+    dateFormat: dd.MM.yyyy

@@ -1,0 +1,16 @@
+build/
+.gradle/
+database/
+dist/
+*.log
+.idea/
+.vscode/
+podman/public/pgdata/
+podman/public/sandboxes/
+data/
+# release jars: the image "release" is built with podman/release as its own context
+podman/release/
+# secrets of the production stack (public/docker-compose.prod.yml), if it is started inside the repository
+podman/public/.env
+# the sandbox is an image of its own, built from the repository root (podman/sandbox/Dockerfile)
+podman/sandbox/

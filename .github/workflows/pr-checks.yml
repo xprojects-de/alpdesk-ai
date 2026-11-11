@@ -1,0 +1,195 @@
+name: PR Checks
+
+# Runs on every pull request against main - and only there: work happens on feature branches, and a push trigger as
+# well would run every commit twice (once for the push, once for the open pull request). It answers
+# "does it still compile, pass its tests and lint" on Linux, so it finishes in minutes
+# and can be made a required status check.
+on:
+  pull_request:
+    branches:
+      - main
+
+# Nothing here writes to the repository; it only reads the code it was handed.
+permissions:
+  contents: read
+
+# A new push to the same pull request cancels the run still going for the previous one - there is
+# no point finishing a check on code that has already been replaced.
+concurrency:
+  group: pr-checks-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  # A released migration is never changed: Flyway's checksum covers the whole file, and a changed one stops the start of
+  # every installation on its next update. New migrations (added files) pass. Released means: in the latest release tag
+  # v<x.y.z> (a pre-release v<x.y.z>-<label> does not count) - main carries the unreleased version too, whose
+  # migrations are folded into one per set until its release.
+  migrations:
+    name: Applied Migrations Unchanged
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Compare with the latest release
+        run: |
+          released=$(git tag --list 'v[0-9]*.[0-9]*.[0-9]*' --sort=-v:refname | grep -v -e '-' | head -n 1)
+          if [ -z "$released" ]; then
+            echo "No release tag yet - nothing to compare with"
+            exit 0
+          fi
+          echo "Comparing with ${released}"
+          changed=$(git diff --name-only --diff-filter=MDR "${released}" HEAD -- \
+            Backend/src/main/resources/db/migration Backend/src/main/resources/db/tenant)
+          if [ -n "$changed" ]; then
+            echo "Applied migrations were changed - add a new V<n>__...sql instead:"
+            echo "$changed"
+            exit 1
+          fi
+
+  # docker-compose.proxy.yml (behind an own reverse proxy) carries the app's settings of docker-compose.prod.yml, and
+  # the installation's images carry app.version.
+  compose-files:
+    name: Compose Files in Step
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v7
+
+      - name: Check the installation's compose files
+        run: .github/scripts/check-compose-files.sh
+
+  backend:
+    name: Backend Tests
+    runs-on: ubuntu-latest
+    # The database the smoke test starts the jar against (the Spock suite brings its own through Testcontainers).
+    services:
+      postgres:
+        image: pgvector/pgvector:pg18
+        env:
+          POSTGRES_DB: alpdesk_ai
+          POSTGRES_USER: smoke
+          POSTGRES_PASSWORD: smoke-database-password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U smoke -d alpdesk_ai"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v7
+
+      - name: Setup Java 25
+        uses: actions/setup-java@v5
+        with:
+          java-version: '25'
+          distribution: 'temurin'
+          cache: 'gradle'
+          cache-dependency-path: Backend/build.gradle
+
+      # The specs convert audio and video with ffmpeg, like the container (Backend/podman/Dockerfile).
+      - name: Install ffmpeg
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends ffmpeg
+
+      # The Spock suite. Gradle's failOnNoDiscoveredTests is left enabled in build.gradle, so a test source set
+      # that stops being picked up fails here instead of passing silently with nothing to run.
+      - name: Run Spock Tests
+        working-directory: Backend
+        run: ./gradlew test --no-daemon
+
+      # The deliverable: an AOT build or packaging problem shows up here, not only when a release is built.
+      - name: Build the AOT-optimized Jar
+        working-directory: Backend
+        run: ./gradlew optimizedJitJarAll -x test --no-daemon
+
+      # The Spock suite runs the unoptimized classes: only starting the AOT jar shows that it still reads its
+      # environment (AOT precomputes it), refuses to start without its secrets and serves /watchdog and the login.
+      - name: Smoke Test the AOT Jar
+        env:
+          DATASOURCES_DEFAULT_URL: jdbc:postgresql://localhost:5432/alpdesk_ai
+          DATASOURCES_DEFAULT_USERNAME: smoke
+          DATASOURCES_DEFAULT_PASSWORD: smoke-database-password
+        run: bash .github/scripts/smoke-test-jar.sh
+
+      # Keeps the failing spec readable in the pull request instead of only in the raw log.
+      - name: Upload Test Report on Failure
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: backend-test-report
+          path: Backend/build/reports/tests/test
+          retention-days: 7
+
+  frontend:
+    name: Frontend Lint, Tests and Build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v7
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+          cache: 'npm'
+          cache-dependency-path: Frontend/package-lock.json
+
+      - name: Install Dependencies
+        working-directory: Frontend
+        run: npm ci
+
+      # ng lint covers formatting too: Prettier runs through eslint-plugin-prettier, so this is the
+      # single gate for both.
+      - name: Lint
+        working-directory: Frontend
+        run: npm run lint
+
+      # Unit tests of the store logic and utilities (Angular's builder, Vitest under the hood).
+      - name: Unit Tests
+        working-directory: Frontend
+        run: npx ng test --watch=false
+
+      # The build is not redundant next to the lint step. An eslint --fix can apply rule fixes that
+      # compile-break the project - no-wrapper-object-types rewriting `displayFormat: Object` to
+      # `object` (TS2367) is the case this repository already hit - and lint alone would not notice.
+      - name: Build
+        working-directory: Frontend
+        run: npm run build
+
+  # The sandbox for the chat's Python and shell (Backend/podman/sandbox/, docs/architecture/code-execution.md) is an image of its own:
+  # built here and started as restricted as Kubernetes' "restricted" pod security allows - not root, no capabilities,
+  # no-new-privileges, a read-only root - then checked against what it promises (no network, no way to the server's
+  # token, nothing of a session left for the next). SANDBOX_TIMEOUT_SECONDS=30: the selftest waits for a runaway call to
+  # be stopped, 300 seconds by default. Both images of the Dockerfile: the sandbox and the video one (target "video") -
+  # the selftest checks the video tools where /health says "video", their absence where not.
+  sandbox:
+    name: Sandbox Image and Selftest
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v7
+
+      - name: Build the Sandbox Images
+        run: |
+          docker build -f Backend/podman/sandbox/Dockerfile -t alpdesk-ai-sandbox:check .
+          docker build -f Backend/podman/sandbox/Dockerfile --target video -t alpdesk-ai-sandbox-video:check .
+
+      - name: Selftest
+        run: |
+          for image in alpdesk-ai-sandbox:check alpdesk-ai-sandbox-video:check; do
+            echo "== $image"
+            token="$(openssl rand -hex 32)"
+            docker run -d --name sandbox -p 127.0.0.1:8080:8080 --read-only \
+              --tmpfs /work:rw,size=1g,mode=1777 --tmpfs /tmp:rw,size=512m,mode=1777 \
+              --cap-drop ALL --security-opt no-new-privileges -e SANDBOX_TOKEN="$token" \
+              -e SANDBOX_TIMEOUT_SECONDS=30 "$image"
+            for _ in $(seq 1 30); do curl -sf http://127.0.0.1:8080/health > /dev/null && break; sleep 1; done
+            python3 Backend/podman/sandbox/selftest.py http://127.0.0.1:8080 "$token"
+            docker rm -f sandbox
+          done
+
+      - name: Sandbox Log on Failure
+        if: failure()
+        run: docker logs sandbox

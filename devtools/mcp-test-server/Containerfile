@@ -1,0 +1,9 @@
+# The MCP test server (README.md). server.py is mounted at start, so a change needs no new image.
+FROM docker.io/library/python:3.13-slim
+COPY requirements.txt /app/requirements.txt
+RUN pip install --no-cache-dir -r /app/requirements.txt && useradd --uid 1000 --no-create-home tester
+USER tester
+WORKDIR /app
+ENV MCP_TEST_PORT=8000 PYTHONUNBUFFERED=1
+EXPOSE 8000
+CMD ["python", "-I", "/app/server.py"]

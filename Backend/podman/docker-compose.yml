@@ -1,0 +1,122 @@
+# Local test run: `podman compose up -d --build` from this folder.
+# Its own project name: compose names a project after its folder ("podman"), shared with any other project's podman/
+# folder - a `down` there would remove these containers.
+name: alpdesk-ai-local
+
+services:
+
+  postgres:
+    # PostgreSQL with pgvector: the tenants' databases keep their embeddings in it (docs/architecture/tenancy.md).
+    image: docker.io/pgvector/pgvector:pg18
+    container_name: alpdesk-ai-db
+    environment:
+      POSTGRES_DB: "alpdesk_ai"
+      POSTGRES_USER: "alpdeskai"
+      POSTGRES_PASSWORD: "local-db-password"
+    volumes:
+      - pgdata:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U alpdeskai -d alpdesk_ai"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  alpdesk-ai:
+    build:
+      context: ..
+      dockerfile: podman/Dockerfile
+      # Built from the working tree - the production image is built from a release jar (target "release").
+      target: from-source
+    image: localhost/alpdesk/alpdesk-ai:latest
+    container_name: alpdesk-ai
+
+    # Only this machine: the local test run takes the published dev login (alpdesk/alpdesk).
+    ports:
+      - "127.0.0.1:19100:19100"
+
+    environment:
+      # A local test run: "dev" accepts these (published) secrets - a production start would refuse them.
+      MICRONAUT_ENVIRONMENTS: "dev"
+      APP_USERNAME: "alpdesk"
+      APP_PASSWORD: "alpdesk"
+      JWT_GENERATOR_SIGNATURE_SECRET: "local-test-secret-change-me-local-test-secret-change-me"
+      APP_SECRET_KEY: "y/KKZEFOKOx5HWtBKW6dTGgB/IfQy94uR/m+tqjOL+w="
+      DATASOURCES_DEFAULT_URL: "jdbc:postgresql://postgres:5432/alpdesk_ai"
+      DATASOURCES_DEFAULT_USERNAME: "alpdeskai"
+      DATASOURCES_DEFAULT_PASSWORD: "local-db-password"
+      # Optional, from the shell: own model servers reached over plain HTTP (e.g. a local Ollama, README "Embeddings
+      # with a local Ollama"), file stores in the internal network, a company's own certificate authorities
+      # (public/README.md "Own model servers") and JVM options.
+      APP_AI_PLAIN_HTTP_HOSTS: "${APP_AI_PLAIN_HTTP_HOSTS:-}"
+      APP_FILE_STORE_INTERNAL_HOSTS: "${APP_FILE_STORE_INTERNAL_HOSTS:-}"
+      USE_SYSTEM_CA_CERTS: "${USE_SYSTEM_CA_CERTS:-}"
+      JAVA_TOOL_OPTIONS: "${JAVA_TOOL_OPTIONS:-}"
+      # Optional: the sub-path behind a reverse proxy, e.g. /alpdesk-ai (public/README.md "Behind a reverse proxy under a
+      # sub-path").
+      MICRONAUT_SERVER_CONTEXT_PATH: "${MICRONAUT_SERVER_CONTEXT_PATH:-}"
+      # Optional: sign-in through a WAM proxy (public/README.md "Sign-in through a WAM proxy") - off unless set to true.
+      APP_WAM_ENABLED: "${APP_WAM_ENABLED:-false}"
+      APP_WAM_USER_HEADER: "${APP_WAM_USER_HEADER:-X-Remote-User}"
+      APP_WAM_NAME_HEADER: "${APP_WAM_NAME_HEADER:-}"
+      APP_WAM_GROUPS_HEADER: "${APP_WAM_GROUPS_HEADER:-}"
+      APP_WAM_GROUPS_SEPARATOR: "${APP_WAM_GROUPS_SEPARATOR:-,}"
+      # Optional: the origins of a frontend of your own for the users, comma-separated (README.md "A frontend of your
+      # own for the users") - exact origins, never "*".
+      APP_CORS_ORIGINS: "${APP_CORS_ORIGINS:-http://localhost:4300}"
+
+    volumes:
+      # Named volume: it takes the ownership of /home/app/files from the image (the app runs as a non-root user),
+      # which a host bind mount would not.
+      - files:/home/app/files
+
+    networks:
+      - default
+      - sandbox
+
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+    restart: unless-stopped
+
+  sandbox:
+    # Python and shell for the chat (public/README.md "Code execution", docs/architecture/code-execution.md): a sandbox
+    # belongs to one tenant - enter http://alpdesk-ai-sandbox:8080 and the token below at a test tenant (page
+    # "Mandanten"). One answer's code at a time, everything of it deleted after. No secret but its token, not root, a read-only root, no
+    # way out of its network - it reaches nothing but the app, and the app nothing of it but its API.
+    build:
+      context: ../..
+      dockerfile: Backend/podman/sandbox/Dockerfile
+      # The video sandbox (ffmpeg, RTMPose) with SANDBOX_TARGET=video - under a tag of its own (":video").
+      target: ${SANDBOX_TARGET:-sandbox}
+    image: localhost/alpdesk/alpdesk-ai-sandbox:${SANDBOX_TARGET:-latest}
+    container_name: alpdesk-ai-sandbox
+    environment:
+      # Published, like the other secrets of this local stack - a production start refuses it.
+      SANDBOX_TOKEN: "local-sandbox-token-change-me-local-sandbox-token"
+    read_only: true
+    tmpfs:
+      - /work:rw,size=1g,mode=1777
+      - /tmp:rw,size=512m,mode=1777
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges
+    mem_limit: 2g
+    cpus: 2
+    pids_limit: 512
+    networks:
+      - sandbox
+    restart: unless-stopped
+
+volumes:
+  pgdata:
+  files:
+
+networks:
+  # The app, the database and Caddy.
+  default:
+  # The app and the sandbox only, without a way out (internal) - the database is not in it.
+  sandbox:
+    internal: true

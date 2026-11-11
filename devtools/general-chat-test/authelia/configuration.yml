@@ -1,0 +1,33 @@
+# Authelia for the test stack only (README.md): users and their groups from users_database.yml, no LDAP.
+# Every secret here is published and for this local stack only.
+server:
+  address: 'tcp://:9091'
+log:
+  level: 'info'
+theme: 'auto'
+identity_validation:
+  reset_password:
+    jwt_secret: 'general-chat-test-jwt-secret-not-for-production-0001'
+authentication_backend:
+  file:
+    path: '/config/users_database.yml'
+    watch: true
+access_control:
+  default_policy: 'one_factor'
+session:
+  secret: 'general-chat-test-session-secret-not-for-production'
+  # A working day, as a company's WAM proxy keeps it: every request renews the inactivity; Authelia's own defaults
+  # (minutes) would sign people out while they read. Sessions live in memory - a restart signs everyone out.
+  inactivity: '2 hours'
+  expiration: '10 hours'
+  cookies:
+    - domain: 'general-chat.localhost'
+      authelia_url: 'https://auth.general-chat.localhost:8443'
+      default_redirection_url: 'https://ai.general-chat.localhost:8443'
+storage:
+  encryption_key: 'general-chat-test-storage-key-not-for-production'
+  local:
+    path: '/data/db.sqlite3'
+notifier:
+  filesystem:
+    filename: '/data/notification.txt'
