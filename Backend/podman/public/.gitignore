@@ -1,0 +1,17 @@
+# What an installation keeps next to the files of this repository - never part of it, never touched by an update.
+# The secrets (template: .env.example)
+.env
+# The tenants' sandboxes, one settings file each (README.md "Code execution")
+sandboxes/
+# PostgreSQL's data
+pgdata/
+# Backups taken in the installation folder (README.md "Backups")
+*.dump
+*.sql
+*.tgz
+
+# IDE and editor
+.idea/
+*.iml
+.vscode/
+.DS_Store

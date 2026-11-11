@@ -1,0 +1,104 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "backend-dev-db (developer only - never for checks)",
+      "runtimeExecutable": "bash",
+      "runtimeArgs": [
+        "-c",
+        "export JAVA_HOME=$(/usr/libexec/java_home -v 25) && cd Backend && ./gradlew run"
+      ],
+      "port": 19100
+    },
+    {
+      "name": "frontend",
+      "runtimeExecutable": "bash",
+      "runtimeArgs": [
+        "-c",
+        "cd Frontend && npm start"
+      ],
+      "port": 4300
+    },
+    {
+      "name": "check-backend",
+      "runtimeExecutable": "bash",
+      "runtimeArgs": [
+        "-c",
+        "export JAVA_HOME=$(/usr/libexec/java_home -v 25) && cd Backend && DATASOURCES_DEFAULT_URL=jdbc:postgresql://localhost:25433/alpdesk_ai DATASOURCES_DEFAULT_USERNAME=check DATASOURCES_DEFAULT_PASSWORD=check APP_WAM_ENABLED=true MICRONAUT_SERVER_PORT=29100 ./gradlew run"
+      ],
+      "port": 29100
+    },
+    {
+      "name": "check-video",
+      "runtimeExecutable": "bash",
+      "runtimeArgs": [
+        "-c",
+        "export JAVA_HOME=$(/usr/libexec/java_home -v 25) && cd Backend && DATASOURCES_DEFAULT_URL=jdbc:postgresql://localhost:25433/alpdesk_ai DATASOURCES_DEFAULT_USERNAME=check DATASOURCES_DEFAULT_PASSWORD=check APP_STORAGE_PATH=build/check-video-storage MICRONAUT_SERVER_PORT=29100 ./gradlew run"
+      ],
+      "port": 29100
+    },
+    {
+      "name": "check-handbook",
+      "runtimeExecutable": "bash",
+      "runtimeArgs": [
+        "-c",
+        "export JAVA_HOME=$(/usr/libexec/java_home -v 25) && cd Backend && DATASOURCES_DEFAULT_URL=jdbc:postgresql://localhost:25433/alpdesk_ai DATASOURCES_DEFAULT_USERNAME=check DATASOURCES_DEFAULT_PASSWORD=check APP_STORAGE_PATH=build/check-handbook-storage MICRONAUT_SERVER_PORT=29100 ./gradlew run"
+      ],
+      "port": 29100
+    },
+    {
+      "name": "check-chat-mobile",
+      "runtimeExecutable": "bash",
+      "runtimeArgs": [
+        "-c",
+        "export JAVA_HOME=$(/usr/libexec/java_home -v 25) && cd Backend && DATASOURCES_DEFAULT_URL=jdbc:postgresql://localhost:25433/alpdesk_ai DATASOURCES_DEFAULT_USERNAME=check DATASOURCES_DEFAULT_PASSWORD=check APP_STORAGE_PATH=build/check-chat-mobile-storage MICRONAUT_SERVER_PORT=29100 ./gradlew copyFrontend run"
+      ],
+      "port": 29100
+    },
+    {
+      "name": "check-websearch",
+      "runtimeExecutable": "bash",
+      "runtimeArgs": [
+        "-c",
+        "export JAVA_HOME=$(/usr/libexec/java_home -v 25) && cd Backend && DATASOURCES_DEFAULT_URL=jdbc:postgresql://localhost:25433/alpdesk_ai DATASOURCES_DEFAULT_USERNAME=check DATASOURCES_DEFAULT_PASSWORD=check APP_STORAGE_PATH=build/check-websearch-storage MICRONAUT_SERVER_PORT=29100 ./gradlew copyFrontend run"
+      ],
+      "port": 29100
+    },
+    {
+      "name": "check-mcp-proxy",
+      "runtimeExecutable": "bash",
+      "runtimeArgs": [
+        "-c",
+        "export JAVA_HOME=$(/usr/libexec/java_home -v 25) && cd Backend && DATASOURCES_DEFAULT_URL=jdbc:postgresql://localhost:25433/alpdesk_ai DATASOURCES_DEFAULT_USERNAME=check DATASOURCES_DEFAULT_PASSWORD=check APP_STORAGE_PATH=build/check-mcp-proxy-storage APP_AI_PLAIN_HTTP_HOSTS=127.0.0.1 MICRONAUT_SERVER_PORT=29100 ./gradlew copyFrontend run"
+      ],
+      "port": 29100
+    },
+    {
+      "name": "check-a2a",
+      "runtimeExecutable": "bash",
+      "runtimeArgs": [
+        "-c",
+        "export JAVA_HOME=$(/usr/libexec/java_home -v 25) && cd Backend && DATASOURCES_DEFAULT_URL=jdbc:postgresql://localhost:25433/alpdesk_ai DATASOURCES_DEFAULT_USERNAME=check DATASOURCES_DEFAULT_PASSWORD=check APP_STORAGE_PATH=build/check-a2a-storage APP_AI_PLAIN_HTTP_HOSTS=127.0.0.1 APP_FILE_STORE_INTERNAL_HOSTS=127.0.0.1 MICRONAUT_SERVER_PORT=29100 ./gradlew copyFrontend run"
+      ],
+      "port": 29100
+    },
+    {
+      "name": "check-bedrock",
+      "runtimeExecutable": "bash",
+      "runtimeArgs": [
+        "-c",
+        "export JAVA_HOME=$(/usr/libexec/java_home -v 25) && cd Backend && DATASOURCES_DEFAULT_URL=jdbc:postgresql://localhost:25433/alpdesk_ai DATASOURCES_DEFAULT_USERNAME=check DATASOURCES_DEFAULT_PASSWORD=check APP_STORAGE_PATH=build/check-bedrock-storage MICRONAUT_SERVER_PORT=29100 ./gradlew copyFrontend run"
+      ],
+      "port": 29100
+    },
+    {
+      "name": "check-sources",
+      "runtimeExecutable": "bash",
+      "runtimeArgs": [
+        "-c",
+        "export JAVA_HOME=$(/usr/libexec/java_home -v 25) && cd Backend && DATASOURCES_DEFAULT_URL=jdbc:postgresql://localhost:25433/alpdesk_ai DATASOURCES_DEFAULT_USERNAME=check DATASOURCES_DEFAULT_PASSWORD=check APP_STORAGE_PATH=build/check-sources-storage APP_AI_PLAIN_HTTP_HOSTS=127.0.0.1 APP_FILE_STORE_INTERNAL_HOSTS=127.0.0.1 MICRONAUT_SERVER_PORT=29100 ./gradlew copyFrontend run"
+      ],
+      "port": 29100
+    }
+  ]
+}

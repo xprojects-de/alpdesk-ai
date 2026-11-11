@@ -4,5 +4,5 @@ contact_links:
     url: https://github.com/xprojects-de/alpdesk-ai/security/advisories/new
     about: Please not as a public issue - this reaches the maintainer confidentially.
   - name: Installation and operation
-    url: https://github.com/xprojects-de/alpdesk-ai#readme
+    url: https://github.com/xprojects-de/alpdesk-ai/tree/main/Backend/podman/public#readme
     about: Container, configuration, backups and updates are described there. If the answer is missing, open an issue anyway.

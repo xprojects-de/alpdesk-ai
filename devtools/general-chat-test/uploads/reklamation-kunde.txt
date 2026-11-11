@@ -1,0 +1,8 @@
+Reklamation (erfunden) - Beispiel Maschinenbau AG an Musterfirma, 4. November 2026
+
+Lieferung LS-2026-0815, Blechteil BT-220, Losgröße 500 Stück.
+Bei unserer Wareneingangsprüfung lagen bei 37 von 500 Teilen die Bohrungsabstände 0,4 mm über dem Sollmaß.
+Wir bitten um eine Stellungnahme und einen 8D-Bericht bis 14. November 2026.
+
+Mit freundlichen Grüßen
+Qualitätssicherung, Beispiel Maschinenbau AG

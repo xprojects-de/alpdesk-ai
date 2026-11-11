@@ -1,0 +1,2708 @@
+{
+  "common": {
+    "ok": "OK",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "close": "Close",
+    "edit": "Edit",
+    "create": "Create",
+    "remove": "Remove",
+    "back": "Back",
+    "copy": "Copy",
+    "download": "Download",
+    "active": "Active",
+    "inactive": "Inactive",
+    "name": "Name",
+    "more": "More actions"
+  },
+  "language": {
+    "label": "Language"
+  },
+  "paginator": {
+    "range": "{{start}} – {{end}} of {{length}}",
+    "rangeEmpty": "0 of {{length}}",
+    "next": "Next page",
+    "previous": "Previous page",
+    "first": "First page",
+    "last": "Last page"
+  },
+  "shell": {
+    "mainMenu": "Main menu",
+    "userMenu": "User menu",
+    "appearance": "Appearance",
+    "scheme": {
+      "system": "Automatic",
+      "light": "Light",
+      "dark": "Dark"
+    },
+    "logout": "Sign out",
+    "closeMenu": "Close menu",
+    "openMenu": "Open menu",
+    "connected": "Connected",
+    "offline": "Server not reachable - changes may not be saved.",
+    "checkAgain": "Check again now",
+    "version": "v{{version}}",
+    "administration": "Administration",
+    "administrator": "Administrator",
+    "roleAdmin": "Tenant admin",
+    "roleUser": "User",
+    "tenant": "Company",
+    "switchTenant": {
+      "title": "Switch to {{tenant}}",
+      "hint": "Enter the password of your user in this company.",
+      "password": "Password",
+      "submit": "Switch"
+    }
+  },
+  "nav": {
+    "tenants": "Tenants",
+    "accessRequests": "Access requests",
+    "ai": "AI",
+    "models": "AI models",
+    "globalKeys": "Global API keys",
+    "usage": "Usage",
+    "work": "Workspace",
+    "chat": "Chat",
+    "handbook": "Handbook",
+    "account": "Account",
+    "manage": "Administration",
+    "knowledge": "Company knowledge",
+    "assistant": "Assistant",
+    "users": "Users",
+    "apiKeys": "API keys",
+    "software": "Software",
+    "fileStores": "File stores",
+    "system": "System",
+    "applicationLog": "Application log",
+    "tasks": "Tasks"
+  },
+  "login": {
+    "title": "Sign in",
+    "wamSigningIn": "Signing in with your company account …",
+    "wamRequested": "Access requested",
+    "wamWaiting": "Your access is waiting for an administrator's approval. As soon as it is approved, you can get started.",
+    "checkAgain": "Check again",
+    "signedOut": "You are signed out.",
+    "signInAgain": "Sign in again",
+    "tryAgain": "Try again",
+    "asAdmin": "Sign in as administrator",
+    "withPassword": "With your username and password.",
+    "username": "Username",
+    "usernameRequired": "Username is required",
+    "password": "Password",
+    "passwordRequired": "Password is required",
+    "signingIn": "Signing in …",
+    "signIn": "Sign in",
+    "pageTitle": "Sign in",
+    "chooseTenant": "You have access to several companies - where do you want to work?"
+  },
+  "notFound": {
+    "title": "Page not found",
+    "text": "This page does not exist or has been moved.",
+    "home": "To the start page"
+  },
+  "errors": {
+    "loadFailed": "Error while loading: {{error}}",
+    "language": {
+      "save": "The language could not be saved to your account"
+    },
+    "backend": {
+      "request": {
+        "timeout": "Timeout: the server did not answer in time",
+        "notFound": "Not found.",
+        "parameterInvalid": "Parameter '{{name}}' has an invalid value.",
+        "parameterMissing": "Required parameter '{{name}}' is missing.",
+        "refused": "The request was refused (HTTP {{status}})",
+        "tooLarge": "The upload exceeds the server's size limit.",
+        "unreadable": "The request body is not valid JSON.",
+        "uriInvalid": "The request URI is invalid."
+      },
+      "accessRequest": {
+        "tenantRequired": "Tenant is required"
+      },
+      "account": {
+        "currentPasswordWrong": "The current password is wrong",
+        "wamNoPassword": "You sign in through the WAM proxy and have no password",
+        "switchTenantNotFound": "You have no user in this company",
+        "passwordRequired": "Enter the password of your user in this company",
+        "switchPasswordWrong": "The password of your user in this company is wrong"
+      },
+      "action": {
+        "decided": "This action was decided already",
+        "expired": "This action expired - ask again",
+        "notFound": "Action not found",
+        "toolTurnedOff": "This tool is no longer turned on for you"
+      },
+      "apiKey": {
+        "nameRequired": "Name is required",
+        "taskUnknown": "Unknown task {{id}}",
+        "unknownConnection": "This connected software does not exist (any more)"
+      },
+      "applicationLog": {
+        "levelInvalid": "level must be WARN or ERROR"
+      },
+      "archive": {
+        "tooLarge": "The archive unpacks to more than {{maxMb}} MB",
+        "tooManyEntries": "The archive may have at most {{max}} entries",
+        "unreadable": "The archive could not be read - is it a ZIP file?"
+      },
+      "assistant": {
+        "instructionsTooLong": "The instructions may have at most {{max}} characters",
+        "noDefaultModel": "No default model chosen - a tenant admin chooses one in the assistant settings",
+        "searchResultsOutOfRange": "Search results must be between {{min}} and {{max}}",
+        "settingsRequired": "Answer source, creativity, reasoning and search results are required"
+      },
+      "auth": {
+        "forbidden": "You are not allowed to perform this action.",
+        "invalidCredentials": "Invalid username or password.",
+        "required": "Authentication is required."
+      },
+      "branding": {
+        "colorInvalid": "The colour must be given as #rrggbb",
+        "logoEmpty": "The logo is empty",
+        "logoTooLarge": "The logo may have at most {{maxKb}} KB",
+        "logoType": "The logo must be a PNG, JPEG or WebP image",
+        "nameTooLong": "The name may have at most {{max}} characters"
+      },
+      "chat": {
+        "answerNotCompleted": "The answer could not be completed",
+        "answerNotStored": "The answer could not be stored",
+        "filesNeedNoHistory": "Files come with a question only with an API key that keeps no history - add them to a conversation with POST /api/v1/chat/files",
+        "noAnswer": "{{model}} gave no answer - please try again",
+        "noHistoryConversation": "This API key keeps no history - leave conversationId out",
+        "outputLimitUsedByReasoning": "{{model}} used up its output limit on its reasoning before it answered - an admin raises the model's output tokens in the model catalog",
+        "questionLength": "The question must have 1 to {{max}} characters",
+        "unknownConnection": "This topic is not available to you (any more) - reload the page",
+        "noTemplateWithAgent": "The chat answers through an agent - its skills take the place of templates",
+        "unknownSkill": "Unknown skill of the agent"
+      },
+      "chatFile": {
+        "contentMissing": "The file's content is missing",
+        "expired": "The file was deleted after its retention time",
+        "noFile": "No file was sent",
+        "noFileField": "No file was sent (multipart field \"files\")",
+        "noHistory": "This API key keeps no history - send the files with the question (POST /api/v1/chat, \"files\")",
+        "noText": "The file contains no text",
+        "notFound": "File not found",
+        "pdfNotCreated": "The PDF could not be created",
+        "scanTooManyPages": "A scanned PDF may have at most {{max}} pages",
+        "tooLarge": "A file may have at most {{maxMb}} MB, a video {{videoMaxMb}} MB",
+        "tooMany": "At most {{max}} files at once",
+        "tooManyImages": "A file may have at most {{max}} images (pages of a scan)",
+        "tooMuchText": "A file may have at most {{max}} characters of text",
+        "typeNotSupported": "This file type is not supported ({{type}}) - allowed: PDF, DOCX, ODT, RTF, TXT, Markdown, HTML, PPTX, XLSX, ODS, CSV, PNG, JPEG, GIF, BMP, audio, video",
+        "uploadTooLarge": "The files of one upload may have at most {{maxMb}} MB together",
+        "videoNeedsSandbox": "A video can only be examined with the code execution - an admin enters its sandbox at the tenant",
+        "videoNeedsVideoSandbox": "The company's code execution examines no videos - an admin gives it the video sandbox",
+        "videosTooLarge": "The videos of one conversation may have at most {{videoMaxMb}} MB together - start a new conversation, or delete a video",
+        "xlsxNotCreated": "The XLSX could not be created - a cell holds at most 32,767 characters, a sheet at most 16,384 columns"
+      },
+      "conversation": {
+        "notFound": "Conversation not found"
+      },
+      "dailyReport": {
+        "notConfigured": "No mail can be sent: set the mail server (APP_MAIL_HOST) and the recipients (APP_MONITORING_MAIL_TO)",
+        "sendFailed": "The mail server refused the report: {{reason}}"
+      },
+      "db": {
+        "busy": "The server is busy - please try again.",
+        "changedMeanwhile": "The data is being changed by another request - please try again.",
+        "invalidData": "The request contains invalid or incomplete data.",
+        "unavailable": "The database is briefly unavailable - please try again.",
+        "uniqueness": "The action conflicts with an existing entry and could not be completed."
+      },
+      "document": {
+        "areaInvalid": "area must be \"company\" or an area's id",
+        "areaNotAssigned": "This API key is not assigned to the area {{area}}",
+        "changedMeanwhile": "The document was changed meanwhile - please push it again",
+        "chooseEmbeddingModel": "Choose an embedding model first",
+        "empty": "The document is empty",
+        "externalIdLength": "externalId must have 1 to {{max}} characters",
+        "externalIdOtherArea": "The document with this externalId belongs to an area this API key is not assigned to",
+        "externalIdRequired": "externalId is required",
+        "fileNameMissing": "The file name is missing",
+        "imageNeedsScanModel": "Images are read by the model reading images and scans - the admin chooses one in the model catalog and assigns it to the tenant",
+        "noEmbeddingModel": "No embedding model chosen",
+        "noScanModel": "No model reads images and scans for this tenant - the admin chooses one in the model catalog",
+        "noText": "The document contains no text",
+        "notFound": "Document not found",
+        "originalChanged": "The document was replaced while it was read - please upload it again",
+        "originalMissing": "The original file is missing - please upload it again",
+        "partTooLarge": "The document unpacks into more than {{max}} MB - it cannot be read",
+        "passwordProtected": "The document is password-protected",
+        "samePathInArea": "A document of the same path is in that area already",
+        "scanFoundNothing": "The image model found no text or picture in the document",
+        "tooLarge": "A document may have at most {{maxMb}} MB",
+        "tooMuchText": "The document has too much text - at most {{max}} characters",
+        "typeNotSupported": "This file type is not supported ({{type}}) - allowed: PDF, DOCX, ODT, RTF, TXT, Markdown, HTML, PPTX, XLSX, ODS, CSV",
+        "unreadable": "The document could not be read",
+        "searchLanguageMissing": "Please choose a search language."
+      },
+      "error": {
+        "unexpected": "An unexpected error occurred."
+      },
+      "image": {
+        "tooLarge": "The image is too large - at most {{maxMegapixels}} megapixels",
+        "unreadable": "The image could not be read"
+      },
+      "key": {
+        "notApiKey": "This is not an API key"
+      },
+      "knowledgeArea": {
+        "hasDocSite": "The area still has a handbook website - remove it first",
+        "nameRequired": "The name is required",
+        "nameTaken": "The tenant already has an area of this name",
+        "nameTooLong": "The name may have at most {{max}} characters",
+        "notEmpty": "The area still holds documents - delete them or move them first",
+        "unknown": "Unknown area",
+        "unknownName": "Unknown area: {{name}}",
+        "usedBySource": "The knowledge sources {{sources}} write into the area - change them first"
+      },
+      "mcp": {
+        "templateUnknown": "Unknown template \"{{name}}\""
+      },
+      "mcpAddress": {
+        "internalNetwork": "The address leads into an internal network - only the hosts in APP_AI_PLAIN_HTTP_HOSTS may",
+        "unknownHost": "The host {{host}} is not known"
+      },
+      "mcpConnection": {
+        "nameRequired": "The name is required",
+        "nameTooLong": "The name may have at most {{max}} characters",
+        "notFound": "Connection not found",
+        "passThroughRequired": "Say whether the software is passed on to MCP clients",
+        "a2aNotAllowed": "The company may not connect A2A agents - the administrator allows it",
+        "protocolFixed": "The protocol of a connection cannot change - make a new connection",
+        "unsupportedBinding": "{{name}} offers no JSON-RPC interface - the only binding supported",
+        "cardInvalid": "{{name}} offers no valid agent card",
+        "unreachable": "{{name}} could not be reached for its agent card",
+        "notForA2a": "An A2A agent has no tools to pass on to MCP clients",
+        "keyLeaks": "The key of {{name}} would go to another host than the connection's - refused",
+        "answersChatOnlyA2a": "Only an A2A agent can answer the chat",
+        "answersChatTaken": "{{name}} answers the chat already - only one agent can",
+        "checkOnlyA2a": "Only an A2A agent can be checked"
+      },
+      "mcpServer": {
+        "endlessToolPages": "{{name}} keeps sending more pages of tools",
+        "error": "{{name}} answered with an error: {{error}}",
+        "internalNetwork": "{{name}}: The address leads into an internal network - only the hosts in APP_AI_PLAIN_HTTP_HOSTS may",
+        "keyRefused": "{{name}} refused our key - check it in the connection",
+        "keyUnreadable": "{{name}}: our stored key can no longer be read - enter it again in the connection",
+        "notMcp": "{{name}} did not answer as an MCP server",
+        "requestFailed": "{{name}} could not carry out the request - e.g. a value it does not accept",
+        "tooLarge": "{{name}} sent an answer larger than {{max}} MB",
+        "timeout": "{{name}} did not answer in time",
+        "toolTwice": "{{name}} offers the tool {{tool}} twice",
+        "promptTwice": "{{name}} offers the prompt {{prompt}} twice",
+        "tooManyTools": "{{name}} offers more than {{max}} tools",
+        "toolNameTooLong": "{{name}} offers a tool with a name longer than {{max}} characters",
+        "toolSchemaTooLong": "{{name}} offers a tool with an input schema longer than {{max}} characters",
+        "unknownHost": "{{name}}: The host of its address is not known",
+        "unreachable": "{{name}} is not reachable",
+        "tooManyPrompts": "{{name}} offers more than {{max}} prompts",
+        "promptArguments": "{{name}} offers a prompt with more than {{max}} arguments or too long a name of one",
+        "promptWithoutText": "{{name}} answered the prompt without a text",
+        "promptNameTooLong": "{{name}} offers a prompt with a name longer than {{max}} characters",
+        "endlessPromptPages": "{{name}} keeps sending more pages of prompts"
+      },
+      "fileStore": {
+        "nameRequired": "The name is required",
+        "nameTooLong": "The name may have at most {{max}} characters",
+        "nameTaken": "There is already a file store called \"{{name}}\"",
+        "typeUnknown": "The type is SFTP, FTPS, S3, SharePoint or IMAP",
+        "hostRequired": "The host is required",
+        "hostInvalid": "The host is a name or an IP address only - no protocol, port, user or path",
+        "internalNetwork": "The host {{host}} lies in an internal network - only the hosts in APP_FILE_STORE_INTERNAL_HOSTS may",
+        "unknownHost": "The host {{host}} is not known",
+        "addressChanged": "The host {{host}} answered with another address while connecting - please try again",
+        "portInvalid": "The port lies between 1 and 65535",
+        "usernameRequired": "The user name is required",
+        "usernameInvalid": "This is not a user name",
+        "passwordRequired": "The password is required - another server needs it again",
+        "passwordInvalid": "This is not a password",
+        "pathInvalid": "The folder is an absolute path like /logs, without . or ..",
+        "fingerprintInvalid": "This is not a fingerprint (SHA256:...)",
+        "fingerprintUnconfirmed": "The server's fingerprint is not confirmed yet",
+        "fingerprintChanged": "The server presents another fingerprint than the one confirmed",
+        "loginFailed": "The server refused the user name or the password",
+        "folderNotFound": "The folder {{path}} does not exist or may not be read",
+        "unreachable": "The server {{host}} could not be reached",
+        "tlsRefused": "The server {{host}} offers no TLS - plain FTP is not used",
+        "dataConnectionFailed": "The server refused the data connection",
+        "failed": "The check failed",
+        "inUse": "The file store is read by the tasks {{tasks}} - change them first",
+        "notFound": "File store not found",
+        "readFailed": "Reading {{path}} on the file store failed",
+        "tooManyEntries": "The folder {{path}} has more than {{max}} entries - choose a folder below it",
+        "usedBySource": "The file store is read by the knowledge sources {{sources}} - change them first",
+        "notReady": "The file store {{store}} is not ready - check it and confirm its server first",
+        "folderInvalid": "The folder is a path below the store's folder, without . or ..",
+        "endpointInvalid": "The endpoint is the address of a server only, like https://s3.example.com - no user, path or query",
+        "plainHttp": "Plain http goes only to the hosts in APP_FILE_STORE_INTERNAL_HOSTS - use https for {{host}}",
+        "regionRequired": "Amazon S3 needs the bucket's region, e.g. eu-central-1",
+        "regionInvalid": "This is not a region, e.g. eu-central-1",
+        "bucketRequired": "The bucket is required",
+        "bucketInvalid": "A bucket's name has 3 to 63 lower case letters, digits, dots and hyphens",
+        "accessKeyRequired": "The access key ID is required",
+        "accessKeyInvalid": "This is not an access key ID",
+        "accessKeyRefused": "The store refused the access key or its secret, or the key may not read the bucket",
+        "bucketNotFound": "The bucket {{bucket}} does not exist",
+        "tlsFailed": "The TLS connection to {{host}} failed - is its certificate trusted?",
+        "noFingerprint": "This store has no fingerprint to confirm",
+        "directoryIdRequired": "The directory ID is required",
+        "directoryIdInvalid": "The directory ID is a GUID like 0f1e2d3c-4b5a-6978-8796-a5b4c3d2e1f0",
+        "clientIdRequired": "The client ID is required",
+        "clientIdInvalid": "The client ID is a GUID like 0f1e2d3c-4b5a-6978-8796-a5b4c3d2e1f0",
+        "siteUrlRequired": "The site's address is required",
+        "siteUrlInvalid": "The site's address is like https://company.sharepoint.com/sites/projects - a OneDrive's like https://company-my.sharepoint.com/personal/name_company_com",
+        "libraryInvalid": "This is not a library's name",
+        "directoryNotFound": "Entra ID knows no such directory - check the directory ID",
+        "clientRefused": "Microsoft refused the app or its client secret - check the client ID and the secret",
+        "secretExpired": "The app's client secret has expired - create a new one in Entra ID and enter it here",
+        "siteNotFound": "There is no site {{site}}",
+        "accessDenied": "The app may not read {{site}} - grant it read on this site (Sites.Selected)",
+        "libraryNotFound": "The site has no library {{library}}",
+        "throttled": "Microsoft is throttling the requests - try again later",
+        "fileLocked": "The file {{path}} is open somewhere and locked - the next run tries again",
+        "writeFailed": "Writing {{path}} on the file store failed",
+        "plainImap": "Unencrypted IMAP goes only to the hosts the installation names internal - use SSL or STARTTLS",
+        "securityUnknown": "The security is SSL, STARTTLS or NONE",
+        "mailboxInvalid": "This is not a mailbox folder",
+        "daysInvalid": "The days lie between 1 and {{max}}",
+        "mailboxReadOnly": "A mailbox is read only - tasks write into another file store",
+        "notWritable": "A mailbox is read only - a task writes into another file store"
+      },
+      "media": {
+        "convertTimeout": "The {{kind}} takes too long to convert",
+        "interrupted": "The {{kind}} conversion was interrupted - please try again",
+        "notSupported": "Audio is not supported on this server",
+        "tooLong": "The {{kind}} is too long for the AI models (about {{minutes}} minutes at most)",
+        "unreadable": "The {{kind}} could not be read"
+      },
+      "model": {
+        "alreadyInCatalog": "This model is already in the catalog",
+        "anthropicNoEmbedding": "Anthropic offers no embedding models",
+        "bedrockAddressInvalid": "A Bedrock address names its region: https://bedrock-runtime.<region>.amazonaws.com",
+        "bedrockKeyInvalid": "A Bedrock key is an IAM access key: its ID, a colon, its secret",
+        "bedrockKeyRequired": "A Bedrock model needs its access key",
+        "bedrockOnlyChat": "Only Bedrock's chat models can be used",
+        "contextLengthOnlyOllama": "Only an Ollama chat model takes a context length",
+        "contextLengthOutOfRange": "The context length must be between {{min}} and {{max}}",
+        "dimensionOnlyEmbedding": "Only an embedding model has a dimension",
+        "dimensionOutOfRange": "An embedding model needs a dimension between 1 and {{max}}",
+        "embeddingInUseChange": "Tenants embed their documents with this model - only its name, prices, server and whether it is active can be changed",
+        "embeddingInUseDelete": "Tenants embed their documents with this model - deactivate it instead",
+        "embeddingInUseRemove": "The tenant's documents are embedded with this model - it can only be removed once the tenant has chosen another one",
+        "filesOnlyChat": "Only a chat model reads files or transcribes",
+        "idsRequired": "The list of model ids is required",
+        "imageOnlyGemini": "Only Gemini's image models can be used for now",
+        "namesRequired": "Model name and display name are required",
+        "outputTokensOnlyChat": "Only a chat model has a limit of output tokens",
+        "outputTokensOutOfRange": "The output tokens must be between {{min}} and {{max}}",
+        "pricesInvalid": "Prices are required and must not be negative",
+        "providerAndKindRequired": "Provider and kind are required",
+        "serverOnlyOwn": "Only a model on an own server has a server address and key - the providers' keys are kept under API-Keys",
+        "tierIncomplete": "A price tier needs its threshold and both its input and output price",
+        "tierThresholdInvalid": "The threshold is a number of tokens above 0",
+        "transcribeNeedsAudio": "Only a model that reads audio can transcribe",
+        "unknown": "Unknown model",
+        "unknownOrUnavailable": "Unknown or unavailable {{kind}} model",
+        "webSearchOnlyTavily": "The web search comes only from Tavily, and Tavily offers nothing else",
+        "rerankOnlyTei": "A reranker runs on a TEI server, and a TEI server offers only the reranker"
+      },
+      "modelServer": {
+        "addressForm": "The server address must be like https://host[:port][/path], without user, query or fragment",
+        "addressInvalid": "The server address is not a valid URL",
+        "addressRequired": "The server address is required (at most {{max}} characters)",
+        "httpsRequired": "The server address must start with https://",
+        "plainHttpNotAllowed": "The server must be reached over HTTPS - plain HTTP only to the hosts in APP_AI_PLAIN_HTTP_HOSTS",
+        "plainHttpRefused": "The server of {{model}} may not be reached over plain HTTP - ask the admin"
+      },
+      "pdf": {
+        "unreadable": "The PDF could not be read"
+      },
+      "provider": {
+        "certificateUntrusted": "{{name}}: the server's certificate is not trusted - ask the admin",
+        "contextTooLong": "The conversation is too long for {{name}} - please start a new one",
+        "dimensionMismatch": "{{name}} returns vectors of length {{dimension}}, the model catalog says {{expected}}",
+        "failed": "{{name}} failed - please try again",
+        "keyRefused": "{{name}} refused the API key - check it under API-Keys",
+        "keyRefusedOwnServer": "{{name}} refused the API key - ask the admin",
+        "modelUnknown": "{{name}} does not know the model {{model}}",
+        "rateLimited": "{{name}} refused the request: rate limit or quota reached",
+        "stalled": "{{name}} stopped answering - please try again",
+        "unreachable": "{{name}} is not reachable - please try again later"
+      },
+      "providerKey": {
+        "missing": "No API key for {{provider}} - a tenant admin adds one under API-Keys",
+        "ownServerInCatalog": "A model on an own server has its key in the model catalog",
+        "unknownProvider": "Unknown provider"
+      },
+      "sandbox": {
+        "addressInvalid": "Sandbox address not valid: {{address}}",
+        "addressTaken": "Sandbox address {{address}} already belongs to tenant \"{{tenant}}\" - every tenant needs instances of its own",
+        "addressesEmpty": "Sandbox addresses are empty",
+        "addressesNeedToken": "Sandbox addresses need a token",
+        "tokenInvalid": "Sandbox token must have {{min}} to {{max}} characters and no spaces",
+        "tokenNeedsAddresses": "Sandbox token needs addresses"
+      },
+      "sentFile": {
+        "duplicateName": "Two files are named \"{{name}}\" - every file needs a name of its own",
+        "empty": "The file \"{{name}}\" has no content",
+        "nameLength": "Every file needs a name of 1 to {{max}} characters",
+        "tooMany": "At most {{max}} files may come with a question",
+        "tooMuchText": "The files may have at most {{max}} characters of text together - send the parts that matter"
+      },
+      "template": {
+        "nameRequired": "The name is required",
+        "nameTooLong": "The name may have at most {{max}} characters",
+        "unknown": "Unknown template"
+      },
+      "tenant": {
+        "databaseNotCreated": "The tenant's database could not be created - please try again.",
+        "nameRequired": "Name is required",
+        "nameTaken": "A tenant named \"{{name}}\" already exists",
+        "notFound": "Tenant not found"
+      },
+      "group": {
+        "levelRequired": "A level is READ or WRITE",
+        "nameRequired": "The name is required",
+        "nameTaken": "The tenant already has a group of this name",
+        "nameTooLong": "The name may have at most {{max}} characters",
+        "notFound": "Group not found",
+        "unknown": "Unknown group",
+        "unknownConnection": "Unknown connected software",
+        "unknownUser": "Unknown user",
+        "wamGroupTooLong": "The WAM group may have at most {{max}} characters",
+        "membersFromIdm": "A group with a WAM group takes its members from the IDM - assign none",
+        "wamGroupByAdmin": "Only the admin sets a group's WAM group - it gives everyone in that IDM group a user here"
+      },
+      "tool": {
+        "argumentMissing": "the argument {{name}} is missing",
+        "argumentNotNumber": "the argument {{name}} must be a number",
+        "argumentNotNumberList": "the argument {{name}} must be a list of numbers",
+        "argumentNotTextList": "the argument {{name}} must be a list of texts",
+        "argumentsInvalid": "the arguments are not valid JSON",
+        "argumentsNoObject": "the arguments are no JSON object",
+        "fileUnknown": "there is no file \"{{name}}\" - the files to read: {{files}}",
+        "linesOutOfRange": "\"{{file}}\" has lines 1 to {{lines}} - from_line must lie in it and to_line must not be before it",
+        "questionRequired": "The question is required"
+      },
+      "usage": {
+        "monthInvalid": "The month must look like 2026-10"
+      },
+      "user": {
+        "cannotDeleteSelf": "You cannot delete yourself",
+        "cannotDemoteSelf": "You cannot deactivate yourself or take away your own admin rights",
+        "languageInvalid": "Language must be a language tag such as \"en\" or \"de\"",
+        "nameRequired": "Name is required",
+        "notFound": "User not found",
+        "passwordRequired": "Password is required",
+        "passwordTooShort": "The password must have at least {{min}} characters",
+        "usernameInvalid": "Username must have 3 to 100 characters: letters, digits, . _ - @",
+        "usernameTaken": "The username \"{{username}}\" is already taken",
+        "wamNoPassword": "Users sign in through the WAM proxy - they have no password",
+        "wamUsersByAdmin": "Users sign in through the WAM proxy - new ones come through their access request, and only the admin creates users or changes a username",
+        "sourceUserRequired": "Choose the user to add",
+        "noGroup": "You are in no group of this company - ask its administrator to add you to one"
+      },
+      "wam": {
+        "noUser": "The WAM proxy sent no user (header {{header}})",
+        "notEnabled": "Sign-in through a WAM proxy is not enabled",
+        "waitingForApproval": "Your access is waiting for approval",
+        "tenantNotFound": "You have no user in this company"
+      },
+      "mcpPrompt": {
+        "notFound": "Prompt not found",
+        "argumentRequired": "The value \"{{name}}\" is required",
+        "argumentTooLong": "A value may have at most {{max}} characters"
+      },
+      "docSite": {
+        "noIndex": "The ZIP has no index.html at its top",
+        "notFound": "Website not found",
+        "tooLarge": "The ZIP may have at most {{maxMb}} MB"
+      },
+      "task": {
+        "anchor": "Anchors and aliases (&, *) are not used in a task",
+        "cancelled": "The run was cancelled",
+        "checkNameTaken": "Two check points are called \"{{name}}\"",
+        "checksRequired": "An agent step has at least one check point",
+        "conditionCountUnknown": "The step {{step}} counts {{counts}}, not {{count}}",
+        "conditionInvalid": "Not a condition: {{condition}} - write it like verify.errors > 0, joined with && and ||",
+        "conditionStepUnknown": "The condition names a step that has not run at this point: {{step}}",
+        "cronInvalid": "Not a cron expression of six fields (second minute hour day month weekday), or a time that never comes: {{cron}}",
+        "duplicateField": "The field {{field}} is there twice",
+        "documentPatternInvalid": "A pattern is a file name with * and ?, without folders or dates: {{pattern}}",
+        "emailInvalid": "Not an e-mail address: {{email}}",
+        "empty": "The task is empty",
+        "everyInvalid": "every is a time from 15m to 7d, like 30m, 5h or 1d: {{every}}",
+        "fieldNameInvalid": "A field's name is lower case letters, digits and _, beginning with a letter - not source or unclear: {{name}}",
+        "fieldNameTaken": "Two fields are called {{name}}",
+        "fieldRequired": "The field {{field}} is required",
+        "fieldsRequired": "An extract step has at least one field",
+        "fieldTypeUnknown": "Unknown field type {{type}} - text, date, amount, percent, number or choice",
+        "firstRunUnknown": "firstRun is start or end: {{firstRun}}",
+        "firstRunWithoutOnlyNew": "firstRun: end needs onlyNew: true - a step that reads its files whole every time has no first run",
+        "folderInvalid": "The folder is a path below the file store's folder, without .. or \\: {{folder}}",
+        "inactive": "The task is switched off",
+        "inputNotTaken": "A read_files or read_documents step takes no input",
+        "inputOne": "An extract step takes one step's documents, a write_file step one step's rows",
+        "inputUnknown": "input names a step before this one: {{input}}",
+        "inputWrongType": "The input {{input}} must be a {{expected}} step",
+        "invalid": "The task is not valid: {{message}}",
+        "mailNotConfigured": "No mail server is configured - a task could not report what it found",
+        "maskInvalid": "A mask has after or regex - one of the two, not empty",
+        "maskRegexEmpty": "The regular expression matches an empty text - it would put *** everywhere: {{regex}}",
+        "maskRegexInvalid": "The regular expression is not valid: {{problem}}",
+        "maskTooSlow": "The mask {{regex}} took longer than {{millis}} ms on a line - make it simpler",
+        "maxRoundsOnlyBack": "maxRounds belongs to an edge back",
+        "maxRoundsRequired": "An edge back to {{to}} needs maxRounds (1 to {{max}}) - a loop never runs unbounded",
+        "modelNoKey": "There is no API key for {{model}}",
+        "modelUnknown": "The tenant may use no chat model \"{{model}}\"",
+        "nameTaken": "There is already a task called \"{{name}}\"",
+        "notAllowed": "Tasks are not enabled for this tenant - the admin decides",
+        "notFound": "The task was deleted",
+        "numberInvalid": "The field {{field}} is a whole number from {{min}} to {{max}}",
+        "patternInvalid": "The pattern is a file name with * and ? and dates like {yyyy-MM-dd}, without folders: {{pattern}}",
+        "resultInvalid": "{{model}} gave no valid result: {{problem}}",
+        "runEnded": "The run has ended already",
+        "runOpen": "The run is still open - wait for its end",
+        "running": "A run of the task is still open",
+        "scheduleInvalid": "A schedule has every or cron - one of the two",
+        "scheduleTooOften": "A task runs at most every 15 minutes: {{cron}}",
+        "severityUnknown": "The severity is error, warning or report: {{severity}}",
+        "stepFailed": "The step failed",
+        "stepIdInvalid": "A step's id is lower case letters, digits and _, beginning with a letter: {{id}}",
+        "stepIdTaken": "Two steps have the id {{id}}",
+        "stepTypeUnknown": "Unknown step type {{type}} - read_files, read_documents, extract, write_file, call_tool, call_agent, agent, verify, prompt or send_mail",
+        "stepsRequired": "A task has at least one step",
+        "storeNotReady": "The file store {{store}} is not ready - check it on the page File stores first",
+        "storeUnknown": "The tenant has no file store \"{{store}}\"",
+        "syntax": "Not valid YAML: {{problem}}",
+        "targetUnknown": "to names a step of the task: {{to}}",
+        "textTooLong": "The field {{field}} may have at most {{max}} characters",
+        "tooLarge": "The task may have at most {{max}} characters",
+        "tooMany": "At most {{max}} in {{field}}",
+        "triggerTypeUnknown": "Unknown trigger type {{type}} - schedule",
+        "tooFewLines": "The step {{step}} read {{lines}} new lines, at least {{min}} expected - its files did not grow as they should",
+        "unknownField": "Unknown field {{field}}",
+        "valuesInvalid": "A choice's values are 2 to {{max}} different words of lower case letters, digits, _ and -",
+        "valuesNotTaken": "Only a choice field has values",
+        "verifyOfInvalid": "of names an agent step before this one: {{of}}",
+        "wrongType": "This value has the wrong type here",
+        "choiceInvalid": "{{model}} picked none of {{choices}}",
+        "choicesInvalid": "choices are 2 to {{max}} different words of lower case letters, digits, _ and -",
+        "conditionChoiceUnknown": "The step {{step}} chooses {{choices}}, not {{choice}}",
+        "draftDescriptionRequired": "Describe what the task is to do",
+        "draftDescriptionTooLong": "The description may have at most {{max}} characters",
+        "fileInvalid": "The file is a path below the store's folder ending in .csv, without .. - e.g. Export/{yyyy}/rows.csv: {{file}}",
+        "filePlaceholderInvalid": "A placeholder of the file is {yyyy}, {MM}, {dd}, a date field's {<name>:yyyy} or a choice field's {<name>} - not {{placeholder}}",
+        "modeUnknown": "mode is append or replace: {{mode}}",
+        "separatorInvalid": "separator is ; or ,",
+        "decimalInvalid": "decimal is , or .",
+        "dialectInvalid": "With , as the separator the decimal separator is .",
+        "dateFormatInvalid": "dateFormat writes a date with y, M and d, e.g. dd.MM.yyyy: {{dateFormat}}",
+        "storeNotWritable": "Tasks may not write into the file store {{store}} - a tenant admin allows it at the store",
+        "fileTaken": "The task {{task}} writes the file {{file}} already - give this one a file of its own",
+        "tooManyFiles": "The rows of this run would go into {{count}} files - at most {{max}}",
+        "fileTooLarge": "The file {{file}} is larger than {{max}} MB - name a new file, e.g. one per year with {yyyy}",
+        "fileHeaderChanged": "The file {{file}} has other columns ({{columns}}) than the step writes - name a new file for the changed fields",
+        "fileNotUtf8": "The file {{file}} is not UTF-8 - saved again by another program? Save it as CSV UTF-8, or name a new file",
+        "toolUnknown": "The connected software {{connection}} offers no tool {{tool}} that is turned on",
+        "toolArgumentsInvalid": "The tool {{tool}} does not take the step's arguments: {{problem}}",
+        "eachUnknown": "each is row or all: {{each}}",
+        "toolUnavailable": "The tool {{tool}} is no longer offered or turned on - a tenant admin looks at the connected software",
+        "sourceFormRequired": "A call_tool step without input gives rows (fields) or documents (file) - one of the two",
+        "keyUnknown": "key names one of the fields: {{key}}",
+        "toolChanges": "The tool {{tool}} changes something - a call_tool step without input calls only reading tools",
+        "lastRunInvalid": "Not a date format: {{format}}",
+        "inputWrongForm": "The call_tool step {{input}} does not give what this step takes",
+        "fieldNotTaken": "{{field}} does not belong to this step",
+        "toolFailed": "The tool {{tool}} answered with an error",
+        "toolAnswerInvalid": "The tool {{tool}} answered with no JSON array of objects",
+        "toolAnswerTooLong": "The tool {{tool}} answered with more text than a call may hold - let it list fewer at a time",
+        "toolAnswerTooLarge": "The tool {{tool}} listed more than {{max}} - let it give the rest with the next run",
+        "agentUnknown": "The company has no A2A agent {{agent}}",
+        "a2aNotAllowed": "The company may not use A2A agents - the administrator allows it",
+        "skillUnknown": "The agent {{agent}} has no skill {{skill}}",
+        "agentUnavailable": "The task's A2A agent is gone, or the company may no longer use A2A agents",
+        "areaUnknown": "The company has no knowledge area {{area}}",
+        "softwareUnknown": "The company has no connected software {{software}}",
+        "templateUnknown": "The company has no chat template {{template}}",
+        "assistantGone": "A knowledge area, connected software or chat template the step names was deleted - check the task again",
+        "documentNotYet": "The document {{name}} cannot be read yet (no image model or no key for it) - the next run fetches it again",
+        "linkFailedForNow": "The file for {{name}} could not be downloaded for now - the next run fetches it again",
+        "agentAsksBack": "The agent {{agent}} asks back - a task has no person to answer",
+        "modelRequiredWithoutAgent": "A model is needed - only a company answering through its A2A agent leaves it out"
+      },
+      "answer": {
+        "stopped": "The answer was stopped"
+      },
+      "mcpKey": {
+        "nameRequired": "Give the MCP key a name",
+        "unknownConnection": "This connected software does not exist (any more)",
+        "unknownTask": "This task does not exist (any more)",
+        "descriptionTooLong": "The description may have at most {{max}} characters",
+        "noDoor": "The key must open /mcp, /a2a or both"
+      },
+      "source": {
+        "nameRequired": "The name is required",
+        "nameTooLong": "The name may have at most {{max}} characters",
+        "nameTaken": "There is already a knowledge source called \"{{name}}\"",
+        "storeNotFound": "Unknown file store",
+        "storeNotReady": "The file store {{store}} is not ready - check it and confirm its server first",
+        "folderInvalid": "The folder is a path below the store's folder, like Projects/2025 - without . or ..",
+        "patternInvalid": "The pattern is a file name with * and ?, like *.pdf",
+        "scheduleUnknown": "Unknown schedule",
+        "running": "The source is running right now - wait for its end or cancel it",
+        "pathTooLong": "The path is longer than 500 characters",
+        "tooManyFiles": "The folder holds more than 20 000 files or lies deeper than 20 levels - only part was listed, nothing was deleted",
+        "cancelled": "Cancelled - the rest is read with the next run",
+        "failed": "The run failed"
+      },
+      "a2a": {
+        "taskTimeout": "{{name}} did not finish its task {{task}} in time",
+        "interrupted": "The call was stopped",
+        "notAllowed": "The company's chat answers through an A2A agent the administrator no longer allows",
+        "agentFailed": "The agent {{name}} could not answer: {{error}}",
+        "timeout": "{{name}} did not answer within {{minutes}} minutes"
+      },
+      "oauth": {
+        "metadataUnreadable": "{{name}}: its sign-in server's description could not be read",
+        "noAuthorizationCode": "{{name}}: its sign-in server offers no sign-in in the browser (authorization code)",
+        "pkceUnsupported": "{{name}}: its sign-in server does not support PKCE with S256",
+        "registrationNeeded": "{{name}}: its sign-in server needs a client id - register the installation at the server's portal and enter it in the connection",
+        "registrationRefused": "{{name}}: its sign-in server refused to register the installation",
+        "stateUnknown": "This sign-in is no longer valid - start it again",
+        "stateExpired": "The sign-in took too long - start it again",
+        "issuerMismatch": "{{name}}: the answer of the sign-in came from another server - the sign-in was refused",
+        "denied": "{{name}}: the sign-in was refused at the server",
+        "exchangeFailed": "{{name}}: the sign-in server did not hand out a token",
+        "refreshFailed": "{{name}}: its sign-in could not be renewed - the sign-in server did not answer as expected",
+        "signInNeeded": "{{name}} needs a sign-in - sign in on the page Software",
+        "notAvailable": "{{name}}: its server asks for no sign-in",
+        "returnUrlForeign": "The page to return to after the sign-in must be on this installation's address",
+        "unreachable": "{{name}}: its sign-in server is not reachable",
+        "timeout": "{{name}}: its sign-in server did not answer in time"
+      }
+    },
+    "accessRequest": {
+      "loadAccessRequests": "Access requests could not be loaded",
+      "assignAccessRequest": "Access could not be granted",
+      "rejectAccessRequest": "The request could not be rejected"
+    },
+    "account": {
+      "loadAccount": "Account could not be loaded",
+      "changePassword": "Password could not be changed"
+    },
+    "aiModel": {
+      "loadModels": "AI models could not be loaded",
+      "createModel": "AI model could not be created",
+      "updateModel": "AI model could not be updated",
+      "deleteModel": "AI model could not be deleted"
+    },
+    "applicationLog": {
+      "loadEntries": "Application log could not be loaded",
+      "sendDailyReport": "Daily report could not be sent"
+    },
+    "assistant": {
+      "loadAssistant": "Assistant could not be loaded",
+      "saveSettings": "Settings could not be saved",
+      "createTemplate": "Template could not be created",
+      "updateTemplate": "Template could not be saved",
+      "deleteTemplate": "Template could not be deleted"
+    },
+    "auth": {
+      "login": "Sign-in failed",
+      "wamSignIn": "Sign-in through the WAM proxy failed",
+      "noArea": "There is no access to the application for this user",
+      "wrongCredentials": "Wrong username or password",
+      "wamNoUser": "The WAM proxy sent no valid user - please open the application through it",
+      "wrongCredentialsNeutral": "Wrong username or password. If your username exists in several companies, sign in on your company's own login page.",
+      "switchTenant": "Switching to the other company failed"
+    },
+    "branding": {
+      "loadInstallationBranding": "The installation's look could not be loaded",
+      "loadTenantBranding": "The company's look could not be loaded",
+      "loadAdminBranding": "Branding could not be loaded",
+      "saveAdminBranding": "Branding could not be saved",
+      "uploadAdminLogo": "Logo could not be saved",
+      "deleteAdminLogo": "Logo could not be removed",
+      "loadLoginBranding": "The login page's look could not be loaded",
+      "loadOwnLoginKey": "The login page's link could not be loaded",
+      "renewAdminLoginKey": "No new link could be created"
+    },
+    "chat": {
+      "loadConversations": "Chats could not be loaded",
+      "loadTemplates": "Templates could not be loaded",
+      "loadMessages": "Messages could not be loaded",
+      "deleteConversation": "Chat could not be deleted",
+      "loadFiles": "Files could not be loaded",
+      "uploadFiles": "Files could not be attached",
+      "deleteFile": "File could not be removed",
+      "downloadFile": "File could not be loaded",
+      "sendMessage": "The question could not be answered",
+      "runAction": "The action could not be run",
+      "cancelAction": "The action could not be cancelled",
+      "connectionLost": "The connection was lost before the answer was complete - it may still be stored: open the chat again in a moment before you ask again",
+      "loadSoftwarePrompts": "The prompts of the connected software could not be loaded",
+      "fillSoftwarePrompt": "The prompt could not be filled",
+      "loadSoftware": "The topics could not be loaded"
+    },
+    "document": {
+      "loadDocuments": "Documents could not be loaded",
+      "importArchive": "Import failed",
+      "uploadDocument": "Upload failed",
+      "retryDocument": "Document could not be processed again",
+      "moveDocument": "Document could not be moved",
+      "deleteUploads": "Documents could not be deleted",
+      "deleteDocument": "Document could not be deleted",
+      "embedAllAgain": "Documents could not be embedded again"
+    },
+    "knowledgeArea": {
+      "loadAreas": "Areas could not be loaded",
+      "createArea": "Area could not be created",
+      "renameArea": "Area could not be renamed",
+      "deleteArea": "Area could not be deleted"
+    },
+    "docSite": {
+      "loadSites": "Websites could not be loaded",
+      "uploadSite": "Website could not be uploaded",
+      "deleteSite": "Website could not be removed",
+      "loadHandbook": "The handbook could not be loaded",
+      "openSite": "The website could not be opened"
+    },
+    "mcpConnection": {
+      "loadConnections": "Connected software could not be loaded",
+      "createConnection": "Connection could not be created",
+      "updateConnection": "Connection could not be saved",
+      "deleteConnection": "Connection could not be removed",
+      "reloadTools": "Tools could not be reloaded",
+      "updateTool": "Tool could not be saved",
+      "loadAccess": "Access settings could not be loaded",
+      "updatePrompt": "Prompt could not be saved",
+      "setPassThrough": "Passing the software on to MCP clients could not be switched",
+      "check": "The agent could not be checked",
+      "signIn": "The sign-in could not be started",
+      "completeSignIn": "The sign-in could not be completed",
+      "removeSignIn": "The sign-in could not be removed"
+    },
+    "fileStore": {
+      "loadStores": "File stores could not be loaded",
+      "createStore": "File store could not be added",
+      "updateStore": "File store could not be saved",
+      "deleteStore": "File store could not be removed",
+      "checkStore": "File store could not be checked",
+      "confirmFingerprint": "Fingerprint could not be confirmed",
+      "browseFolders": "The folders could not be listed"
+    },
+    "knowledgeSource": {
+      "loadSources": "Knowledge sources could not be loaded",
+      "createSource": "Knowledge source could not be added",
+      "updateSource": "Knowledge source could not be saved",
+      "deleteSource": "Knowledge source could not be removed",
+      "runSource": "Knowledge source could not be started",
+      "cancelSource": "Knowledge source could not be cancelled",
+      "loadFiles": "The source's files could not be loaded"
+    },
+    "mcpKey": {
+      "loadMcpKeys": "MCP keys could not be loaded",
+      "createMcpKey": "MCP key could not be created",
+      "updateMcpKey": "MCP key could not be saved",
+      "renewMcpKey": "MCP key could not be renewed",
+      "deleteMcpKey": "MCP key could not be removed"
+    },
+    "providerKey": {
+      "loadKeys": "API keys could not be loaded",
+      "setKey": "API key could not be saved",
+      "removeKey": "API key could not be removed"
+    },
+    "tenantAi": {
+      "loadModels": "AI models could not be loaded",
+      "loadSettings": "AI settings could not be loaded",
+      "setEmbeddingModel": "Embedding model could not be changed",
+      "setSearchLanguage": "Search language could not be changed",
+      "setRerankingModel": "Reranker could not be saved"
+    },
+    "tenantModel": {
+      "loadTenantModels": "The tenant's AI models could not be loaded",
+      "assignTenantModels": "AI models could not be saved"
+    },
+    "tenantUser": {
+      "loadUsers": "Users could not be loaded",
+      "createUser": "User could not be created",
+      "updateUser": "User could not be updated",
+      "deleteUser": "User could not be deleted",
+      "addFromTenant": "The user could not be added"
+    },
+    "group": {
+      "load": "Groups could not be loaded",
+      "create": "Group could not be created",
+      "update": "Group could not be updated",
+      "delete": "Group could not be deleted"
+    },
+    "tenant": {
+      "loadTenants": "Tenants could not be loaded",
+      "createTenant": "Tenant could not be created",
+      "updateTenant": "Tenant could not be updated",
+      "checkSandbox": "Sandbox could not be checked",
+      "deleteTenant": "Tenant could not be deleted",
+      "setEmbeddingModel": "Embedding model could not be saved",
+      "loadApiKeys": "API keys could not be loaded",
+      "createApiKey": "API key could not be created",
+      "revokeApiKey": "API key could not be revoked",
+      "setSearchLanguage": "Search language could not be saved",
+      "setRerankingModel": "Reranker could not be changed",
+      "updateApiKey": "The API key could not be saved"
+    },
+    "usage": {
+      "loadUsage": "Usage could not be loaded"
+    },
+    "version": {
+      "loadVersion": "Version could not be loaded"
+    },
+    "task": {
+      "cancel": "The run could not be cancelled",
+      "delete": "The task could not be deleted",
+      "deleteRuns": "The runs could not be deleted",
+      "load": "The tasks could not be loaded",
+      "loadOne": "The task could not be loaded",
+      "loadRun": "The run could not be loaded",
+      "loadRuns": "The runs could not be loaded",
+      "save": "The task could not be saved",
+      "start": "The task could not be started",
+      "validate": "The task could not be checked",
+      "draft": "The draft could not be written",
+      "draftModels": "The models could not be loaded",
+      "reference": "The reference could not be loaded"
+    }
+  },
+  "chat": {
+    "groups": {
+      "today": "Today",
+      "yesterday": "Yesterday",
+      "lastSevenDays": "Last 7 days",
+      "older": "Older"
+    },
+    "list": {
+      "label": "Chats",
+      "newChat": "New chat",
+      "search": "Search chats",
+      "delete": "Delete chat",
+      "noMatch": "No chat matches this search.",
+      "empty": "No chats yet."
+    },
+    "splitter": {
+      "label": "Width of the chat list",
+      "tooltip": "Drag to resize, double-click to reset"
+    },
+    "welcome": {
+      "greeting": "Hello"
+    },
+    "answer": {
+      "copy": "Copy answer",
+      "copyCode": "Copy code",
+      "typing": "The answer is being written"
+    },
+    "files": {
+      "hint": "The AI knows these files and reads them when a question needs them.",
+      "toggle": "Files of this chat ({{count}})"
+    },
+    "noModel": {
+      "tenantAdmin": "No model available - please add a key under API keys.",
+      "user": "No model available - please contact your company's administrator."
+    },
+    "composer": {
+      "label": "Your question",
+      "placeholder": "Ask a question … Enter sends, Shift+Enter for a new line",
+      "placeholderPhone": "Ask a question …",
+      "placeholderTemplate": "Enter starts the template “{{name}}” – or ask a question with it",
+      "attach": "Attach files",
+      "model": "Model",
+      "provider": "({{provider}})",
+      "providerNoKey": "({{provider}} – no API key)",
+      "template": "Template",
+      "templatePlaceholder": "Template: Default",
+      "templateDefault": "Default",
+      "send": "Send",
+      "stop": "Stop",
+      "stopHint": "Stop - the answer is still saved",
+      "disclaimer": "Answers may contain mistakes. Check important details in the source."
+    },
+    "action": {
+      "title": "{{software}} - change",
+      "hint": "This change goes to {{software}} only after \"Run\".",
+      "run": "Run",
+      "cancel": "Cancel",
+      "outcome": {
+        "run": "Executed",
+        "cancelled": "Cancelled - not executed",
+        "expired": "Expired - not executed. Please ask again."
+      }
+    },
+    "file": {
+      "download": "Download {{name}}",
+      "expired": "Deleted after the retention time",
+      "expiredLabel": "expired",
+      "generated": "Created by the model",
+      "remove": "Remove from the conversation"
+    },
+    "image": {
+      "showLarge": "Show {{name}} large"
+    },
+    "sequence": {
+      "loading": "Loading the image …",
+      "previous": "Previous image",
+      "next": "Next image",
+      "showLarge": "Show the sequence large",
+      "play": "Play",
+      "pause": "Pause",
+      "slider": "Choose an image",
+      "position": "Image {{index}} of {{count}}",
+      "speed": "{{count}}/s",
+      "speedHint": "Speed - images per second"
+    },
+    "thinking": {
+      "live": "Thinking …",
+      "show": "Show reasoning"
+    },
+    "tools": {
+      "summaryOne": "1 tool step",
+      "summaryMany": "{{count}} tool steps",
+      "similaritySearch": "Search the company knowledge",
+      "readDocument": "Read a document",
+      "readFile": "Read a file",
+      "searchFile": "Search a file",
+      "readFileLines": "Read lines of a file",
+      "createFile": "Create a file",
+      "createImage": "Create an image",
+      "runPython": "Run Python",
+      "runShell": "Run a shell command",
+      "viewImages": "Look at images",
+      "handOutFile": "Hand out a file",
+      "webSearch": "Search the web",
+      "software": "{{software}}: {{tool}}",
+      "other": "{{name}}"
+    },
+    "upload": {
+      "tooMany": "At most {{max}} files at once",
+      "tooLarge": "The files are {{size}} together - at most {{max}} at once"
+    },
+    "confirm": {
+      "removeFile": "Remove file \"{{name}}\" from the conversation?",
+      "deleteChat": "Really delete chat \"{{title}}\"?"
+    },
+    "snack": {
+      "error": "Error: {{error}}",
+      "stoppedAnswerFailed": "The stopped answer could not be completed - nothing of it was stored: {{error}}",
+      "deleteFailed": "Error while deleting: {{error}}",
+      "deleted": "Chat deleted",
+      "attached": {
+        "one": "{{count}} file attached",
+        "other": "{{count}} files attached"
+      },
+      "answerCopied": "Answer copied",
+      "codeCopied": "Code copied",
+      "copyAnswerFailed": "Copying is not possible - please select the text and copy it.",
+      "copyCodeFailed": "Copying is not possible - please select the code and copy it."
+    },
+    "prompts": {
+      "button": "Prompts of the connected software",
+      "from": "From {{software}}",
+      "required": "This value is required",
+      "noArguments": "This prompt needs no values.",
+      "note": "The software makes a text of it - it goes into your input field, where you can check and send it.",
+      "take": "Into the input field"
+    },
+    "software": {
+      "label": "Topics",
+      "allOff": "Every topic is switched off - the answer comes from this chat's own knowledge alone.",
+      "toggle": "Switch {{name}} on or off for this conversation",
+      "count": "Topics {{on}}/{{total}}"
+    },
+    "agent": {
+      "waiting": "waiting for your answer",
+      "allOff": "Every skill is switched off - the agent answers without them.",
+      "welcome": "The answers come from the company's agent."
+    }
+  },
+  "documents": {
+    "page": {
+      "title": "Company knowledge",
+      "subtitle": "Every user finds the company knowledge in the chat without seeing the list - an area's documents are found only by the groups and keys assigned to it."
+    },
+    "embeddingModel": {
+      "title": "Embedding model",
+      "pageHint": "Prepares the documents for the search in the chat.",
+      "tenantHint": "Applies to all of the tenant's documents.",
+      "label": "Model",
+      "noKey": "– no API key",
+      "saving": "Saving …",
+      "chooseFirst": "Please choose an embedding model first - only then can documents be uploaded.",
+      "noneAssigned": "No embedding model is assigned to the tenant - please assign one under “Models” first.",
+      "saved": "Embedding model saved",
+      "saveFailed": "Error while saving the model: {{error}}",
+      "changeMessage": "All documents are embedded again with the new model. This incurs costs again.",
+      "changeMessageTenant": "All of the tenant's documents - including the users' own - are embedded again with the new model. This incurs costs again.",
+      "change": "Change model"
+    },
+    "searchLanguage": {
+      "title": "Search language",
+      "hint": "The language of the documents: the search also finds other forms of a word (“services” for “service”). Changing it rebuilds the search; nothing is embedded again.",
+      "label": "Language of the documents",
+      "saving": "Saving …",
+      "saved": "Search language saved - the search is rebuilt in the background",
+      "saveFailed": "Error while saving the search language: {{error}}"
+    },
+    "reranker": {
+      "title": "Reranker",
+      "hint": "Reorders what the search finds by how well each passage answers the question - often the right passage comes first. Each search takes a little longer; nothing is embedded again. Off: the search's own order.",
+      "label": "Reranker of the search",
+      "off": "Off",
+      "saving": "Saving …",
+      "saved": "Reranker saved",
+      "saveFailed": "Error while saving the reranker: {{error}}"
+    },
+    "status": {
+      "pending": "Waiting",
+      "processing": "Processing",
+      "ready": "Ready",
+      "failed": "Failed"
+    },
+    "origin": {
+      "upload": "uploaded",
+      "api": "client software",
+      "source": "file store",
+      "sourceNamed": "file store: {{name}}"
+    },
+    "importOutcome": {
+      "created": "new",
+      "replaced": "replaced",
+      "unchanged": "unchanged",
+      "duplicate": "duplicate",
+      "skipped": "skipped"
+    },
+    "fileTypeNone": "FILE",
+    "panel": {
+      "searchPlaceholder": "Search document or folder",
+      "searchLabel": "Search documents",
+      "area": "Area",
+      "filter": {
+        "all": "All",
+        "ready": "Ready",
+        "open": "In progress",
+        "failed": "Failed"
+      },
+      "refresh": "Refresh",
+      "importZip": "Import ZIP",
+      "importTooltip": "ZIP with folders, up to {{max}} - importing it again replaces changed files, missing ones stay",
+      "importTooltipInto": "Into {{area}}: ZIP with folders, up to {{max}} - importing it again replaces changed files, missing ones stay",
+      "upload": "Upload documents",
+      "uploadTooltip": "up to {{max}} per file",
+      "uploadTooltipInto": "Into {{area}}: up to {{max}} per file",
+      "summary": {
+        "documents": "documents",
+        "chunks": "sections embedded",
+        "open": "in progress",
+        "uploading": {
+          "one": "Uploading 1 file …",
+          "other": "Uploading {{count}} files …"
+        },
+        "importing": "Importing ZIP …"
+      },
+      "empty": {
+        "title": "No documents yet",
+        "titleIn": "No documents in “{{area}}” yet",
+        "text": "Manuals, price lists, contracts: whatever is here, the assistant finds in the chat. Single files or a ZIP with folders.",
+        "textArea": "Only the members of this area's groups and its API keys find what is here - and the tenant admins."
+      },
+      "column": {
+        "document": "Document",
+        "status": "Status",
+        "origin": "Origin",
+        "area": "Area",
+        "chunks": "Sections",
+        "size": "Size",
+        "added": "Added"
+      },
+      "externalId": "The software's key: {{id}}",
+      "noMatch": "No documents match this search.",
+      "perPage": "Per page",
+      "perPageLabel": "Documents per page",
+      "previousPage": "Previous page",
+      "nextPage": "Next page",
+      "uploadInto": "Upload to",
+      "manageAreas": "Manage areas",
+      "deleteUploadsChooseArea": "Delete uploads (choose an area first)",
+      "deleteUploadsIn": "Delete all uploads in “{{area}}”",
+      "retry": "Process again",
+      "move": "Change area",
+      "embedAllAgain": "Embed all documents again",
+      "waiting": {
+        "one": "1 document waits to be embedded. The documents are embedded one after the other - a new upload waits behind them.",
+        "other": "{{count}} documents wait to be embedded. The documents are embedded one after the other - a new upload waits behind them."
+      }
+    },
+    "confirm": {
+      "deleteUploadsTitle": "Delete all uploads in “{{area}}”?",
+      "deleteUploadsMessage": {
+        "one": "1 uploaded document will be deleted - the chat can no longer answer from it.\nDocuments of the client software are kept.\nThen import the ZIP again: all files are processed again.",
+        "other": "{{count}} uploaded documents will be deleted - the chat can no longer answer from them.\nDocuments of the client software are kept.\nThen import the ZIP again: all files are processed again."
+      },
+      "deleteUploadsConfirm": "Delete all",
+      "deleteMessage": "Really delete document \"{{path}}\"?\nThe chat can no longer answer from it.",
+      "deleteFromSource": "Really delete document \"{{path}}\"?\nThe chat can no longer answer from it. It comes back when its file changes in the file store - to leave it out for good, change the source's folder or file names.",
+      "embedAllAgainTitle": "Embed all documents again?",
+      "embedAllAgainMessage": "All {{count}} documents are embedded again with the current model - only then do documents embedded earlier benefit from improvements to the search. This incurs costs as for uploading them anew, and each document cannot be found in the chat until it is ready again.",
+      "embedAllAgainConfirm": "Embed again"
+    },
+    "snack": {
+      "uploadFailed": "Error while uploading \"{{name}}\": {{error}}",
+      "importFailed": "Error while importing \"{{name}}\": {{error}}",
+      "retried": "Document is being processed again",
+      "deleted": "Document deleted",
+      "moved": "Document is now in “{{area}}”",
+      "uploadsDeleted": {
+        "one": "1 uploaded document deleted from “{{area}}”",
+        "other": "{{count}} uploaded documents deleted from “{{area}}”"
+      },
+      "moveFailed": "Error while moving: {{error}}",
+      "deleteFailed": "Error while deleting: {{error}}",
+      "failed": "Error: {{error}}",
+      "tooLarge": "Too large (max. {{max}}), not uploaded: {{files}}",
+      "archiveTooLarge": "The ZIP is too large (max. {{max}})",
+      "embeddingAgain": {
+        "one": "1 document is being embedded again",
+        "other": "{{count}} documents are being embedded again"
+      }
+    },
+    "importDialog": {
+      "title": "Import – {{name}}",
+      "hint": "New and changed files are now processed in the background. Files missing from the ZIP are kept.",
+      "sameContentAs": "same content as {{path}}"
+    },
+    "moveDialog": {
+      "area": "Area",
+      "hint": "Only the area's groups and keys find it - the tenant admins find everything."
+    }
+  },
+  "searchLanguages": {
+    "SIMPLE": "No language (words as written)",
+    "ARABIC": "Arabic",
+    "ARMENIAN": "Armenian",
+    "BASQUE": "Basque",
+    "CATALAN": "Catalan",
+    "DANISH": "Danish",
+    "DUTCH": "Dutch",
+    "ENGLISH": "English",
+    "ESTONIAN": "Estonian",
+    "FINNISH": "Finnish",
+    "FRENCH": "French",
+    "GERMAN": "German",
+    "GREEK": "Greek",
+    "HINDI": "Hindi",
+    "HUNGARIAN": "Hungarian",
+    "INDONESIAN": "Indonesian",
+    "IRISH": "Irish",
+    "ITALIAN": "Italian",
+    "LITHUANIAN": "Lithuanian",
+    "NEPALI": "Nepali",
+    "NORWEGIAN": "Norwegian",
+    "PORTUGUESE": "Portuguese",
+    "ROMANIAN": "Romanian",
+    "RUSSIAN": "Russian",
+    "SERBIAN": "Serbian",
+    "SPANISH": "Spanish",
+    "SWEDISH": "Swedish",
+    "TAMIL": "Tamil",
+    "TURKISH": "Turkish",
+    "YIDDISH": "Yiddish"
+  },
+  "knowledgeAreas": {
+    "companyKnowledge": "Company knowledge",
+    "companyKnowledgeForAll": "Company knowledge (everyone finds it)",
+    "onlyCompanyKnowledge": "company knowledge only",
+    "all": "All areas",
+    "unknown": "Unknown area",
+    "name": "{{name}}",
+    "dialog": {
+      "title": "Areas",
+      "hint": "Documents without an area are company knowledge - everyone finds them. An area's documents are found only by the members of the groups and the API keys assigned to it, and by the tenant admins.",
+      "newArea": "New area",
+      "newAreaPlaceholder": "e.g. Sales",
+      "empty": "No areas yet - everything is company knowledge.",
+      "rename": "Rename",
+      "confirmDelete": "Really delete area \"{{name}}\"?\nIt must be empty - delete its documents first or move them to another area."
+    },
+    "snack": {
+      "created": "Area “{{name}}” created",
+      "deleted": "Area deleted"
+    }
+  },
+  "handbook": {
+    "title": "Handbook",
+    "subtitle": "Guides and rules of the company to read beside the chat",
+    "company": "Company handbook",
+    "general": "General",
+    "companyForAll": "Company handbook (everyone reads it)",
+    "choose": "Choose a website",
+    "manage": "Manage websites",
+    "hideManage": "Hide management",
+    "sizeKb": "{{value}} KB",
+    "sizeMb": "{{value}} MB",
+    "confirmRemove": "Remove the website \"{{name}}\"? Its readers no longer see it.",
+    "failed": {
+      "title": "The handbook could not be loaded",
+      "text": "The connection to the server failed. Please try again in a moment.",
+      "siteText": "This website could not be opened. Please try again in a moment.",
+      "tryAgain": "Try again"
+    },
+    "empty": {
+      "title": "No handbook yet",
+      "text": "Your company has not provided a handbook for you yet.",
+      "textAdmin": "Upload a static website as a ZIP under \"Manage websites\" - for everyone or for a knowledge area."
+    },
+    "panel": {
+      "title": "Handbook websites",
+      "subtitle": "One static website for everyone and one per knowledge area - read beside the chat, the assistant does not know them",
+      "upload": "Upload ZIP",
+      "view": "View",
+      "replace": "Replace with a new ZIP",
+      "remove": "Remove",
+      "files": "{{count}} files",
+      "column": {
+        "scope": "For",
+        "files": "Files",
+        "uploaded": "Uploaded"
+      },
+      "empty": {
+        "title": "No website yet",
+        "text": "Upload a ZIP with a static website (index.html at its top) for everyone or a knowledge area."
+      }
+    },
+    "upload": {
+      "title": "Upload a website",
+      "hint": "A ZIP with a static website: index.html at its top (or in the one folder of the ZIP), CSS, JavaScript, images, fonts - at most 2000 files. It replaces the website of the chosen scope.",
+      "limit": "The ZIP may have at most {{maxMb}} MB.",
+      "scope": "For",
+      "scopeHint": "Readers: everyone, or the users of the knowledge area and the tenant admins",
+      "choose": "Choose ZIP",
+      "noFile": "No file chosen",
+      "notZip": "Please choose a ZIP file",
+      "tooLarge": "The ZIP is too large - it may have at most {{maxMb}} MB",
+      "submit": "Upload",
+      "uploading": "Uploading …"
+    },
+    "snack": {
+      "uploaded": "Website uploaded",
+      "uploadedSkipped": "Website uploaded - {{count}} files left out (type not allowed or unreadable), e.g. {{paths}}",
+      "removed": "Website removed",
+      "uploadError": "Upload failed: {{error}}",
+      "removeError": "Removing failed: {{error}}"
+    }
+  },
+  "accessRequests": {
+    "title": "Access requests",
+    "subtitle": "People who signed in through the WAM proxy and are not assigned to a tenant yet.",
+    "open": "Open requests",
+    "refresh": "Refresh",
+    "empty": {
+      "title": "No open access requests",
+      "text": "When someone who belongs to no tenant yet signs in through the WAM proxy, they appear here."
+    },
+    "column": {
+      "person": "Person",
+      "requested": "Requested"
+    },
+    "assignTooltip": "Assign to tenant",
+    "reject": "Reject",
+    "confirmReject": "Reject the request of \"{{name}}\"?\nIf the person signs in again, they appear here again.",
+    "snack": {
+      "assigned": "Access assigned",
+      "rejected": "Request rejected",
+      "error": "Error: {{error}}"
+    },
+    "assign": {
+      "title": "Access for {{name}}",
+      "username": "Username: {{username}}",
+      "tenant": "Tenant",
+      "tenantRequired": "Tenant is required",
+      "language": "Language",
+      "active": "Approve at once (otherwise the tenant admin approves)",
+      "admin": "Tenant admin (e.g. the first user of a tenant)",
+      "submit": "Assign"
+    }
+  },
+  "account": {
+    "title": "Account",
+    "subtitleWam": "You are signed in with this account.",
+    "subtitle": "Your sign-in and your password.",
+    "signedInAs": "Signed in as",
+    "username": "Username",
+    "tenant": "Tenant",
+    "changePassword": "Change password",
+    "currentPassword": "Current password",
+    "currentPasswordRequired": "Current password is required",
+    "newPassword": "New password",
+    "newPasswordRequired": "New password is required",
+    "minLength": "At least {{min}} characters",
+    "repeatPassword": "Repeat new password",
+    "repeatPasswordRequired": "Please repeat the new password",
+    "passwordMismatch": "The passwords do not match",
+    "snack": {
+      "passwordChanged": "Password changed",
+      "error": "Error: {{error}}"
+    },
+    "connect": {
+      "title": "Connect Claude or Copilot",
+      "text": "Ask {{brand}} right while you work - in Claude Code, claude.ai, Cowork or GitHub Copilot (VS Code). It answers from the company's knowledge.",
+      "keyUser": "You need an MCP key for it - an administrator creates one for you or your team; each key opens its own knowledge and software. Put it in place of {{placeholder}}.",
+      "keyAdmin": "You create the MCP key on the page \"API keys\" - the command is shown there with the key in it. Your colleagues put it in place of {{placeholder}}.",
+      "claudeCode": "Claude Code - run in a terminal:",
+      "copilot": "GitHub Copilot - save in the project as",
+      "example": "Then ask, for example: \"Ask {{brand}} how we log errors.\"",
+      "summary": "The command and the settings to copy"
+    }
+  },
+  "apiKeys": {
+    "title": "Keys of the client software",
+    "subtitle": "Your software uses them to reach the API: chat and upload company knowledge.",
+    "hint": {
+      "before": "The client software authenticates with",
+      "after": ". Without “Keep history” the assistant answers every question on its own, stores nothing but the usage and reads text files sent along (e.g. log files)."
+    },
+    "newKey": "New API key – copy it now, it is shown this one time only:",
+    "copyTooltip": "Copy to clipboard",
+    "empty": {
+      "title": "No API keys yet",
+      "text": "Create a key above - your software signs in to the API with it."
+    },
+    "column": {
+      "name": "Name",
+      "key": "Key",
+      "lastUsed": "Last used"
+    },
+    "never": "never",
+    "revoke": "Revoke",
+    "confirmRevoke": "Really revoke API key \"{{name}}\"?\nThe client software can no longer sign in with it, effective immediately. The chats it started are deleted too, with their files.",
+    "snack": {
+      "revoked": "API key revoked",
+      "error": "Error: {{error}}",
+      "copied": "API key copied",
+      "copyFailed": "Copying failed - please select it by hand"
+    },
+    "add": "Create API key"
+  },
+  "mcpKey": {
+    "title": "Claude and Copilot (MCP)",
+    "subtitle": "Keys with which Claude Code, claude.ai, Cowork and GitHub Copilot ask your company's assistant.",
+    "remove": "Remove",
+    "regenerate": "Renew",
+    "generate": "Create key",
+    "hint": "With an MCP key Claude Code, claude.ai, Claude Desktop, Cowork, GitHub Copilot or other MCP clients ask your company's assistant, or search and read the company's documents themselves - the company knowledge and the key's areas, never a list of the documents. Create a key per purpose or circle of people and hand it on deliberately. The default model of the assistant settings answers the questions.",
+    "created": {
+      "title": "New MCP key \"{{name}}\" - visible only now",
+      "claudeCode": "Set up in Claude Code"
+    },
+    "copyKey": "Copy key",
+    "copyCommand": "Copy command",
+    "copyConfig": "Copy configuration",
+    "done": "Done",
+    "neverUsed": "never",
+    "copilot": "GitHub Copilot (VS Code):",
+    "vscodeHint": "VS Code asks for the MCP key on the first start and stores it encrypted.",
+    "copied": {
+      "key": "MCP key copied",
+      "command": "Command copied",
+      "config": "Configuration copied",
+      "url": "Address copied",
+      "value": "Value copied"
+    },
+    "snack": {
+      "copyFailed": "Copying failed",
+      "removed": "MCP key removed",
+      "error": "Error: {{error}}"
+    },
+    "confirmRegenerate": "Renew the MCP key \"{{name}}\"?\nThe current key stops working at once - Claude Code must be set up again, a connector in claude.ai or Cowork removed and added again. Areas and web search stay.",
+    "confirmRemove": "Really remove the MCP key \"{{name}}\"?\nClaude Code, claude.ai and Cowork can then no longer use it.",
+    "copyUrl": "Copy address",
+    "copyValue": "Copy value",
+    "connector": {
+      "title": "claude.ai, Claude Desktop and Cowork - custom connector:",
+      "where": "In Claude under Settings → Connectors → Add custom connector, enter:",
+      "name": "Name",
+      "url": "Remote MCP server URL",
+      "authentication": "Authentication",
+      "noSignIn": "No sign-in",
+      "header": "Request header",
+      "value": "Value",
+      "hint": "Enter the value exactly as shown - with \"Bearer\" and the space after it: Claude sends it as typed. A request header cannot be changed later: with a new key remove the connector and add it again."
+    },
+    "column": {
+      "name": "Name",
+      "key": "Key",
+      "lastUsed": "Last used"
+    },
+    "empty": {
+      "title": "No MCP key yet",
+      "text": "Create a key - with it Claude or Copilot asks your company's assistant."
+    },
+    "softwareAnswersOnly": "{{name}} (answers only)",
+    "a2a": {
+      "address": "A2A address",
+      "card": "Agent card"
+    },
+    "door": {
+      "mcp": "MCP",
+      "a2a": "A2A"
+    }
+  },
+  "providerKeys": {
+    "dialog": {
+      "setTitle": "Set API key – {{provider}}",
+      "replaceTitle": "Replace API key – {{provider}}",
+      "apiKey": "API key",
+      "hint": "Stored encrypted and afterwards only shown shortened.",
+      "required": "API key is required",
+      "blank": "API key must not consist of spaces only"
+    },
+    "global": {
+      "title": "Global API keys",
+      "subtitle": "Tenants allowed global API keys use these keys when they have not stored a key of their own. Their usage is billed.",
+      "panelTitle": "Keys per provider"
+    },
+    "tenant": {
+      "title": "API keys of the AI providers",
+      "subtitle": "The company's keys at the AI providers - all users and the client software use them. The provider bills the usage directly."
+    },
+    "column": {
+      "provider": "Provider",
+      "key": "Key",
+      "updated": "Changed"
+    },
+    "notSet": "not set",
+    "setKey": "Set key",
+    "replaceKey": "Replace key",
+    "remove": "Remove",
+    "fallback": {
+      "global": "Without a key of its own, the global key is used and billed – if there is one.",
+      "none": "Without a key of its own, this provider cannot be used."
+    },
+    "snack": {
+      "saved": "API key saved",
+      "removed": "API key removed",
+      "saveError": "Error while saving: {{error}}",
+      "removeError": "Error while removing: {{error}}"
+    },
+    "confirmRemove": {
+      "global": "Tenants without a key of their own can then no longer use this provider.",
+      "tenant": "Without a key this provider can only be used through an allowed global key.",
+      "message": "Really remove the API key for {{provider}}?\n{{consequence}}"
+    }
+  },
+  "tenantKeys": {
+    "title": "API keys",
+    "subtitle": "Your company's keys at the AI providers, for the client software and for Claude Code."
+  },
+  "users": {
+    "page": {
+      "title": "Users",
+      "subtitle": "The employees of your company who sign in to {{name}}. Tenant admins also manage users, API keys and company knowledge."
+    },
+    "list": {
+      "searchPlaceholder": "Search users",
+      "searchLabel": "Search users",
+      "create": "New user",
+      "wamNote": "Sign-in runs through the WAM proxy: new users sign in there and appear here as “Waiting for approval” once the administrator has assigned them. Only the administrator creates users and changes usernames.",
+      "empty": {
+        "title": "No users yet",
+        "text": "Every employee gets their own access to the chat - tenant admins also manage the settings."
+      },
+      "column": {
+        "user": "User",
+        "role": "Role",
+        "groups": "Groups",
+        "language": "Language",
+        "status": "Status",
+        "lastLogin": "Last sign-in"
+      },
+      "roleAdmin": "Tenant admin",
+      "roleUser": "User",
+      "never": "never",
+      "noMatch": "No users match this search.",
+      "fromTenant": "User from another tenant"
+    },
+    "status": {
+      "active": "Active",
+      "waiting": "Waiting for approval",
+      "inactive": "Inactive",
+      "fromIdm": "From the IDM"
+    },
+    "confirmDelete": "Really delete user \"{{username}}\"?\nThey can no longer sign in afterwards, and their chats and files are deleted too. To only block them: deactivate the user.",
+    "snack": {
+      "created": "User created",
+      "updated": "User updated",
+      "deleted": "User deleted",
+      "createError": "Error while creating: {{error}}",
+      "updateError": "Error while updating: {{error}}",
+      "deleteError": "Error while deleting: {{error}}"
+    },
+    "dialog": {
+      "createTitle": "New user",
+      "editTitle": "Edit user",
+      "username": "Username",
+      "usernameFixedHint": "The sign-in name at the WAM proxy - only the administrator can change it.",
+      "usernameHint": "3-100 characters: letters, digits and . _ - @ (no umlauts)",
+      "usernameRequired": "Username is required",
+      "usernameInvalid": "3-100 characters: only letters, digits and . _ - @",
+      "nameRequired": "Name is required",
+      "nameBlank": "Name must not consist of spaces only",
+      "wamHint": "Sign-in runs through the WAM proxy - users have no password.",
+      "password": "Password",
+      "minLength": "At least {{min}} characters",
+      "passwordHintEdit": "At least {{min}} characters - leave empty = unchanged",
+      "passwordRequired": "Password is required",
+      "language": "Language",
+      "languageHint": "The language of the interface - the user can change it later.",
+      "active": "Active (sign-in allowed)",
+      "admin": "Tenant admin (manages users, API keys, company knowledge and sees the usage)",
+      "groups": "Groups",
+      "groupsHint": "What they may use: the knowledge areas and software of these groups. Without a group the user does not get in (tenant admins excepted) - a group without rights gives the chat and the company knowledge.",
+      "groupsHintAdmin": "As a tenant admin they find all areas in the chat; the software comes from the groups.",
+      "noGroups": "No groups to choose here - without a group the user does not get in (tenant admins excepted). Create one on the page “Users”.",
+      "wamGroups": "IDM groups the WAM proxy sent last",
+      "wamGroupsNone": "none - not signed in since, or the proxy sends none"
+    },
+    "fromTenant": {
+      "title": "Add a user from another tenant",
+      "hint": "The same person gets a user here too - with the same username, name and language and without a password. They switch between the tenants in the user menu.",
+      "passwordHint": "Without a WAM proxy the person needs a password of its own here to switch to this tenant - set it afterwards by editing the user.",
+      "tenant": "Tenant",
+      "user": "User",
+      "active": "Approved at once",
+      "admin": "Tenant admin",
+      "submit": "Add"
+    }
+  },
+  "groups": {
+    "title": "Groups",
+    "subtitle": "What a user may use in the chat comes from their groups: knowledge areas, web search and the level per connected software.",
+    "create": "New group",
+    "empty": {
+      "title": "No groups yet",
+      "text": "A user gets in only through a group (tenant admins excepted) - a group without rights gives the chat and the company knowledge, more rights give knowledge areas and connected software."
+    },
+    "column": {
+      "name": "Group",
+      "members": "Members",
+      "areas": "Areas",
+      "software": "Software"
+    },
+    "wamGroupOf": "WAM group: {{wamGroup}}",
+    "wamGroupUnchecked": "WAM group: {{wamGroup}} - not checked, counts for nobody",
+    "names": "{{names}}",
+    "noGroup": "no group",
+    "noMembers": "no members",
+    "noAreas": "company knowledge only",
+    "confirmDelete": "Really delete the group \"{{name}}\"?\nIts members lose the areas and software it gave them - and a member in no other group can no longer sign in.",
+    "snack": {
+      "created": "Group created",
+      "updated": "Group updated",
+      "deleted": "Group deleted",
+      "createError": "Error while creating: {{error}}",
+      "updateError": "Error while updating: {{error}}",
+      "deleteError": "Error while deleting: {{error}}"
+    },
+    "dialog": {
+      "createTitle": "New group",
+      "editTitle": "Edit group",
+      "nameRequired": "Name is required",
+      "members": "Members",
+      "memberSearch": "Search users",
+      "noMemberMatch": "No user matches this search.",
+      "areas": "Knowledge areas",
+      "areasHint": "Besides the company knowledge, the members find these areas in the chat.",
+      "wamGroup": "WAM group",
+      "wamGroupHint": "The IDM group exactly as the WAM proxy sends it, e.g. AI-Sales. The group then takes its members from the IDM alone: everyone the proxy lists in it is a member, nobody else - empty: the members assigned here.",
+      "webSearch": "Web search in the chat",
+      "webSearchHint": "Its members' questions may search the web where the company's documents do not answer - the documents always come first, and only the search query goes out. Needs the web search for the company and a Tavily key.",
+      "softwareHint": "Once a software is connected on the page \"Software\", you set here what the members may use of it.",
+      "software": "Software",
+      "softwareLevelsHint": "What the members may use of each connected software in the chat. \"Read and change\" also gives them the changing tools - the chat asks before every call.",
+      "levelFor": "Level for {{name}}",
+      "membersFromIdm": "Members from the IDM",
+      "membersFromIdmHint": "The members come from the IDM group - put people into it or take them out there. A person listed there gets a user here at their next sign-in.",
+      "membersReplaced": "The members assigned here are replaced by the IDM group's when you save.",
+      "wamGroupByAdmin": "Only the admin sets the WAM group: it gives everyone in that IDM group a user in this tenant."
+    },
+    "webSearchTag": "Web search",
+    "noSoftware": "none",
+    "noGroupNoAccess": "no group - no access"
+  },
+  "assistant": {
+    "page": {
+      "title": "Assistant",
+      "subtitle": "How the chat answers: the base instructions for every question, the basic settings and the templates your users choose in the chat."
+    },
+    "answerSource": {
+      "documentsOnly": "From the documents only",
+      "documentsFirst": "Documents first, general knowledge marked"
+    },
+    "creativity": {
+      "low": "Low (factual)",
+      "medium": "Medium",
+      "high": "High (freely worded)"
+    },
+    "reasoning": {
+      "off": "Off",
+      "low": "Low",
+      "medium": "Medium",
+      "high": "High (thorough, slower)"
+    },
+    "form": {
+      "answerSource": "Answer source",
+      "creativity": "Creativity",
+      "reasoning": "Reasoning",
+      "searchResults": "Search results",
+      "maxLength": "At most {{max}} characters",
+      "range": "{{min}} to {{max}}"
+    },
+    "settings": {
+      "title": "Basic settings",
+      "intro": "Apply to every question unless a template says otherwise.",
+      "instructions": "Base instructions",
+      "instructionsHint": "Sent with every question, e.g. who the company is and how to answer ({{length}}/{{max}})",
+      "creativityHint": "Only for models that accept a temperature",
+      "reasoningHint": "Only for models whose reasoning can be controlled",
+      "searchResultsHint": "Sections per search ({{min}}-{{max}})",
+      "defaultModel": "Default model for Claude Code",
+      "defaultModelHint": "Answers questions asked through the MCP key that name no model",
+      "none": "None",
+      "imageModel": "Image model",
+      "imageModelAuto": "Automatic ({{model}})",
+      "imageModelHintChosen": "Creates and edits images in the chat",
+      "imageModelHintAuto": "Without a choice: {{model}} - creates and edits images in the chat",
+      "imageModelHintNone": "Without a choice the chat creates no images"
+    },
+    "templates": {
+      "title": "Templates",
+      "intro": "Users choose a template in the chat next to the model.",
+      "add": "New template",
+      "hint": "A template's instructions are added to the base instructions; its settings replace the basic settings.",
+      "emptyTitle": "No templates yet",
+      "emptyText": "The chat then uses the basic settings. A template's instructions are added to the base instructions; its settings replace the basic settings.",
+      "confirmDelete": "Really delete template \"{{name}}\"?\nConversations using it continue with the basic settings.",
+      "summary": {
+        "default": "Default settings",
+        "creativity": "Creativity: {{value}}",
+        "reasoning": "Reasoning: {{value}}",
+        "searchResults": "Search results: {{count}}"
+      }
+    },
+    "templateDialog": {
+      "titleCreate": "New template",
+      "titleEdit": "Edit template",
+      "namePlaceholder": "e.g. Look up",
+      "nameHint": "How users choose it in the chat",
+      "instructions": "Instructions",
+      "instructionsHint": "Added to the base instructions, e.g. \"Answer as a table with step, owner and deadline.\" ({{length}}/{{max}})",
+      "standard": "Default",
+      "searchResultsHint": "{{min}}-{{max}}, empty = default"
+    },
+    "snack": {
+      "settingsSaved": "Settings saved",
+      "templateCreated": "Template created",
+      "templateSaved": "Template saved",
+      "templateDeleted": "Template deleted",
+      "error": "Error: {{error}}",
+      "deleteError": "Error while deleting: {{error}}"
+    }
+  },
+  "software": {
+    "page": {
+      "title": "Connected software",
+      "subtitle": "Tools of your software that the assistant may use in the chat."
+    },
+    "protocol": {
+      "label": "Protocol",
+      "mcp": "MCP (software)",
+      "a2a": "A2A agent"
+    },
+    "skills": "Skills of the agent",
+    "skillsHint": "From the agent's card - read again with \"Read card again\". The assistant asks the agent through one tool; the groups' level decides who may.",
+    "noSkills": "The agent's card names no skills.",
+    "skillCount": "{{count}} skills",
+    "answersChat": "Answers the chat",
+    "answersChatHint": "Every question of the company's chat goes to this agent - its own model, templates and software are not used. One agent at most.",
+    "answersChatTag": "answers the chat",
+    "check": "Check",
+    "checkOk": "{{name}} answered with {{skills}} skills in {{millis}} ms.",
+    "a2aBaseUrl": "Agent address (JSON-RPC)",
+    "a2aBaseUrlPlaceholder": "https://agent.example.com/a2a",
+    "a2aBaseUrlHint": "HTTPS address of the agent's JSON-RPC interface - its card is read from the same host",
+    "a2aApiKey": "Agent key",
+    "a2aApiKeyOptional": "Optional - sent as bearer token if the agent requires one; an agent that signs in with OAuth needs none: save, then Sign in",
+    "cardLoaded": "Card read:",
+    "reload": "Read card again",
+    "snack": {
+      "created": {
+        "one": "Connected - 1 skill read",
+        "other": "Connected - {{count}} skills read"
+      },
+      "createdUnreadable": "Connected, but the agent's card cannot be read: {{error}}",
+      "reloaded": {
+        "one": "1 skill read",
+        "other": "{{count}} skills read"
+      },
+      "reloadedUnreadable": "The agent's card cannot be read: {{error}}"
+    }
+  },
+  "mcpConnections": {
+    "level": {
+      "read": "Read only",
+      "write": "Read and change"
+    },
+    "panel": {
+      "title": "Connections",
+      "intro": "Each software with its MCP server, its tools and who may use them.",
+      "connect": "Connect software",
+      "emptyTitle": "No software connected yet",
+      "emptyText": "Connect your software's MCP server, then choose which tools the assistant may use to read or change data in it.",
+      "note": "In the chat, the assistant uses your software's tools (e.g. looking up invoices or orders). Every tool is off until you turn it on, and a user needs access through one of their groups. Only members of a group with \"Read and change\" get tools that change data - and the chat asks before every call. An API key of the client software and an MCP key (Claude Code, Cowork) use a software only if it is given to them on the page \"API keys\" - both only for reading.",
+      "toolsUnreadable": "Tools not readable",
+      "toolsEnabled": "{{enabled}} of {{total}} tools enabled",
+      "key": "Key:",
+      "keyNone": "none",
+      "toolsLoaded": "Tools read:",
+      "toolsLoadedNever": "never",
+      "reload": "Reload tools",
+      "promptsUnreadable": "Prompts not readable: {{error}}"
+    },
+    "tools": {
+      "title": "Tools",
+      "none": "The software offers no tools.",
+      "on": "Enabled",
+      "tool": "Tool",
+      "changes": "Changes data",
+      "changesTooltip": "Reported by the software - can be corrected",
+      "inChat": "In the chat"
+    },
+    "toolState": {
+      "gone": "No longer offered by the software",
+      "off": "Off",
+      "onWithConfirmation": "On - with confirmation, only with \"Read and change\"",
+      "on": "On - usable in the chat"
+    },
+    "access": {
+      "title": "Access",
+      "passThrough": "Directly to MCP clients (Claude Code, Cowork)",
+      "passThroughText": "Off: an MCP key with this software gets the assistant's answers only - the software's raw results stay here. On: Claude calls its reading tools itself and sees their results, its prompts and instructions come along. Which MCP keys may use this software is set on each key (page \"API keys\").",
+      "none": "No access",
+      "noGroups": "The tenant has no groups yet - create them on the page “Users”.",
+      "groupText": "Its members",
+      "groupsHint": "A group's level is set in the group's dialog (page \"Users\") - here you see who may use this software and how."
+    },
+    "confirmDelete": "Really remove \"{{name}}\"?\nThe chat can then no longer use its tools.",
+    "snack": {
+      "created": {
+        "one": "Connected - 1 tool read, off",
+        "other": "Connected - {{count}} tools read, all off"
+      },
+      "createdUnreadable": "Connected, but the tools are not readable: {{error}}",
+      "reloaded": {
+        "one": "1 tool read",
+        "other": "{{count}} tools read"
+      },
+      "reloadedUnreadable": "Tools not readable: {{error}}",
+      "deleted": "Connection removed",
+      "error": "Error: {{error}}"
+    },
+    "dialog": {
+      "titleEdit": "Edit connection",
+      "nameHint": "The software's name in the chat, e.g. \"Accounting\"",
+      "nameRequired": "Name is required",
+      "nameBlank": "Name must not consist of spaces only",
+      "baseUrl": "MCP server address",
+      "baseUrlPlaceholder": "https://software.example.com/mcp",
+      "baseUrlHint": "HTTPS address the software gives for MCP",
+      "baseUrlRequired": "Address is required",
+      "apiKey": "Software API key",
+      "apiKeyStored": "Stored: {{hint}} - leave empty = unchanged",
+      "apiKeyOptional": "Optional - a server that signs in with OAuth needs none: save, then Sign in",
+      "removeApiKey": "Remove stored key",
+      "connect": "Connect"
+    },
+    "prompts": {
+      "title": "Prompts",
+      "text": "Ready-made requests of the software. Turned on, users with access pick them in the chat, fill in the values and get the text in their input field - they read it and send it themselves.",
+      "prompt": "Prompt",
+      "arguments": "Values (* required)",
+      "noArguments": "none"
+    },
+    "instructions": {
+      "title": "Instructions of the software",
+      "hint": "What the software says about its tools - our assistant reads it where the software is offered, MCP clients get it with a key that passes the software through.",
+      "cut": "Cut to {{max}} characters."
+    },
+    "signIn": {
+      "signedIn": "Signed in",
+      "pending": "Sign-in running",
+      "needed": "Sign-in needed",
+      "through": "Sign-in: {{issuer}}",
+      "scopes": "- rights: {{scopes}}",
+      "signIn": "Sign in",
+      "again": "Sign in again",
+      "remove": "Remove sign-in",
+      "confirmRemove": "Remove the sign-in of \"{{name}}\"?\nIts calls go without a token until someone signs in again or enters a key.",
+      "done": "{{name}}: signed in - {{count}} tools read",
+      "keyReplaces": "The connection signs in through {{issuer}} - entering a key removes the sign-in",
+      "useKey": "Use a key instead of the sign-in",
+      "byHand": "The server registers no client itself: register this installation at the server's portal with this redirect address, then enter the client id it gives.",
+      "copyRedirect": "Copy the redirect address",
+      "redirectCopied": "Redirect address copied",
+      "clientId": "Client id",
+      "clientSecret": "Client secret",
+      "clientSecretHint": "Only if the portal gives one"
+    }
+  },
+  "fileStores": {
+    "type": {
+      "SFTP": "SFTP",
+      "FTPS": "FTPS (FTP with TLS)",
+      "S3": "S3 (Amazon S3 or compatible)",
+      "SHAREPOINT": "SharePoint / OneDrive",
+      "IMAP": "Mailbox (IMAP)"
+    },
+    "status": {
+      "unchecked": "Not checked",
+      "ok": "Connected",
+      "unconfirmed": "Fingerprint to confirm",
+      "changed": "Fingerprint changed",
+      "failed": "Check failed"
+    },
+    "panel": {
+      "taskWrite": "tasks write",
+      "title": "File stores",
+      "intro": "SFTP and FTPS servers with a user and a folder, S3 buckets with an access key, SharePoint and OneDrive libraries through an app registration.",
+      "add": "Add file store",
+      "emptyTitle": "No file store yet",
+      "emptyText": "Add an SFTP or FTPS server, an S3 bucket or a SharePoint library - e.g. where your software writes its log files. A server's check shows its fingerprint, which you confirm before the password is sent.",
+      "note": "Check a store after adding it: an SFTP or FTPS server shows its fingerprint first. Only once you confirmed it does the password go to the server. If the server later shows another fingerprint, nothing is sent until you confirm the new one. S3 and SharePoint prove themselves over HTTPS - their check reads the folder at once.",
+      "server": "Server",
+      "user": "User",
+      "folder": "Folder",
+      "fingerprint": "Fingerprint",
+      "fingerprintNone": "not confirmed",
+      "checked": "Last check",
+      "checkedNever": "never",
+      "entries": "In the folder",
+      "entriesNone": "The folder is empty.",
+      "check": "Check",
+      "bucket": "Bucket",
+      "accessKey": "Access key",
+      "site": "Site",
+      "app": "App (client ID)"
+    },
+    "dialog": {
+      "titleEdit": "Edit file store",
+      "nameHint": "How the store is called, e.g. \"Log files\"",
+      "nameRequired": "Name is required",
+      "nameBlank": "Name must not consist of spaces only",
+      "type": "Type",
+      "typeHint": {
+        "SFTP": "File transfer over SSH (port 22)",
+        "FTPS": "FTP with TLS (AUTH TLS, port 21) - plain FTP is not supported",
+        "S3": "A bucket of Amazon S3 or of a compatible store (e.g. Ceph, Garage, Hetzner, Cloudflare R2), read only",
+        "SHAREPOINT": "A document library of a SharePoint site or a OneDrive, read by an app registration of your Entra ID - read only",
+        "IMAP": "A mailbox folder: every message of the last days is a folder, its attachments and its text the files - read only, nothing is marked as read"
+      },
+      "host": "Host",
+      "hostPlaceholder": "sftp.example.com",
+      "hostHint": "Name or IP address - no protocol, port or path",
+      "hostRequired": "Host is required",
+      "port": "Port",
+      "portInvalid": "Port between 1 and 65535",
+      "username": "User name",
+      "usernameRequired": "User name is required",
+      "password": "Password",
+      "passwordHint": "Sent to the server only after you confirmed its fingerprint",
+      "passwordAgain": "Another server - enter the password again",
+      "passwordStored": "Stored - leave empty = unchanged",
+      "passwordRequired": "Password is required",
+      "basePath": "Folder",
+      "basePathHint": "The folder the store stands for, e.g. /logs - empty: /",
+      "endpoint": "Endpoint",
+      "endpointPlaceholder": "https://s3.example.com",
+      "endpointHint": "The address of a compatible store - empty: Amazon S3. http only to the internal hosts of the installation",
+      "region": "Region",
+      "regionRequired": "Amazon S3 needs the region",
+      "bucket": "Bucket",
+      "bucketRequired": "Bucket is required",
+      "accessKeyId": "Access key ID",
+      "accessKeyIdHint": "A key that may only list and read the bucket (s3:ListBucket, s3:GetObject)",
+      "accessKeyIdRequired": "Access key ID is required",
+      "secretKey": "Secret access key",
+      "secretKeyHint": "Never sent to the store - the requests are signed with it",
+      "basePathHintS3": "A folder in the bucket, e.g. /logs - empty: the whole bucket",
+      "siteUrl": "Site address",
+      "siteUrlPlaceholder": "https://company.sharepoint.com/sites/projects",
+      "siteUrlHint": "A OneDrive's address: https://company-my.sharepoint.com/personal/name_company_com",
+      "siteUrlRequired": "Site address is required",
+      "library": "Library",
+      "libraryHint": "The document library's name, e.g. Documents - empty: the site's default one",
+      "directoryId": "Directory (tenant) ID",
+      "directoryIdHint": "From the app registration's overview in Entra ID",
+      "directoryIdRequired": "Directory ID is required",
+      "clientId": "Application (client) ID",
+      "clientIdHint": "An app with Sites.Selected, granted read on this site only",
+      "clientIdRequired": "Client ID is required",
+      "clientSecret": "Client secret",
+      "clientSecretHint": "Goes to Microsoft's login only - a secret expires after two years at the latest",
+      "basePathHintSharePoint": "A folder in the library, e.g. /Logs - empty: the whole library",
+      "secretKeyAgain": "Another bucket or key - enter the secret access key again",
+      "clientSecretAgain": "Another app - enter its client secret again",
+      "taskWrite": "Tasks may write here",
+      "taskWriteHint": "A scheduled task may then write a file into this store - a CSV of rows taken out of documents. It never deletes or moves a file. The account needs write rights on that folder.",
+      "mailHostPlaceholder": "imap.example.com",
+      "security": "Connection",
+      "securityOption": {
+        "SSL": "IMAPS (port 993)",
+        "STARTTLS": "STARTTLS (port 143)",
+        "NONE": "Unencrypted - internal hosts only"
+      },
+      "mailbox": "Mailbox folder",
+      "mailboxHint": "As the server names it, e.g. INBOX or INBOX/Receipts - left empty: INBOX",
+      "days": "Days",
+      "daysHint": "Messages of the last days",
+      "daysInvalid": "1 to 3650 days",
+      "mailboxReadOnly": "A mailbox is only read: nothing in it is deleted, moved or marked as read, and tasks never write into it."
+    },
+    "confirmFingerprint": {
+      "title": "Confirm the server's fingerprint",
+      "message": "{{host}} presents this fingerprint:\n\n{{fingerprint}}\n\nCompare it with the one your server administrator gives you. Only after you confirm it is the password sent to this server.",
+      "accept": "Confirm and connect"
+    },
+    "changedFingerprint": {
+      "title": "The server's fingerprint changed",
+      "message": "{{host}} presents another fingerprint than the one confirmed:\n\nnow: {{fingerprint}}\nconfirmed: {{confirmed}}\n\nThis happens when the server was set up anew - or when someone pretends to be the server. Nothing was sent. Confirm the new fingerprint only if your server administrator confirms the change.",
+      "accept": "Confirm new fingerprint"
+    },
+    "confirmDelete": "Really remove \"{{name}}\"?",
+    "snack": {
+      "created": "File store added - check it now",
+      "deleted": "File store removed",
+      "ok": "Connected - the folder was read",
+      "failed": "Check failed: {{error}}",
+      "error": "Error: {{error}}"
+    },
+    "page": {
+      "title": "File stores",
+      "subtitle": "Servers, buckets and libraries the assistant reads files from and writes files to - e.g. log files on an SFTP share, in an S3 bucket or in SharePoint."
+    }
+  },
+  "knowledgeSources": {
+    "panel": {
+      "title": "Knowledge sources",
+      "intro": "Folders of your file stores, kept up to date in the knowledge.",
+      "add": "Add source",
+      "emptyTitle": "No knowledge source yet",
+      "emptyText": "A source reads a folder of a file store with its subfolders into the knowledge, and keeps it up to date: changed files are embedded again, deleted ones removed.",
+      "emptyNoStore": "A source reads a folder of a file store into the knowledge. Add a file store first (page \"File stores\") and confirm its server.",
+      "paused": "paused",
+      "run": "Synchronize now",
+      "cancel": "Cancel",
+      "files": "Files not read",
+      "from": "From",
+      "into": "Into",
+      "schedule": "Schedule",
+      "next": "next",
+      "lastRun": "Last run",
+      "numbers": "{{added}} new, {{changed}} changed, {{deleted}} deleted, {{refused}} refused",
+      "skipped": "{{count}} skipped (file type)",
+      "open": "Open",
+      "openFiles": "{{count}} files ({{size}}) not read yet",
+      "error": "Error"
+    },
+    "status": {
+      "new": "Not listed yet",
+      "running": "Running",
+      "ok": "Up to date",
+      "cancelled": "Cancelled",
+      "incomplete": "Listing incomplete",
+      "failed": "Error",
+      "failedSince": "Failing since"
+    },
+    "schedule": {
+      "MANUAL": "By hand only",
+      "HOURLY": "Hourly",
+      "EVERY_3_HOURS": "Every 3 hours",
+      "EVERY_6_HOURS": "Every 6 hours",
+      "EVERY_12_HOURS": "Every 12 hours",
+      "DAILY": "Daily (at night)"
+    },
+    "dialog": {
+      "titleEdit": "Edit knowledge source",
+      "nameHint": "How the source is called, e.g. \"Projects\"",
+      "nameRequired": "Name is required",
+      "nameBlank": "Name must not consist of spaces only",
+      "store": "File store",
+      "storeNotReady": "server not confirmed yet",
+      "storeHint": "Only stores whose server you confirmed",
+      "folder": "Folder",
+      "folderPlaceholder": "Projects/2025",
+      "folderHint": "Below the store's folder, subfolders included - empty: the store's folder",
+      "area": "Into",
+      "areaHint": "Where new documents go - documents moved by hand stay where they are",
+      "pattern": "File names",
+      "patternHint": "e.g. *.pdf - empty: every file of a type that is read",
+      "schedule": "Schedule",
+      "scheduleHint": "A scheduled run reads at most 100 files (250 MB), the rest with the next one",
+      "active": "Run by schedule",
+      "otherFiles": "Another store or folder: the source's documents are deleted and the new folder is read anew. To keep them, remove the source with \"Keep documents\" and add a new one.",
+      "chooseFolder": "Choose folder",
+      "overlap": "The source \"{{name}}\" reads this folder, one above or below it from the same file store - its files would stand twice in the knowledge. Saving works; give each source its own folder, or file names that keep them apart."
+    },
+    "folderPicker": {
+      "title": "Choose folder",
+      "path": "Path",
+      "empty": "This folder has no subfolders - take it, or go back.",
+      "truncated": "Only the first 500 folders are shown.",
+      "take": "Take this folder"
+    },
+    "remove": {
+      "title": "Remove \"{{name}}\"?",
+      "message": "What happens with the documents of this source?\n\nDelete: they are deleted with the source - the chat no longer answers from them.\nKeep: they stay in the knowledge as uploaded documents, but are no longer kept up to date.",
+      "keep": "Keep documents",
+      "delete": "Delete with documents"
+    },
+    "files": {
+      "title": "Files of \"{{name}}\" not read",
+      "intro": "These files have no document. A refused file is read again when it changes.",
+      "none": "Every file of the source has its document.",
+      "failed": "The files could not be loaded - please close the dialog and try again.",
+      "deletedByHand": "Its document was deleted by hand - comes back when the file changes",
+      "typeNotSupported": "A file type that is not read",
+      "unreadable": "The file store could not read it - tried again at every run"
+    },
+    "run": {
+      "title": "Synchronize \"{{name}}\" now?",
+      "message": "{{count}} files ({{size}}) are read into the knowledge now - all at once, without the limit of a scheduled run. Scanned pages and images are read by the image model, which costs.",
+      "messageNothingOpen": "The folder is listed again; new and changed files are read into the knowledge."
+    },
+    "snack": {
+      "created": "Source added - its folder is being listed",
+      "deleted": "Source removed",
+      "started": "Synchronizing in the background",
+      "error": "Error: {{error}}"
+    }
+  },
+  "models": {
+    "provider": {
+      "ANTHROPIC": "Anthropic",
+      "OPENAI": "OpenAI",
+      "GEMINI": "Google Gemini",
+      "OLLAMA": "Ollama",
+      "OPENAI_COMPATIBLE": "OpenAI-compatible",
+      "BEDROCK": "Amazon Bedrock",
+      "TAVILY": "Tavily (web search)",
+      "TEI": "TEI server (reranker)"
+    },
+    "kind": {
+      "CHAT": "Chat",
+      "EMBEDDING": "Embedding",
+      "IMAGE": "Image",
+      "WEB_SEARCH": "Web search",
+      "RERANK": "Reranker"
+    },
+    "keySource": {
+      "OWN": "own key",
+      "GLOBAL": "global key"
+    },
+    "list": {
+      "title": "AI models",
+      "subtitle": "Chat and embedding models tenants can choose from.",
+      "create": "New model",
+      "catalog": "Model catalog",
+      "pricesNote": "Prices in € per 1M tokens",
+      "refresh": "Refresh",
+      "emptyTitle": "No AI models yet",
+      "emptyText": "Only a model in the catalog can be made available to a tenant - for the chat or for embedding the documents.",
+      "columnProvider": "Provider",
+      "columnKind": "Kind",
+      "columnDimension": "Dimension",
+      "columnReads": "Reads directly",
+      "readsPdf": "Reads PDF directly",
+      "readsAudio": "Reads audio directly",
+      "transcribes": "Transcribes uploaded audio files",
+      "columnPrices": "Input / Output",
+      "perThousandSearches": "per 1,000 searches",
+      "columnStatus": "Status",
+      "confirmDelete": "Really delete AI model \"{{name}}\"?\nA model that should no longer be offered can also be deactivated."
+    },
+    "snack": {
+      "created": "AI model created",
+      "updated": "AI model updated",
+      "deleted": "AI model deleted",
+      "createFailed": "Error while creating: {{error}}",
+      "updateFailed": "Error while updating: {{error}}",
+      "deleteFailed": "Error while deleting: {{error}}"
+    },
+    "dialog": {
+      "editTitle": "Edit AI model",
+      "createTitle": "New AI model",
+      "provider": "Provider",
+      "kind": "Kind",
+      "anthropicEmbedding": "Anthropic offers no embedding models.",
+      "bedrockOnlyChat": "Only Bedrock's chat models can be used - the company knowledge keeps its own embedding model.",
+      "imageNotGemini": "Image models come only from Google Gemini for now.",
+      "imageHint": "Creates images in the chat - new ones or from uploaded images (e.g. gemini-2.5-flash-image). It does not chat itself.",
+      "webSearchTavily": "The web search comes only from Tavily, and Tavily offers nothing else.",
+      "rerankTei": "A reranker runs on a TEI server, and a TEI server offers only the reranker.",
+      "webSearchHint": "The chat's web search through Tavily - no model. Assign it to a tenant like a model; its tenant admins turn it on for groups, API keys and the MCP server. The key goes under API keys as Tavily.",
+      "rerankHint": "Reorders the knowledge search's results by how well each answers the question (a cross-encoder, e.g. bge-reranker-v2-m3). It runs on a server speaking the /rerank API of Hugging Face Text Embeddings Inference; one server serves every tenant. Assign it to a tenant like a model - the tenant chooses it under company knowledge.",
+      "displayName": "Display name",
+      "displayNameRequired": "Display name is required",
+      "displayNameBlank": "Display name must not consist of spaces only",
+      "modelName": "Model ID",
+      "modelNamePlaceholder": "e.g. gpt-5-mini",
+      "modelNameHint": "The model's name at the provider",
+      "modelNameRequired": "Model ID is required",
+      "modelNameBlank": "Model ID must not consist of spaces only",
+      "baseUrl": "Server address",
+      "baseUrlPlaceholderOllama": "e.g. https://ollama.example.com",
+      "baseUrlPlaceholderTei": "e.g. http://alpdesk-ai-reranker",
+      "baseUrlPlaceholderCompatible": "e.g. https://api.mistral.ai/v1",
+      "baseUrlPlaceholderBedrock": "e.g. https://bedrock-runtime.eu-central-1.amazonaws.com",
+      "bedrockAddress": "Please enter the address of a Bedrock region: https://bedrock-runtime.<region>.amazonaws.com",
+      "bedrockKeyHint": "An IAM user's access key: ACCESS_KEY_ID:SECRET_ACCESS_KEY",
+      "bedrockKey": "Please enter the access key as its ID, a colon and its secret.",
+      "baseUrlHint": "HTTPS only - plain HTTP only to hosts the server allows",
+      "baseUrlRequired": "A model on a server of your own needs the server's address.",
+      "baseUrlInvalid": "Please enter as https://host[:port][/path] - without user, parameters or #.",
+      "apiKey": "Server API key",
+      "apiKeyStored": "Stored: {{hint}} - leave empty = unchanged. Another host discards it.",
+      "apiKeyOptional": "Optional - only if the server requires one",
+      "removeApiKey": "Remove stored key",
+      "contextLength": "Context length",
+      "contextLengthHint": "Empty = 32768. Whatever does not fit, Ollama cuts off without notice.",
+      "contextLengthRange": "The context length must be a whole number from {{min}} to {{max}}.",
+      "dimension": "Dimension",
+      "dimensionHint": "Length of the vectors (1-{{max}}), requested from the provider as such - e.g. 1536 also for models that can deliver more",
+      "dimensionRequired": "An embedding model needs its dimension.",
+      "dimensionRange": "The dimension must be a whole number from 1 to {{max}}.",
+      "readsDirectly": "Reads directly",
+      "pdf": "PDF",
+      "audio": "Audio",
+      "imagesHint": "Every chat model reads images.",
+      "transcribes": "Transcribes uploaded audio files (one model only)",
+      "readsScans": "Reads images and scans for the company knowledge (one model only)",
+      "takesTemperature": "Takes a temperature (creativity)",
+      "takesTemperatureHint": "Off for reasoning models that take no temperature (e.g. GPT-5, o3).",
+      "steersReasoning": "Reasoning can be controlled",
+      "steersReasoningHint": "On for models with adjustable reasoning (e.g. GPT-5, Gemini 2.5, Claude, Qwen3). \"Off\" sends Gemini a budget of 0 - Gemini 2.5 Pro cannot do that.",
+      "callsTools": "Can use tools",
+      "callsToolsHint": "Off (for small local models): the application searches the documents and reads the files beforehand and passes them along with the question - the model then cannot create files.",
+      "maxOutputTokens": "Max. output tokens",
+      "maxOutputTokensHint": "Empty = 16384. Covers reasoning and answer together - a model that reasons on its own (e.g. Qwen) needs enough for both. With controllable reasoning the reasoning budget is added.",
+      "maxOutputTokensRange": "The output tokens must be a whole number from {{min}} to {{max}}.",
+      "tokensSuffix": "tokens",
+      "inputPrice": "Input price",
+      "outputPrice": "Output price",
+      "euroSuffix": "€",
+      "perMillion": "per 1M tokens",
+      "perThousandSearches": "per 1,000 searches",
+      "webSearchPrice": "Price",
+      "notNegative": "Must not be negative",
+      "tiersAndCache": "Price tier and cache (optional)",
+      "tiersAndCacheHint": "Some models bill a request with a long prompt at higher prices, and a cached token at its own price - see the provider's price list. Empty: one price, a cached token like an input token.",
+      "tierThreshold": "Higher prices above",
+      "tierThresholdHint": "Prompt length of one request, cached tokens included",
+      "tierInputPrice": "Input price above",
+      "tierOutputPrice": "Output price above",
+      "cacheReadPrice": "Cache read",
+      "cacheWritePrice": "Cache write",
+      "tierCacheReadPrice": "Cache read above",
+      "tierCacheWritePrice": "Cache write above",
+      "tierIncomplete": "A price tier needs its threshold and both its input and output price.",
+      "tierThresholdRange": "The threshold is a whole number of tokens above 0.",
+      "active": "Active (selectable for tenants)"
+    }
+  },
+  "tenantDetail": {
+    "overview": {
+      "codeExecution": {
+        "off": "not allowed",
+        "one": "allowed ({{count}} instance)",
+        "other": "allowed ({{count}} instances)"
+      },
+      "sandboxStatus": {
+        "reachable": "reachable",
+        "busy": "busy",
+        "tokenRefused": "token refused",
+        "unreachable": "not reachable",
+        "unusable": "needs a restart (its log says why)"
+      },
+      "calls": "Calls {{month}}",
+      "callsNote": "Chat, embedding, images, audio",
+      "tokens": "Tokens",
+      "tokensNote": "Input and output",
+      "cost": "Cost",
+      "amount": "€{{amount}}",
+      "costNote": "with the tenant's own and global keys",
+      "billable": "To be billed",
+      "billableNote": "via the global keys",
+      "masterData": "Master data",
+      "status": "Status",
+      "contact": "Contact",
+      "globalKeys": "Global keys",
+      "globalKeysAllowed": "allowed - billed",
+      "globalKeysNotAllowed": "not allowed",
+      "codeExecutionLabel": "Code execution",
+      "checkSandbox": "Check sandbox",
+      "sandboxVideo": "Video",
+      "sandboxExtras": "Own programs",
+      "sandboxExtrasDiffer": "The instances carry different own programs (their README differs, or some have none) - the assistant is told of none until they agree.",
+      "database": "Database",
+      "created": "Created",
+      "notes": "Notes"
+    },
+    "tabs": {
+      "overview": "Overview",
+      "users": "Users",
+      "models": "Models",
+      "knowledge": "Company knowledge",
+      "handbook": "Handbook",
+      "assistant": "Assistant",
+      "keys": "Keys",
+      "software": "Software",
+      "fileStores": "File stores",
+      "branding": "Branding",
+      "tasks": "Tasks"
+    },
+    "allTenants": "All tenants",
+    "delete": "Delete tenant",
+    "usersNote": "The tenant's employees who sign in to {{installation}}.",
+    "notFoundTitle": "Tenant not found",
+    "notFoundText": "There is no tenant with this ID - perhaps it was deleted.",
+    "snack": {
+      "modelsSaved": "AI models saved",
+      "modelsFailed": "Error while saving the AI models: {{error}}",
+      "brandingSaved": "Branding saved",
+      "brandingFailed": "Error while saving the branding: {{error}}"
+    },
+    "models": {
+      "title": "Assigned models",
+      "manage": "Manage",
+      "assign": "Assign models",
+      "embedsDocuments": "embeds the documents",
+      "emptyTitle": "No models assigned yet",
+      "emptyText": "The tenant sees and uses only the models you assign to it - with its own or a global API key."
+    }
+  },
+  "tenants": {
+    "list": {
+      "title": "Tenants",
+      "subtitle": "Customers of {{installation}} and their settings. A row opens the tenant.",
+      "create": "New tenant",
+      "searchPlaceholder": "Search tenant",
+      "searchLabel": "Search tenants",
+      "refresh": "Refresh",
+      "emptyTitle": "No tenants yet",
+      "emptyText": "A tenant is a customer: a company with its own database, its own users and its own company knowledge.",
+      "columnTenant": "Tenant",
+      "columnStatus": "Status",
+      "columnContact": "Contact",
+      "columnGlobalKeys": "Global keys",
+      "allowed": "allowed",
+      "noMatch": "No tenant matches this search.",
+      "open": "Open",
+      "confirmDelete": "Really delete tenant \"{{name}}\"?\nIts users, API keys, documents, chats and usage are deleted too - bill it first. To only block it: deactivate the tenant."
+    },
+    "snack": {
+      "created": "Tenant created",
+      "updated": "Tenant updated",
+      "deleted": "Tenant deleted",
+      "createFailed": "Error while creating: {{error}}",
+      "updateFailed": "Error while updating: {{error}}",
+      "deleteFailed": "Error while deleting: {{error}}"
+    },
+    "dialog": {
+      "editTitle": "Edit tenant",
+      "createTitle": "New tenant",
+      "nameRequired": "Name is required",
+      "nameBlank": "Name must not consist of spaces only",
+      "contactEmail": "Contact email",
+      "emailInvalid": "Not a valid email address",
+      "notes": "Notes",
+      "active": "Active (API access allowed)",
+      "globalKeysAllowed": "Allow global API keys (usage is billed)",
+      "codeExecution": "Code execution (Python and shell)",
+      "codeExecutionNote": "Only with a sandbox of the tenant's own, started on the server. No addresses, no code execution.",
+      "sandboxUrls": "Sandbox addresses",
+      "sandboxUrlsPlaceholder": "http://alpdesk-ai-sandbox-example:8080",
+      "sandboxUrlsHint": "One per line or separated by commas; empty: no code execution",
+      "sandboxToken": "Sandbox token",
+      "tokenStored": "stored: {{hint}}",
+      "tokenHint": "{{min}} to {{max}} characters",
+      "tokenHintStored": "{{min}} to {{max}} characters; leave empty: unchanged",
+      "tokenInvalid": "{{min}} to {{max}} characters, no spaces",
+      "tokenMissing": "The addresses need a token.",
+      "addressesMissing": "The token needs addresses.",
+      "database": "Database: {{name}}",
+      "searchLanguageHint": "The language of the tenant's documents - can be changed later under “Company knowledge”.",
+      "tasksAllowed": "May keep scheduled tasks",
+      "a2aAllowed": "May connect A2A agents",
+      "a2aAllowedHint": "Questions of the company's users then leave the installation for the agents its admins connect."
+    },
+    "modelsDialog": {
+      "title": "AI models – {{name}}",
+      "intro": "The tenant sees and uses only the selected models – with its own or a global API key.",
+      "inactiveSuffix": " · inactive",
+      "embeddingLocked": "The tenant's documents are embedded with this model – it stays assigned until the tenant chooses another.",
+      "empty": "No AI models in the catalog yet."
+    }
+  },
+  "branding": {
+    "dialog": {
+      "title": "Branding – {{name}}",
+      "intro": "This is how the tenant's users see the interface after signing in. Empty fields take the installation's default.",
+      "default": "Default: {{value}}",
+      "nameTooLong": "At most {{max}} characters",
+      "primaryColor": "Primary colour",
+      "colorHint": "As #rrggbb - default: {{value}}",
+      "colorInvalid": "Please enter as #rrggbb, e.g. #1a4f8b",
+      "pickColor": "Pick colour",
+      "logo": "Logo",
+      "noLogo": "No logo of its own - the installation's applies.",
+      "replaceLogo": "Replace logo",
+      "uploadLogo": "Upload logo",
+      "logoRules": "PNG, JPEG or WebP, at most {{max}}. Saved at once."
+    },
+    "snack": {
+      "logoSaved": "Logo saved",
+      "logoRemoved": "Logo removed",
+      "failed": "Error: {{error}}",
+      "logoTooLarge": "The logo is too large (max. {{max}})",
+      "linkCopied": "Link copied",
+      "linkCopyFailed": "The link could not be copied",
+      "linkRenewed": "New link created - the old one no longer shows the tenant's look"
+    },
+    "summary": {
+      "title": "Branding",
+      "intro": "This is how the tenant's users see the interface - after signing in and on its login page.",
+      "edit": "Edit branding",
+      "defaultTag": "Default"
+    },
+    "loginLink": {
+      "title": "Login page",
+      "adminHint": "Shows the tenant's logo, name and colour before the login. Hand this link to its people.",
+      "usersIntro": "Hand this link to your people: the login then shows your logo, name and colour.",
+      "copy": "Copy link",
+      "renew": "New link",
+      "confirmRenew": "Create a new link? The current one then only shows the neutral login page."
+    }
+  },
+  "usage": {
+    "title": "Usage",
+    "subtitle": {
+      "admin": "Amounts in € at the models' prices; usage on global keys is to be billed.",
+      "tenant": "Amounts in € at the models' prices; usage on global keys is billed."
+    },
+    "previousMonth": "Previous month",
+    "nextMonth": "Next month",
+    "tiles": {
+      "total": "Total",
+      "totalNote": "at the models' prices",
+      "billableNote": "on global keys",
+      "ownKeys": "Own keys",
+      "ownKeysNoteAdmin": "not to be billed",
+      "ownKeysNoteTenant": "directly with the provider",
+      "tenants": "Tenants",
+      "tenantsNote": "with usage this month"
+    },
+    "billable": {
+      "admin": "To be billed",
+      "tenant": "Billed"
+    },
+    "byModel": "By model",
+    "columns": {
+      "model": "Model",
+      "key": "Key",
+      "calls": "Calls",
+      "tokens": "Tokens input / output",
+      "amount": "Amount"
+    },
+    "estimated": "Partly estimated - the provider did not report token counts",
+    "sums": {
+      "total": "Total: {{amount}}",
+      "billable": "{{label}}: {{amount}}"
+    },
+    "empty": {
+      "title": "No usage this month",
+      "text": "As soon as the chat, embedding or document processing calls a model, its usage appears here."
+    },
+    "cached": "{{read}} read from the cache, {{write}} written to it"
+  },
+  "paging": {
+    "size50": "50",
+    "size100": "100",
+    "all": "All",
+    "range": "{{start}}–{{end}} of {{total}}",
+    "empty": "0 of 0"
+  },
+  "applicationLog": {
+    "title": "Application log",
+    "subtitle": "Warnings and errors of the application since its start - newest first",
+    "panelTitle": "Entries",
+    "filter": {
+      "all": "Warnings and errors",
+      "errors": "Errors only"
+    },
+    "searchPlaceholder": "Message, logger or stack trace",
+    "searchLabel": "Search the log",
+    "refresh": "Reload",
+    "column": {
+      "time": "Time",
+      "level": "Level",
+      "logger": "Logger",
+      "message": "Message"
+    },
+    "level": {
+      "error": "Error",
+      "warning": "Warning"
+    },
+    "thread": "Thread",
+    "hasStackTrace": "With stack trace",
+    "summary": "{{count}} entries. The last {{capacity}} warnings and errors since the start on {{started}} are kept - older ones are in the container log of the server.",
+    "empty": {
+      "title": "No entries",
+      "text": "No warning or error matches these filters."
+    },
+    "dailyReport": {
+      "send": "Send daily report now",
+      "tooltip": "Mails the daily report to its recipients now - a test of the mail settings",
+      "sent": "Daily report sent to {{count}} recipient(s)",
+      "failed": "Daily report could not be sent: {{error}}"
+    }
+  },
+  "tasks": {
+    "page": {
+      "title": "Tasks",
+      "subtitle": "Checks of files that run by themselves and report only what is wrong"
+    },
+    "notAllowedNote": "This tenant may not have tasks yet - turn it on in its master data. Tasks can be prepared, but none runs.",
+    "confirmDelete": "Delete the task \"{{name}}\" with all its runs?",
+    "panel": {
+      "title": "Tasks",
+      "intro": "Each one reads files of a file store, checks them and mails what it finds",
+      "add": "New task",
+      "import": "Import",
+      "emptyTitle": "No task yet",
+      "emptyText": "A new task starts from a template - the log check of a file store.",
+      "name": "Name",
+      "triggers": "Runs",
+      "lastRun": "Last run",
+      "nextRun": "Next run",
+      "never": "never",
+      "off": "off",
+      "start": "Start now",
+      "addWithAi": "New task with AI"
+    },
+    "trigger": {
+      "every": "every {{every}}",
+      "cron": "schedule {{cron}}",
+      "manual": "by hand"
+    },
+    "editor": {
+      "newTitle": "New task",
+      "newSubtitle": "Not saved yet - check it, then save it",
+      "subtitle": "Saved · version {{version}}",
+      "back": "All tasks",
+      "reference": "Format",
+      "check": "Check",
+      "checking": "Checking…",
+      "start": "Start now",
+      "export": "Export",
+      "duplicate": "Duplicate",
+      "active": "Active - runs by its schedule, the client software and MCP",
+      "text": "Text (YAML)",
+      "unsaved": "unsaved",
+      "line": "Line {{line}}:",
+      "valid": "The task is valid.",
+      "graph": "Steps",
+      "noGraph": "Check the text to see its steps.",
+      "leave": "The task has unsaved changes. Leave without saving?",
+      "leaveConfirm": "Leave",
+      "draft": "Draft with AI",
+      "keys": "May start it:",
+      "noKeys": "No key may start it",
+      "keysHint": "Which keys may start a task is chosen at the API keys and MCP keys.",
+      "keyApi": "{{name}} (API)",
+      "keyMcp": "{{name}} (MCP)"
+    },
+    "graph": {
+      "label": "The task's steps",
+      "fixed": "reads",
+      "agent": "model checks",
+      "output": "mails",
+      "back": "back, with its limit"
+    },
+    "reference": {
+      "title": "The task format"
+    },
+    "runs": {
+      "title": "Runs",
+      "none": "No run yet.",
+      "started": "Started",
+      "by": "By",
+      "state": "State",
+      "tokens": "Tokens",
+      "cost": "Cost",
+      "atLeast": "at least",
+      "costNote": "At the model catalog's current price - the usage page is the exact bill",
+      "cancel": "Cancel",
+      "deleteAll": "Delete ended runs",
+      "confirmDeleteAll": "Delete every ended run of \"{{name}}\" with what it found?",
+      "mailFailed": "mail failed",
+      "cached": "{{count}} of them from the cache"
+    },
+    "run": {
+      "title": "Run {{id}}",
+      "subtitle": "With version {{version}} of the task",
+      "back": "The task",
+      "mailFailed": "A mail of this run could not be sent - see the application log.",
+      "step": "Step {{step}}",
+      "pick": "Choose a step in the graph",
+      "noStep": "The step has not run in this run.",
+      "round": "Round {{round}}",
+      "rounds": "{{count}} rounds",
+      "read": "{{lines}} lines kept from {{files}} files.",
+      "documents": "{{files}} documents read.",
+      "documentsLeft": "More are waiting - the next run reads them.",
+      "unreadable": "not read",
+      "rows": "{{rows}} rows, {{unclear}} of them unclear.",
+      "written": "{{rows}} rows written, {{skipped}} already there.",
+      "source": "Document",
+      "unclear": "Unclear",
+      "truncated": "Not everything was read - a limit was reached.",
+      "sent": "Mailed to {{count}} recipients.",
+      "choice": "Picked:",
+      "calls": "{{sent}} calls went through, {{failed}} were refused.",
+      "callSent": "sent",
+      "callFailed": "refused"
+    },
+    "snack": {
+      "saved": "Task saved",
+      "deleted": "Task deleted",
+      "started": "Run started",
+      "error": "Not done: {{error}}",
+      "drafted": "Draft taken into the editor - check it and save it",
+      "draftedWithErrors": "Draft taken into the editor - it still has mistakes, see below"
+    },
+    "runState": {
+      "QUEUED": "waiting",
+      "RUNNING": "running",
+      "DONE": "done",
+      "UNCLEAR": "unclear",
+      "FAILED": "failed",
+      "CANCELLED": "cancelled"
+    },
+    "stepState": {
+      "DONE": "ran",
+      "SKIPPED": "skipped",
+      "FAILED": "failed"
+    },
+    "startedBy": {
+      "ADMIN": "Admin",
+      "TENANT_ADMIN": "Tenant admin",
+      "SCHEDULE": "Schedule",
+      "API": "Client software",
+      "MCP": "MCP",
+      "A2A": "A2A"
+    },
+    "checkStatus": {
+      "ok": "ok",
+      "finding": "finding",
+      "report": "report",
+      "unclear": "unclear"
+    },
+    "about": {
+      "read": "{{store}} · {{pattern}}",
+      "readNew": "{{store}} · {{pattern}} · only new",
+      "agent": "{{model}} · {{count}} check points",
+      "verify": "verifies {{of}}",
+      "mailTo": "to {{to}}",
+      "mailNotify": "to the notify list",
+      "prompt": "{{model}} · free answer",
+      "promptChoices": "{{model}} · picks {{choices}}",
+      "readDocuments": "{{store}} · {{pattern}} · documents",
+      "readDocumentsDeep": "{{store}} · {{pattern}} · documents with subfolders",
+      "extract": "{{model}} · {{fields}}",
+      "writeFile": "{{store}} · {{file}}",
+      "writeFileReplace": "{{store}} · {{file}} · anew",
+      "callTool": "{{connection}} · {{tool}}",
+      "callToolSource": "{{connection}} · {{tool}} · source",
+      "callAgent": "A2A agent {{agent}} {{skill}}",
+      "promptAgent": "the company's agent · free answer",
+      "promptAgentChoices": "the company's agent · picks {{choices}}"
+    },
+    "draft": {
+      "title": "Draft with AI",
+      "introNew": "Describe in your own words what the task is to do - which files, what to check or ask, who hears of it. The model writes the task, the check corrects it; nothing is saved until you save it.",
+      "introChange": "Describe what is to change. The model changes the task in the editor and keeps the rest; the changed lines are marked, nothing is saved until you save it.",
+      "description": "What the task is to do",
+      "placeholder": "e.g. Check the logs on the store Logdateien every 5 hours for timeouts of interface X and mail it@example.com on errors",
+      "model": "Model",
+      "working": "The model is writing - this can take a few minutes.",
+      "write": "Write draft"
+    }
+  },
+  "keyDialog": {
+    "name": "Name",
+    "nameRequired": "Please enter a name",
+    "areas": "Areas",
+    "onlyCompanyKnowledge": "company knowledge only",
+    "software": "Software",
+    "noSoftware": "no software",
+    "tasks": "Tasks",
+    "noTasks": "no task",
+    "webSearch": "Web search",
+    "webSearchHint": "The assistant may search the web for questions with this key - only after the documents, at most three times per answer.",
+    "keepsHistory": "Keep history",
+    "keepsHistoryHint": "On: questions and answers are kept as conversations. Off: every question is answered on its own, nothing but the usage is stored.",
+    "create": "Create",
+    "api": {
+      "createTitle": "New API key",
+      "editTitle": "Edit API key \"{{name}}\"",
+      "namePlaceholder": "e.g. ERP production",
+      "areasHint": "What the client software finds besides the company knowledge, and where it may send documents.",
+      "softwareHint": "The assistant may use its reading tools for questions with this key.",
+      "tasksHint": "The client software may start and read these tasks through /api/v1/tasks."
+    },
+    "mcp": {
+      "createTitle": "New MCP key",
+      "editTitle": "Edit MCP key \"{{name}}\"",
+      "namePlaceholder": "e.g. development, management",
+      "areasHint": "What Claude, Cowork or Copilot finds with this key besides the company knowledge.",
+      "softwareHint": "The assistant uses its reading tools; with \"Directly to MCP clients\" on, Claude calls them itself too.",
+      "tasksHint": "An MCP client with this key may list, start and read these tasks."
+    },
+    "description": "What this key knows",
+    "descriptionHint": "Sent to every client using this key (e.g. a general chat) - say what the released knowledge covers. At most 500 characters. With A2A it is the description of the agent card, too.",
+    "descriptionTooLong": "At most 500 characters",
+    "doorMcp": "MCP (Claude Code, Copilot)",
+    "doorA2a": "A2A (other agents)",
+    "noDoor": "The key must open MCP, A2A or both."
+  },
+  "keyRights": {
+    "column": "Rights",
+    "areas": "Areas: {{names}}",
+    "companyKnowledge": "company knowledge only",
+    "software": "Software: {{names}}",
+    "tasks": "Tasks: {{names}}",
+    "webSearch": "Web search",
+    "noHistory": "no history",
+    "edit": "Edit",
+    "actionsFor": "Actions for {{name}}"
+  }
+}

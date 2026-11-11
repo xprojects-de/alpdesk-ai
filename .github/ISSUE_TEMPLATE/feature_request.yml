@@ -5,7 +5,7 @@ body:
   - type: markdown
     attributes:
       value: |
-        Describe best **how your company works with it**, not only the feature you want. Alpdesk AI is
+        Describe best **how your company works with it**, not only the feature you want. Zirmo is
         used by companies of very different trades; "how does that run for you?" usually leads to a
         better solution than a finished proposal. Whatever only one trade needs tends to come as
         configuration or as a tool of its own, not into the core.

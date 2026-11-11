@@ -1,0 +1,415 @@
+name: Build Release
+
+# Started by hand (Actions -> this workflow -> Run workflow), never automatically.
+#
+# The release is tagged v<app.version>, so running this on every merge would rewrite the existing
+# release of that version whenever the version was not bumped. Publishing is therefore a
+# deliberate act: raise app.version, merge what belongs in the release, then start this workflow.
+# Pull requests are checked automatically by pr-checks.yml.
+#
+# What a release publishes (Backend/podman/README.md "Release"), all in this repository and on ghcr.io:
+# - the GitHub release v<version> with one asset, alpdesk-ai-v<version>.jar: the Micronaut AOT-optimized fat jar
+#   (optimizedJitJarAll; runs on any Java 25 JRE). The built frontend is not in the repository
+#   (Backend/src/main/resources/public is gitignored), so it is built here and copied in before the jar is packaged.
+#   GitHub adds the source code of the tag to the release by itself.
+# - the images ghcr.io/xprojects-de/alpdesk-ai:<version> (built from exactly that jar, Backend/podman/Dockerfile target
+#   release), ghcr.io/xprojects-de/alpdesk-ai-sandbox:<version> (the chat's Python and shell) and
+#   ghcr.io/xprojects-de/alpdesk-ai-sandbox-video:<version> (the same with the video tools - Dockerfile target "video"),
+#   both checked with selftest.py - each for linux/amd64 and linux/arm64 under one tag (build-container, publish-images).
+#   No "latest": an installation names its version, an update is a deliberate act. The embeddings image of
+#   build-embeddings.yml ("latest") is tagged with the version too: ghcr.io/xprojects-de/alpdesk-ai-embeddings:<version>.
+# The installation's files (Backend/podman/public) are not written by the release: their image tags are app.version
+# already, checked by .github/scripts/check-compose-files.sh - a checkout of the tag v<version> starts that release.
+#
+# A release candidate or dev drop (Backend/podman/README.md "Release candidates"): started with a label, e.g. rc.1, the
+# same workflow publishes everything above under <app.version>-<label> (2.0.0-rc.1) - images, the jar, the tag
+# v2.0.0-rc.1 and its GitHub release marked pre-release. app.version stays as it is and CHANGELOG.md needs no dated
+# section; the compose files keep naming the release's version - whoever tries a pre-release sets its tag by hand.
+on:
+  workflow_dispatch:
+    inputs:
+      label:
+        description: 'Pre-release label, e.g. rc.1 or dev.2 - empty for the release of app.version'
+        type: string
+        default: ''
+      run-tests:
+        description: Run the Spock suite (over 10 minutes) - only a pre-release may leave it out
+        type: boolean
+        default: true
+
+# Read-only by default (npm and Gradle run in the build jobs); only the release job may write.
+permissions:
+  contents: read
+
+jobs:
+
+  # First of all, before anything is built or pushed: which version this run publishes. A release needs its dated
+  # section in CHANGELOG.md; a pre-release <app.version>-<label> does not. Both need the installation's files to carry
+  # app.version. The label is
+  # letters and digits separated by dots - a SemVer pre-release, sorted before the release, valid as an image tag.
+  version:
+    name: Choose the Version
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.choose.outputs.version }}
+      prerelease: ${{ steps.choose.outputs.prerelease }}
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v7
+
+      - name: Choose the Version
+        id: choose
+        env:
+          LABEL: ${{ inputs.label }}
+          RUN_TESTS: ${{ inputs.run-tests }}
+        run: |
+          base="$(grep -oP '(?<=^app.version=).*' Backend/src/main/resources/application.properties)"
+          .github/scripts/check-compose-files.sh
+          if [ -z "$LABEL" ]; then
+            [ "$RUN_TESTS" = true ] || { echo "a release runs the tests - leave them out for a pre-release only"; exit 1; }
+            .github/scripts/check-changelog.sh "$base"
+            echo "version=${base}" >> "$GITHUB_OUTPUT"
+            echo "prerelease=false" >> "$GITHUB_OUTPUT"
+            echo "Release v${base}" >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          printf '%s' "$LABEL" | grep -qE '^[0-9A-Za-z]+(\.[0-9A-Za-z]+)*$' \
+            || { echo "label '$LABEL' is not letters and digits separated by dots (rc.1, dev.2)"; exit 1; }
+          echo "version=${base}-${LABEL}" >> "$GITHUB_OUTPUT"
+          echo "prerelease=true" >> "$GITHUB_OUTPUT"
+          echo "Pre-release v${base}-${LABEL}" >> "$GITHUB_STEP_SUMMARY"
+
+  build-frontend:
+    name: Build Angular Frontend
+    needs: version
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v7
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+          cache: 'npm'
+          cache-dependency-path: Frontend/package-lock.json
+
+      - name: Build Angular
+        working-directory: Frontend
+        run: |
+          npm ci
+          npm run deploy
+
+      - name: Upload Frontend Artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: frontend-dist
+          path: Frontend/dist/
+          retention-days: 1
+
+  build-jar:
+    name: Build AOT-Optimized JAR
+    needs: [version, build-frontend]
+    runs-on: ubuntu-latest
+    # The database the smoke test starts the jar against (the Spock suite brings its own through Testcontainers).
+    services:
+      postgres:
+        image: pgvector/pgvector:pg18
+        env:
+          POSTGRES_DB: alpdesk_ai
+          POSTGRES_USER: smoke
+          POSTGRES_PASSWORD: smoke-database-password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U smoke -d alpdesk_ai"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+
+    defaults:
+      run:
+        working-directory: Backend
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v7
+
+      - name: Download Frontend Artifact
+        uses: actions/download-artifact@v8
+        with:
+          name: frontend-dist
+          path: Frontend/dist
+
+      # A pre-release's version carries its label (2.0.0-rc.1): the running app, the daily report and the jar say which
+      # build it is. For a release this changes nothing.
+      - name: Set the Version
+        env:
+          VERSION: ${{ needs.version.outputs.version }}
+        run: |
+          sed -i "s/^app.version=.*/app.version=${VERSION}/" src/main/resources/application.properties
+          grep -qxF "app.version=${VERSION}" src/main/resources/application.properties
+
+      - name: Setup Java 25
+        uses: actions/setup-java@v5
+        with:
+          java-version: '25'
+          distribution: 'temurin'
+          cache: 'gradle'
+          cache-dependency-path: Backend/build.gradle
+
+      # The specs convert audio and video with ffmpeg, like the container (Backend/podman/Dockerfile).
+      - name: Install ffmpeg
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends ffmpeg
+
+      # Tests run again here even though pr-checks.yml covers pull requests: this workflow can be
+      # started on any commit, and a release must never ship a jar whose suite is red. Only a pre-release may leave
+      # them out (a quick dev drop); the smoke test below runs always.
+      - name: Test, Copy Frontend and Build AOT-Optimized JAR
+        env:
+          RUN_TESTS: ${{ inputs.run-tests }}
+        run: |
+          chmod +x gradlew
+          if [ "$RUN_TESTS" = true ]; then
+            ./gradlew copyFrontend test optimizedJitJarAll --no-daemon
+          else
+            ./gradlew copyFrontend optimizedJitJarAll -x test --no-daemon
+          fi
+
+      # The jar must contain the frontend and the AOT-generated configurer; either missing means
+      # a broken release (no UI, or silently unoptimized). And the licenses it ships (THIRD-PARTY.md): the project's,
+      # the backend libraries' (checked against config/allowed-licenses.json while building) and the frontend's.
+      - name: Verify JAR Contents
+        run: |
+          unzip -l build/libs/alpdesk-ai.jar > contents.txt
+          grep -q 'public/index.html' contents.txt
+          grep -q 'de/alpdesk/AOTApplicationContextConfigurer.class' contents.txt
+          for notice in LICENSE NOTICE THIRD-PARTY.md frontend-licenses.txt backend/dependency-licenses.txt; do
+            grep -q "META-INF/third-party/${notice}$" contents.txt
+          done
+
+      # The Spock suite runs the unoptimized classes: only starting the AOT jar shows that it still reads its
+      # environment (AOT precomputes it), refuses to start without its secrets and serves /watchdog and the login.
+      - name: Smoke Test the AOT Jar
+        working-directory: .
+        env:
+          DATASOURCES_DEFAULT_URL: jdbc:postgresql://localhost:5432/alpdesk_ai
+          DATASOURCES_DEFAULT_USERNAME: smoke
+          DATASOURCES_DEFAULT_PASSWORD: smoke-database-password
+        run: bash .github/scripts/smoke-test-jar.sh
+
+      - name: Rename JAR for Release
+        env:
+          VERSION: ${{ needs.version.outputs.version }}
+        run: |
+          mkdir -p dist
+          cp build/libs/alpdesk-ai.jar "dist/alpdesk-ai-v${VERSION}.jar"
+
+      - name: Upload Build Artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: release-jar
+          path: Backend/dist/alpdesk-ai-v*.jar
+          retention-days: 14
+
+  # The images are built from the jar build-jar tested and started, never from the sources again - for linux/amd64 and
+  # linux/arm64 (an x86 server, an ARM server, a Raspberry Pi 5), one job per architecture. Each pushes its images as
+  # <version>-<arch> only after it checked them; publish-images then joins both under <version>. The arm64 job runs on
+  # the x86 runner under QEMU: building needs no ARM machine (the app image copies the jar in, the sandboxes install
+  # wheels), and the images start under the emulation - but under QEMU's user-mode emulation libseccomp cannot load
+  # confine.py's filter (errno -125, measured 24 October 2026 with the amd64 image on arm64): the sandbox answers /health
+  # and starts no program, so selftest.py runs natively on amd64 only; on arm64 the release checks that every image
+  # starts and the sandboxes answer /health, the selftest on arm64 is run by hand on Apple Silicon before a release
+  # (Backend/podman/README.md "Release"). A native arm64 runner (ubuntu-24.04-arm) would run it here too: give the
+  # arm64 entry of the matrix that runner once the repository has one.
+  build-container:
+    name: Build and Push Images (${{ matrix.arch }})
+    needs: [version, build-jar]
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        arch: [amd64, arm64]
+    permissions:
+      contents: read
+      packages: write
+    env:
+      APP_IMAGE: ghcr.io/xprojects-de/alpdesk-ai
+      SANDBOX_IMAGE: ghcr.io/xprojects-de/alpdesk-ai-sandbox
+      SANDBOX_VIDEO_IMAGE: ghcr.io/xprojects-de/alpdesk-ai-sandbox-video
+      ARCH: ${{ matrix.arch }}
+      PLATFORM: linux/${{ matrix.arch }}
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v7
+
+      - name: Download Release JAR
+        uses: actions/download-artifact@v8
+        with:
+          name: release-jar
+          path: Backend/podman/release
+
+      # QEMU runs the other architecture's binaries on the x86 runner, registered so that they run inside containers too;
+      # Buildx builds for a platform the runner is not.
+      - name: Set up QEMU
+        if: matrix.arch != 'amd64'
+        uses: docker/setup-qemu-action@v4
+
+      - name: Set up Buildx
+        uses: docker/setup-buildx-action@v4
+
+      # The labels: the source names this repository, so ghcr.io shows the packages here and links the guide.
+      - name: Build Image
+        working-directory: Backend
+        env:
+          VERSION: ${{ needs.version.outputs.version }}
+        run: |
+          docker buildx build --platform "$PLATFORM" --load -f podman/Dockerfile --target release \
+            --build-arg RELEASE_JAR="alpdesk-ai-v${VERSION}.jar" \
+            --label org.opencontainers.image.title="Zirmo" \
+            --label org.opencontainers.image.description="AI assistant for companies that knows their own documents" \
+            --label org.opencontainers.image.version="${VERSION}" \
+            --label org.opencontainers.image.source=https://github.com/xprojects-de/alpdesk-ai \
+            --label org.opencontainers.image.licenses=MIT \
+            -t "${APP_IMAGE}:${VERSION}-${ARCH}" \
+            podman/release
+          docker run --rm --platform "$PLATFORM" --entrypoint test "${APP_IMAGE}:${VERSION}-${ARCH}" -s /app.jar
+          docker run --rm --platform "$PLATFORM" --entrypoint java "${APP_IMAGE}:${VERSION}-${ARCH}" -version
+
+      # The sandbox for the chat's Python and shell (docs/architecture/code-execution.md), released with the app it
+      # belongs to - and checked the way the pull requests check it, started as restricted as it runs. Two images of
+      # one Dockerfile: the sandbox and the video sandbox (target "video"); the operator gives each tenant one of them.
+      # Under QEMU (arm64) the start takes longer and the selftest cannot run (see the job's comment): /health must answer
+      # and say which image it is.
+      - name: Build and Check the Sandbox Images
+        env:
+          VERSION: ${{ needs.version.outputs.version }}
+        run: |
+          build_and_check() {
+            local image="$1" target="$2" title="$3" description="$4"
+            docker buildx build --platform "$PLATFORM" --load -f Backend/podman/sandbox/Dockerfile --target "$target" \
+              --label org.opencontainers.image.title="$title" \
+              --label org.opencontainers.image.description="$description" \
+              --label org.opencontainers.image.version="${VERSION}" \
+              --label org.opencontainers.image.source=https://github.com/xprojects-de/alpdesk-ai \
+              --label org.opencontainers.image.licenses=MIT \
+              -t "${image}:${VERSION}-${ARCH}" .
+            local token
+            token="$(openssl rand -hex 32)"
+            docker run -d --name sandbox --platform "$PLATFORM" -p 127.0.0.1:8080:8080 --read-only \
+              --tmpfs /work:rw,size=1g,mode=1777 --tmpfs /tmp:rw,size=512m,mode=1777 \
+              --cap-drop ALL --security-opt no-new-privileges -e SANDBOX_TOKEN="$token" \
+              -e SANDBOX_TIMEOUT_SECONDS=30 \
+              "${image}:${VERSION}-${ARCH}"
+            for _ in $(seq 1 120); do curl -sf http://127.0.0.1:8080/health > /dev/null && break; sleep 1; done
+            if [ "$ARCH" = amd64 ]; then
+              python3 Backend/podman/sandbox/selftest.py http://127.0.0.1:8080 "$token" || { docker logs sandbox; exit 1; }
+            else
+              curl -sf http://127.0.0.1:8080/health > health.json || { docker logs sandbox; exit 1; }
+              python3 -c 'import json, sys; h = json.load(open("health.json")); print(h); sys.exit(not (h["ok"] and h["video"] == (sys.argv[1] == "video")))' "$target" \
+                || { docker logs sandbox; exit 1; }
+            fi
+            docker rm -f sandbox
+          }
+          build_and_check "${SANDBOX_IMAGE}" sandbox "Zirmo Sandbox" \
+            "Python and shell for the chat of Zirmo, one per tenant"
+          build_and_check "${SANDBOX_VIDEO_IMAGE}" video "Zirmo Sandbox (video)" \
+            "Python and shell for the chat of Zirmo, one per tenant - with ffmpeg and pose estimation for videos"
+
+      # The architecture's own tags; publish-images joins them. Re-running for an unchanged version replaces them, like
+      # the release's jar.
+      - name: Push Images
+        env:
+          VERSION: ${{ needs.version.outputs.version }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "$GITHUB_TOKEN" | docker login ghcr.io -u "$GITHUB_ACTOR" --password-stdin
+          docker push "${APP_IMAGE}:${VERSION}-${ARCH}"
+          docker push "${SANDBOX_IMAGE}:${VERSION}-${ARCH}"
+          docker push "${SANDBOX_VIDEO_IMAGE}:${VERSION}-${ARCH}"
+          docker logout ghcr.io
+
+  # One tag for both architectures: <version> is a manifest list pointing at <version>-amd64 and <version>-arm64, so an
+  # x86 server and a Raspberry Pi pull the same tag - the compose files name no architecture. The annotations repeat the
+  # images' labels on the list: ghcr.io links the package to this repository through them.
+  publish-images:
+    name: Publish the Images for Both Architectures
+    needs: [version, build-container]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    env:
+      APP_IMAGE: ghcr.io/xprojects-de/alpdesk-ai
+      SANDBOX_IMAGE: ghcr.io/xprojects-de/alpdesk-ai-sandbox
+      SANDBOX_VIDEO_IMAGE: ghcr.io/xprojects-de/alpdesk-ai-sandbox-video
+      EMBEDDINGS_IMAGE: ghcr.io/xprojects-de/alpdesk-ai-embeddings
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v7
+
+      - name: Join the Architectures
+        env:
+          VERSION: ${{ needs.version.outputs.version }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "$GITHUB_TOKEN" | docker login ghcr.io -u "$GITHUB_ACTOR" --password-stdin
+          for image in "$APP_IMAGE" "$SANDBOX_IMAGE" "$SANDBOX_VIDEO_IMAGE"; do
+            docker buildx imagetools create -t "${image}:${VERSION}" \
+              --annotation "index:org.opencontainers.image.source=https://github.com/xprojects-de/alpdesk-ai" \
+              --annotation "index:org.opencontainers.image.version=${VERSION}" \
+              --annotation "index:org.opencontainers.image.licenses=MIT" \
+              "${image}:${VERSION}-amd64" "${image}:${VERSION}-arm64"
+            docker buildx imagetools inspect "${image}:${VERSION}"
+          done
+          docker logout ghcr.io
+
+      # The embeddings image is built apart (build-embeddings.yml, about 5 GB, the model changes rarely): its "latest" is
+      # what every release - and pre-release - from now on names, under its version, so that docker-compose.embeddings.yml
+      # is pinned like the other compose files. Copied on ghcr.io, nothing is built or pulled.
+      - name: Tag the Embeddings Image
+        env:
+          VERSION: ${{ needs.version.outputs.version }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "$GITHUB_TOKEN" | docker login ghcr.io -u "$GITHUB_ACTOR" --password-stdin
+          docker buildx imagetools inspect "${EMBEDDINGS_IMAGE}:latest" > /dev/null \
+            || { echo "${EMBEDDINGS_IMAGE}:latest is missing - run Build Embeddings Image first"; exit 1; }
+          docker buildx imagetools create -t "${EMBEDDINGS_IMAGE}:${VERSION}" "${EMBEDDINGS_IMAGE}:latest"
+          docker buildx imagetools inspect "${EMBEDDINGS_IMAGE}:${VERSION}"
+          docker logout ghcr.io
+
+  create-release:
+    name: Create GitHub Release
+    needs: [version, build-jar, publish-images]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v7
+
+      - name: Download Release JAR
+        uses: actions/download-artifact@v8
+        with:
+          name: release-jar
+          path: release-assets
+
+      # One release per version, tagged v<version>. Re-running for an unchanged version
+      # updates that version's existing release (e.g. after a failed runner) instead of adding a
+      # second one; publishing a genuinely new build means raising app.version - or a new pre-release label.
+      # target_commitish: a new tag is created on the commit this run built - without it GitHub creates it on the
+      # default branch (main), whatever branch the workflow was started on. An existing tag is never moved.
+      - name: Create Release
+        uses: softprops/action-gh-release@v3
+        with:
+          tag_name: v${{ needs.version.outputs.version }}
+          target_commitish: ${{ github.sha }}
+          name: Zirmo v${{ needs.version.outputs.version }}
+          draft: false
+          prerelease: ${{ needs.version.outputs.prerelease == 'true' }}
+          body: |
+            What changed: CHANGELOG.md. Installing and updating: Backend/podman/public/README.md.
+
+            Images: `ghcr.io/xprojects-de/alpdesk-ai:${{ needs.version.outputs.version }}`, `ghcr.io/xprojects-de/alpdesk-ai-sandbox:${{ needs.version.outputs.version }}`, `ghcr.io/xprojects-de/alpdesk-ai-sandbox-video:${{ needs.version.outputs.version }}` and `ghcr.io/xprojects-de/alpdesk-ai-embeddings:${{ needs.version.outputs.version }}`. The jar `alpdesk-ai-v${{ needs.version.outputs.version }}.jar` is the one the image runs (Java 25).
+          files: release-assets/*
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

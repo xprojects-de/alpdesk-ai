@@ -1,0 +1,47 @@
+# Invoices received: the documents of the folder "eingang" (one subfolder per year), a row of fields each, written into
+# a CSV per year - a mail when a row needs a look. Store and model as named on the test stack (README.md).
+version: 1
+name: Eingangsrechnungen
+notify: [buchhaltung@example.com]
+triggers:
+  - type: schedule
+    cron: "0 0 22 * * *"
+steps:
+  - id: documents
+    type: read_documents
+    store: Belege
+    folder: eingang
+    subfolders: true
+    pattern: ["*.pdf", "*.png", "*.jpg", "*.docx"]
+  - id: rows
+    type: extract
+    model: Claude Haiku
+    input: documents
+    instructions: |
+      The partner is always the other party - never Musterfirma, whose letterhead is on its own invoices.
+      An order confirmation, a delivery note or a quote is no invoice: set kind, leave the amounts you do not see.
+      A document with several VAT rates: set unclear.
+    fields:
+      - {name: kind, type: choice, values: [invoice, credit_note, receipt, other], required: true}
+      - {name: date, type: date, required: true}
+      - {name: number, type: text}
+      - {name: partner, type: text, required: true}
+      - {name: net, type: amount}
+      - {name: vat_rate, type: percent}
+      - {name: vat, type: amount}
+      - {name: gross, type: amount, required: true}
+      - {name: currency, type: text, description: "ISO code, EUR when the document shows the euro"}
+      - {name: period, type: text, description: "The period the service covers, if the document names one"}
+      - {name: tax_note, type: text, description: "e.g. reverse charge - as the document says"}
+      - {name: extra, type: text, description: "What fits no other field - a discount, an order number"}
+  - id: csv
+    type: write_file
+    input: rows
+    store: Belege
+    file: "export/{date:yyyy}/eingangsrechnungen.csv"
+    dateFormat: dd.MM.yyyy
+  - id: mail
+    type: send_mail
+    if: rows.unclear > 0
+    input: [rows, csv]
+    subject: Belege prüfen

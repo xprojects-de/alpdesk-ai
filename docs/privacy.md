@@ -1,40 +1,42 @@
 # Privacy and data protection
 
-For whoever runs an installation of Alpdesk AI. This is an overview of what the software stores and sends where - not
+For whoever runs an installation of Zirmo. This is an overview of what the software stores and sends where - not
 legal advice. Under the GDPR, the author of the software is neither controller nor processor of your data: the software
 runs on your server, and the author never receives any of it.
 
 ## Who is responsible
 
-- **The operator** (whoever installs and runs Alpdesk AI, the admin) usually acts as a **processor** for the
+- **The operator** (whoever installs and runs Zirmo, the admin) usually acts as a **processor** for the
   companies it serves (Art. 28 GDPR) - a data processing agreement with every tenant is needed.
 - **Each tenant** (a company using the installation) is the **controller** for the data its people and its client
   software put in: its documents, its users' chats and files.
-- **The AI providers** (Anthropic, OpenAI, Google, or the operator's or tenant's own model servers) receive data
+- **The AI providers** (Anthropic, OpenAI, Google, Amazon Bedrock, or the operator's or tenant's own model servers) receive data
   to answer and are **sub-processors** - see "What leaves the server". So is **Tavily**, where a tenant uses the
   chat's web search.
 
-A company running Alpdesk AI for itself only is operator and controller at once.
+A company running Zirmo for itself only is operator and controller at once.
 
 ## What is stored where
 
 | Data | Where | Personal data in it |
 |------|-------|---------------------|
-| Tenants, users (username, display name, password hash, the frontend's language, the last login, since when its sessions are valid), admin flags, user groups and their members (each group's knowledge areas and levels for connected software), access requests (WAM user name and name) | management database | yes - the employees' accounts |
-| With the WAM proxy's IDM groups checked (`APP_WAM_GROUPS_HEADER`): the IDM groups the proxy sent on each user's last request | management database, replaced on every change, deleted with the user - and all of them when the app starts without the check | yes - which groups of the company's directory a person is in |
+| Tenants, users (username, display name, password hash, the frontend's language, the last login, since when its sessions are valid), admin flags, user groups and their members (each group's knowledge areas and levels for connected software), access requests (WAM user name, name and the browser's language) | management database | yes - the employees' accounts |
+| With the WAM proxy's IDM groups checked (`APP_WAM_GROUPS_HEADER`): the IDM groups the proxy sent on each user's last request | management database, replaced on every change, deleted with the user - and all of them when the app starts without the check | yes - which groups of the company's directory a person is in. Since 2.0.0 they also decide the members of a group with a WAM group, and a person they list in such a group gets a user in that tenant at the sign-in (username and name as the proxy sends them, no password) - kept like any user until a tenant admin deletes it |
 | API keys of the client software, MCP keys | management database | SHA-256 hash and a display prefix only |
-| Provider keys, keys of connected software, the token of a tenant's sandbox, the passwords of file stores | management database | encrypted (`APP_SECRET_KEY`) |
+| Provider keys, keys of own model servers, keys of connected software, the token of a tenant's sandbox, the passwords of file stores | management database | encrypted (`APP_SECRET_KEY`) |
+| The OAuth sign-in of connected software: the authorization server's addresses, the client id (and a client secret the server gave or a tenant admin entered), the access and refresh token, their expiry and scopes; while a sign-in runs the tenant admin who started it, the PKCE verifier and the page to return to | management database, deleted with the connection, a key entered, a new address or "Remove sign-in"; the tokens alone go when the server refuses to renew them | secret, verifier and tokens encrypted (`APP_SECRET_KEY`); the tokens stand for the person who signed in at the software's server |
 | File stores (name, server, user name, folder, the confirmed fingerprint, the last check's outcome; for S3 the endpoint, region, bucket and access key id; for SharePoint / OneDrive the directory and app id, site and library) - the password, S3's secret access key and SharePoint's client secret encrypted like the keys above | management database | the user name on the tenant's server |
 | Knowledge sources (name, store, folder, area, file pattern, schedule, the last run's numbers and error code) | management database | none beyond the folder's name |
 | What a knowledge source saw: each file's path, size and time, its document or the code why it was refused | the tenant's own database | the files' paths - deleted with the file's document when the file vanishes, and with the source |
 | Scheduled tasks (their text, check points, recipients) | management database | the e-mail addresses of the recipients |
-| A task's runs: what each step did, the lines read from the store's files (after the task's filter, with what it masks replaced by `***`), the findings with their evidence lines | the tenant's own database | whatever the files contain and the task does not mask (log files often hold names, user names, addresses) - 14 days after the run ended (`APP_TASK_RUN_RETENTION_DAYS`; set empty: until a tenant admin deletes the run, or its task) |
+| A task's runs: what each step did, the lines read from the store's files (after the task's filter, with what it masks replaced by `***`), the findings with their evidence lines | the tenant's own database | whatever the files contain and the task does not mask (log files often hold names, user names, addresses) - 14 days after the run ended (`APP_TASK_RUN_RETENTION_DAYS`; set empty: until a tenant admin deletes the run, or its task). One run per task stays longer: its last run that ended successfully (also with unclear findings) is kept until a later one takes its place, a tenant admin deletes it or the task is deleted - the next run reads on from its start |
+| A task's documents (`read_documents`, `extract`): each document's text - an image's or a scanned page's as the image model read it - and the row of fields taken out of it, with the document's path and checksum | the tenant's own database | whatever the documents contain (invoices: names, addresses, bank details, amounts) - with the run, 14 days after it ended like its lines - those of the task's last successful run as long as that run is kept |
 | How far a task has read each file: its path, the position and when the file last changed | the tenant's own database | the files' paths - kept with the task until it is deleted, also for a store it no longer reads |
 | Usage per call (tenant, user, provider, model, tokens, amount, time) | management database | yes - who used which model when |
 | The company's documents: their text, chunks and embeddings | the tenant's own database (`tenant_...`) | whatever the documents contain |
 | The original of an image or a scanned document, until it was read | file storage (`APP_STORAGE_PATH`) | whatever the image shows - deleted once its text was read; if reading fails, until the document is deleted or embedded again |
-| Conversations and messages of the chat, pending tool calls | the tenant's own database | yes - questions and answers belong to a user |
-| Files in the chat (uploaded, created, and returned by a tool of connected software), converted copies of audio, page images of scans | file storage (`APP_STORAGE_PATH`, volume `files`) | whatever the files contain - until `APP_CHAT_FILE_RETENTION_DAYS` (14) after they were stored, an uploaded video `APP_CHAT_VIDEO_RETENTION_HOURS` (8) after its upload (set empty: until they or their conversation are deleted); then deleted with their text, their name, type and size stay listed in the conversation |
+| Conversations and messages of the chat (with the connected software a conversation leaves out), pending tool calls | the tenant's own database | yes - questions and answers belong to a user |
+| Files in the chat (uploaded, created, and returned by a tool of connected software - also one it returned as a link, fetched at once), converted copies of audio, page images of scans | file storage (`APP_STORAGE_PATH`, volume `files`) | whatever the files contain - until `APP_CHAT_FILE_RETENTION_DAYS` (14) after they were stored, an uploaded video `APP_CHAT_VIDEO_RETENTION_HOURS` (8) after its upload (set empty: until they or their conversation are deleted); then deleted with their text, their name, type and size stay listed in the conversation |
 | The handbook's websites (static websites uploaded as a ZIP for everyone or a knowledge area) | file storage, their list in the tenant's own database | whatever the tenant puts on them - read by people only, never sent to an AI provider |
 | The question's files while its code runs (sent files and conversation files, what the code writes) | the tenant's own sandbox, in memory (`/work`, `/tmp` and the other writable places) | whatever the files contain - deleted when the answer ends, after 5 minutes idle at the latest; never in another tenant's sandbox |
 | Server log | container log | ids of tenants and users in errors and warnings, the path of a file store's file that could not be read; never a document's content, a prompt or a provider's answer |
@@ -42,9 +44,9 @@ A company running Alpdesk AI for itself only is operator and controller at once.
 | Backups | wherever the operator puts them | everything above |
 
 Besides the session's token, user name and roles (removed at logout), the browser keeps the colour scheme, the chat
-model chosen last, the width of the chat's conversation list and the key of the tenant's own login page, if it was
-used (`localStorage`) - these four stay after a logout, so the next user of the same browser starts with them; the
-last one tells which company's login page was used. With WAM a logout marks the browser tab (`sessionStorage`, gone
+model chosen last, the width of the chat's conversation list, the key of the tenant's own login page, if it was
+used, and the tenant chosen last by a person with users in several tenants (`localStorage`) - these five stay after a
+logout, so the next user of the same browser starts with them; the last two tell which company was used. With WAM a logout marks the browser tab (`sessionStorage`, gone
 with the tab). The frontend's language before the login is the browser's own.
 
 Not stored: the model's reasoning shown while it thinks, and - with an API key whose "Verlauf speichern" is off -
@@ -62,8 +64,8 @@ Every model call sends data to the provider of the model in use:
   (and, when the model reads on, larger parts of those documents - at most 30,000 characters per answer),
   the files read in that conversation and the results of tools (including answers of connected software) to the chat
   model.
-- **Prompt caching**: the rounds of one answer (and of a task's step) ask Anthropic to cache the prompt they share -
-  Anthropic keeps it up to 5 minutes for the next round to read, isolated per organisation; OpenAI and Gemini cache
+- **Prompt caching**: the rounds of one answer (and of a task's step) ask Anthropic (or Amazon Bedrock) to cache the
+  prompt they share - Anthropic keeps it up to 5 minutes for the next round to read, isolated per organisation; OpenAI and Gemini cache
   repeated prompts on their own. Nothing else is sent for it.
 - **Audio** is transcribed by the catalog's transcription model.
 - **Code execution** (when the tenant has a sandbox of its own): the question's files go to that sandbox, a container
@@ -77,7 +79,7 @@ Every model call sends data to the provider of the model in use:
   shown, not stored. An S3 store (Amazon S3 or a compatible one the tenant names) gets the access key's ID and
   requests signed with its secret - the secret itself is not sent; the same names come back. A SharePoint store
   sends the app's client secret to Microsoft's login and reads through Microsoft Graph with the token it gets; the
-  files already lie with Microsoft 365, nothing of Alpdesk AI goes there. So are the folder names listed when a knowledge source's folder is chosen.
+  files already lie with Microsoft 365, nothing of Zirmo goes there. So are the folder names listed when a knowledge source's folder is chosen.
 - **A knowledge source** reads the files of a folder of the tenant's own store - subfolders included, only files of a
   type that is read - and stores them as documents of the company knowledge or an area: their text in the tenant's
   database, embedded with the tenant's embedding model (the text's chunks go to that model's provider, scans and
@@ -91,17 +93,28 @@ Every model call sends data to the provider of the model in use:
   address in the files) is replaced with `***` before a line is kept - it is neither stored with the run nor sent to a
   provider or in a mail; what a task does not mask goes as it is in the file. A `prompt` step sends its prompt and the answers, lines or
   findings of its inputs to the tenant's chat model; its answers are kept with the run like the findings, until the run
-  or the task is deleted.
+  or the task is deleted. A `read_documents` step reads whole documents of the store: an image or a scanned page goes
+  to the tenant's image model (its provider) to be read; an `extract` step sends each document's whole text, one
+  document per question, with the task's instructions and fields to the tenant's chat model - with `knowledge: true`
+  the model may also search the company knowledge (not the areas). The rows are kept with the run; a `send_mail` step
+  taking them mails the unclear rows with the documents' names and why. A `write_file` step writes the rows into a CSV
+  of the tenant's own store - kept there as long as the tenant keeps the file; Zirmo never deletes it.
+- **A mailbox as a file store** (IMAP): its messages' attachments and texts (`mail.txt`: sender, recipients, date,
+  subject, the text) are read like files - by a task's `read_documents` step (to the models as above) or by a knowledge
+  source, which embeds them into the company knowledge or an area. A message older than the store's days drops out of
+  the listing, and a knowledge source then deletes its documents: the days are how long mails stay in the knowledge.
+  The mailbox itself is never changed.
 - **"Draft with AI"** sends the tenant admin's description, the names of the tenant's file stores (with their folders
   and the names of up to 20 of the newest files in each folder) and chat models, and - when a task is changed - its
   current text to the tenant's chat model; no file's content. The draft is not stored. The client software with a key
   the task is assigned to, and an MCP client with an MCP key the task is assigned to, get a run's findings with their
-  evidence lines and the answers it hands on (the last answers of the prompt steps it mails) - not the other lines
-  read.
+  evidence lines, the answers it hands on (the last answers of the prompt steps it mails) and the rows its extract
+  steps took out of documents - not the other lines read, not the documents' text.
 - **An image asked for in the chat** sends the instruction the chat model wrote and the conversation's images it names
   to the tenant's image model (Google Gemini for now); the image it creates is stored as a file of the conversation.
 - **A web search in the chat** (only where the admin assigned the web search to the tenant and a tenant admin turned
-  it on for the asker's group, API key or the MCP server) sends the search query the chat model wrote to Tavily, with
+  it on for the asker's group, API key or the MCP server - or wrote `web: true` into a scheduled task's step) sends
+  the search query the chat model wrote to Tavily, with
   the tenant's or the admin's Tavily key - never a document, a file or the conversation. The model is told to put only
   the public topic into a query, never names, numbers or details from the company's documents or files; that it never
   does cannot be guaranteed - a model may still carry a word of a document (a product name) into a query. The pages
@@ -115,6 +128,8 @@ Every model call sends data to the provider of the model in use:
   own), which makes the text that lands in the user's input field.
 - **An answer through the MCP server** goes to the MCP client that holds the tenant's MCP key (Claude Code, GitHub
   Copilot) - with the files the answer created and the files a connected software's tool returned in it.
+- **An MCP key's description** - a text the tenant admin writes about what the key releases - is sent to every MCP
+  client using that key, in the server's instructions and its tool descriptions.
 - **A search through the MCP server** (`search_knowledge`, `read_document`) sends the passages found and the parts of
   documents read - with the documents' paths and ids - to that MCP client, from the company knowledge and the areas
   of the MCP key it was asked with. The client's own model reads them: with claude.ai, Claude Desktop or Cowork they reach
@@ -143,6 +158,40 @@ For the big providers, check before use:
 - **the data processing agreement** of the provider and whether its API terms exclude training on your data;
 - **how long the provider keeps** requests (abuse monitoring, logs).
 
+Claude and GPT can be reached in an EU region through a cloud account of the installation's own: Claude through
+Amazon Bedrock (provider "Amazon Bedrock", e.g. Frankfurt with an `eu.` inference profile), GPT through Azure OpenAI
+("OpenAI-compatible", a deployment of type "Data Zone EU") - see [architecture/ai-features.md](architecture/ai-features.md)
+"Amazon Bedrock". The request then stays in the EU and goes to Amazon or Microsoft, not to Anthropic or OpenAI. As
+the providers documented it in November 2026: Bedrock gives model providers no access to prompts and answers;
+Azure may keep prompts for abuse monitoring and have them reviewed by its staff in the EEA, and only customers with a
+Microsoft account team can have that switched off. For the newest Claude models (Fable, Mythos) both clouds keep
+every request up to 30 days. The provider stays a US company, so the US CLOUD Act applies all the same.
+
+### A2A
+
+- **To an A2A agent a tenant connected** (the tool, or a tenant answering every question through its agent): the
+  question, the files sent with it and those uploaded to the conversation since its last question (within 8 MB), the
+  company's name, the asking user's username, its groups and the directory's groups, its language, the skills chosen;
+  a scheduled task's `call_agent` sends the extracted rows with their source, an assistant prompt step its question. The
+  agent's answers and files are stored as the conversation's messages and files (a task's as its run), with the agent's
+  context id and a waiting task's id.
+- **To an A2A client asking the tenant's assistant at `/a2a`** with an MCP key: the answer, its sources and files - as
+  for the MCP server. A streamed or `returnImmediately` question keeps its answer and files as a task of the key for
+  24 hours (`APP_A2A_TASK_RETENTION_HOURS`), never the question (of a plain question only the id its answer names is
+  kept that long, with the key) - except a further message a client sends to such a
+  task while it runs: it is refused, ends the task and stays in it until the task is deleted; a webhook the client registered (stored encrypted)
+  gets the task's events; both are deleted with the task, and with the tenant.
+
+### Signing in to connected software (OAuth)
+
+- **A sign-in a tenant admin starts** for a connected software that signs in with OAuth sends, to the authorization
+  server the software's server names: the installation's client id - registered there dynamically with the
+  installation's brand name as `client_name` and its callback address, or the address of the installation's client
+  id metadata document, which that server fetches -, the PKCE challenge, the resource (the software's address) and the
+  scopes offered; the tenant admin signs in at that server in the browser. The callback brings a code, exchanged with
+  the verifier for the tokens; a renewal sends the refresh token. The server learns the installation's name and
+  address and who signed in at it; the access token then goes with every call to the software, as a key does.
+
 ## Deleting
 
 - **A tenant**: deleting it drops its database (`DROP DATABASE`) - documents, embeddings, conversations - and removes
@@ -160,7 +209,10 @@ For the big providers, check before use:
   kept up to date. A store a source reads cannot be deleted before the source. They go with the tenant too.
 - **A scheduled task**: deleting it deletes its runs - with the lines read, the findings and the state kept between
   steps - and its read positions; a tenant admin deletes one run, or every ended run of a task, while the admin allows
-  the tenant tasks (otherwise the admin does). They go with the tenant too.
+  the tenant tasks (otherwise the admin does) - also the task's last successful run, which the 14 days leave. They go
+  with the tenant too. A run an A2A client started through `/a2a` leaves a copy of its report and findings in that
+  client's task, readable by the MCP key that started it until the task's retention (24 hours,
+  `APP_A2A_TASK_RETENTION_HOURS`) has passed - also after the run or the task was deleted.
 - **A user**: deleting it deletes its conversations with their files. Likewise **an API key**: revoking it deletes
   the client software's conversations it started. A conversation or file that cannot be removed (the database or the
   file storage briefly out of reach) stays behind unreachable, is logged and goes with the tenant. A question still

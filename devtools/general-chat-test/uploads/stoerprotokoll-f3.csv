@@ -1,0 +1,7 @@
+datum;schicht;band;fehler;anzahl
+2026-11-02;Frueh;F3;E17;2
+2026-11-02;Spaet;F3;E17;5
+2026-11-02;Nacht;F3;E12;1
+2026-11-03;Frueh;F3;E17;3
+2026-11-03;Spaet;F3;E17;1
+2026-11-03;Nacht;F3;E17;0

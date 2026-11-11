@@ -1,0 +1,29 @@
+# The test stack's front without WAM (README.md, `./mode.sh plain`): HTTPS with Caddy's own local CA, the app behind it
+# as an installation without a WAM proxy runs - people sign in with their password. The WAM headers are passed on
+# untouched on purpose: the app must ignore them when WAM is off (check.py).
+{
+	local_certs
+}
+
+ai.general-chat.localhost {
+	reverse_proxy alpdesk-ai:19100
+}
+
+# The consent page of the OAuth fake (devtools/oauth-fake) - the browser's half of a connection's sign-in; the app
+# reaches the fake inside the stack. No sign-in in front: it is the other company's server.
+signin.general-chat.localhost {
+	reverse_proxy oauth-fake:9100
+}
+
+# MailHog's page and API: the mails the app sent (a task's findings, the daily report) - check.py reads them here.
+mail.general-chat.localhost {
+	reverse_proxy mailhog:8025
+}
+
+# The browser walk's files (walk/files, walk/walk.md): the pane has no upload tool - the page's script fetches a file
+# here and lays it into the upload field. Invented files only, readable by any page of this machine.
+files.general-chat.localhost {
+	root * /srv/walk-files
+	header Access-Control-Allow-Origin *
+	file_server
+}

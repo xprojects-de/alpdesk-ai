@@ -1,0 +1,18 @@
+[
+  {"source": "betriebsanleitung-nk-24.md", "file": "Betriebsanleitung_NK-24.pdf", "format": "PDF"},
+  {"source": "betriebsanleitung-nk-35.md", "file": "Betriebsanleitung_NK-35.pdf", "format": "PDF"},
+  {"source": "fehlercodes.md", "file": "Fehlercodes_NK-Serie.docx", "format": "DOCX"},
+  {"source": "preisliste.csv", "file": "Preisliste_2026.xlsx", "format": "XLSX"},
+  {"source": "ersatzteile.csv", "file": "Ersatzteilliste.csv", "format": "CSV"},
+  {"source": "garantiebedingungen.md", "file": "Garantiebedingungen.docx", "format": "DOCX"},
+  {"source": "wartungsanleitung.md", "file": "Wartungsanleitung_NK.pdf", "format": "PDF"},
+  {"source": "aa-07-kundendiensteinsatz.md", "file": "AA-07_Kundendiensteinsatz.docx", "format": "DOCX"},
+  {"source": "urlaubsregelung.txt", "file": "Urlaubsregelung.txt", "format": "TXT"},
+  {"source": "arbeitssicherheit-baustelle.md", "file": "Arbeitssicherheit_Baustelle.md", "format": "MD"},
+  {"source": "fahrzeugordnung.md", "file": "Fahrzeugordnung.docx", "format": "DOCX"},
+  {"source": "normen-und-vorschriften.md", "file": "Normen_und_Vorschriften.pdf", "format": "PDF"},
+  {"source": "faq-kunden.md", "file": "FAQ_Kunden.html", "format": "HTML"},
+  {"source": "ansprechpartner.csv", "file": "Ansprechpartner.xlsx", "format": "XLSX"},
+  {"source": "kaskadenmodul-km-4.md", "file": "Kaskadenmodul_KM-4.md", "format": "MD"},
+  {"source": "km-4-konfiguration.md", "file": "KM-4_Konfiguration.md", "format": "MD"}
+]

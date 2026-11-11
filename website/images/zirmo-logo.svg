@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#5a8a38"/>
+      <stop offset="1" stop-color="#365e1f"/>
+    </linearGradient>
+    <clipPath id="cone">
+      <path d="M236 168 C298 168 330 252 330 332 C330 398 290 436 236 436 C182 436 142 398 142 332 C142 252 174 168 236 168 Z"/>
+    </clipPath>
+  </defs>
+  <rect width="512" height="512" rx="110" fill="url(#bg)"/>
+  <g stroke="#b9d79c" stroke-opacity="0.45" stroke-width="3" fill="none">
+    <path d="M40 165 L150 90 L260 55"/>
+    <path d="M40 165 L90 280 L195 440 L370 450 L440 350 L450 235"/>
+    <path d="M440 350 L350 280"/>
+    <path d="M60 410 L195 440"/>
+  </g>
+  <g fill="#b9d79c" fill-opacity="0.55">
+    <circle cx="260" cy="55" r="7"/><circle cx="150" cy="90" r="7"/><circle cx="40" cy="165" r="7"/>
+    <circle cx="90" cy="280" r="7"/><circle cx="195" cy="440" r="7"/><circle cx="370" cy="450" r="7"/>
+    <circle cx="440" cy="350" r="7"/><circle cx="450" cy="235" r="7"/><circle cx="350" cy="280" r="7"/>
+    <circle cx="60" cy="410" r="7"/>
+  </g>
+  <path d="M236 168 C298 168 330 252 330 332 C330 398 290 436 236 436 C182 436 142 398 142 332 C142 252 174 168 236 168 Z" fill="#ffffff"/>
+  <g clip-path="url(#cone)" stroke="#467429" stroke-width="8" stroke-linecap="round">
+    <path d="M60 230 L310 480"/><path d="M90 170 L360 440"/><path d="M140 140 L400 400"/><path d="M200 120 L420 340"/>
+    <path d="M412 230 L162 480"/><path d="M382 170 L112 440"/><path d="M332 140 L72 400"/><path d="M272 120 L52 340"/>
+  </g>
+  <path d="M236 172 L236 146" stroke="#ffffff" stroke-width="10" stroke-linecap="round"/>
+  <path d="M392 40 Q392 112 464 112 Q392 112 392 184 Q392 112 320 112 Q392 112 392 40 Z" fill="#e2f6cc"/>
+  <path d="M322 46 Q322 74 350 74 Q322 74 322 102 Q322 74 294 74 Q322 74 322 46 Z" fill="#e2f6cc"/>
+  <path d="M460 182 Q460 202 480 202 Q460 202 460 222 Q460 202 440 202 Q460 202 460 182 Z" fill="#e2f6cc"/>
+</svg>

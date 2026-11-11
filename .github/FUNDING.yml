@@ -1,0 +1,5 @@
+# Shows the "Sponsor" button at the top of the repository.
+#
+# Two things are needed, or nothing happens: this file must be on the default branch (GitHub reads it only from
+# there), and "Sponsorships" must be switched on under Settings -> General -> Features.
+custom: ["https://paypal.me/BenjaminHummel560"]

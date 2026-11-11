@@ -1,0 +1,7 @@
+# Only the sandbox image is built with the repository root as its context (Backend/podman/sandbox/Dockerfile): it takes
+# its own files and the licenses, nothing else - the app's image is built with Backend/ as its context.
+*
+!LICENSE
+!NOTICE
+!THIRD-PARTY.md
+!Backend/podman/sandbox/

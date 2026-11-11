@@ -1,0 +1,47 @@
+# The test stack's front (README.md): HTTPS with Caddy's own local CA, Authelia's portal, and the app behind Authelia's
+# forward auth. The WAM headers are removed from every request from outside first, then set from Authelia's answer -
+# a header sent by the browser never reaches the app. Machines with a key pass without a person, as the operator guide
+# asks of a WAM proxy: MCP clients (/mcp), A2A agents (/a2a, the public card and the extensions' descriptions) and the
+# client software (/api/v1) - the app checks their bearer key, and without the WAM headers nobody is signed in.
+{
+	local_certs
+}
+
+auth.general-chat.localhost {
+	reverse_proxy authelia:9091
+}
+
+ai.general-chat.localhost {
+	route {
+		request_header -Remote-User
+		request_header -Remote-Groups
+		request_header -Remote-Name
+		request_header -Remote-Email
+		@machines path /mcp /mcp/* /a2a /a2a/* /.well-known/agent-card.json /api/v1/*
+		reverse_proxy @machines alpdesk-ai:19100
+		forward_auth authelia:9091 {
+			uri /api/authz/forward-auth
+			copy_headers Remote-User Remote-Groups Remote-Name
+		}
+		reverse_proxy alpdesk-ai:19100
+	}
+}
+
+# The consent page of the OAuth fake (devtools/oauth-fake) - the browser's half of a connection's sign-in; the app
+# reaches the fake inside the stack. No sign-in in front: it is the other company's server.
+signin.general-chat.localhost {
+	reverse_proxy oauth-fake:9100
+}
+
+# MailHog's page and API: the mails the app sent (a task's findings, the daily report) - check.py reads them here.
+mail.general-chat.localhost {
+	reverse_proxy mailhog:8025
+}
+
+# The browser walk's files (walk/files, walk/walk.md): the pane has no upload tool - the page's script fetches a file
+# here and lays it into the upload field. Invented files only, readable by any page of this machine.
+files.general-chat.localhost {
+	root * /srv/walk-files
+	header Access-Control-Allow-Origin *
+	file_server
+}

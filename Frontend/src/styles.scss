@@ -1,0 +1,734 @@
+// Angular Material 3 reads every colour from --mat-sys-* variables (https://material.angular.dev/guide/theming).
+// theme-type "color-scheme" writes each of them as light-dark(), so the CSS property color-scheme on <html> picks
+// light or dark (utils/color-scheme.util.ts: system, light or dark, chosen in the user menu).
+@use "@angular/material" as mat;
+@use "./theme-colors" as theme;
+@use "@foblex/flow/styles/default.scss" as foblex;
+
+html {
+    height: 100%;
+    color-scheme: light dark;
+    @include mat.theme(
+        (
+            color: (
+                theme-type: color-scheme,
+                primary: theme.$primary-palette,
+                tertiary: theme.$tertiary-palette,
+            ),
+            typography: (
+                plain-family: (
+                    "Inter Variable",
+                    system-ui,
+                    -apple-system,
+                    "Segoe UI",
+                    sans-serif,
+                ),
+                brand-family: (
+                    "Inter Variable",
+                    system-ui,
+                    -apple-system,
+                    "Segoe UI",
+                    sans-serif,
+                ),
+            ),
+            density: 0,
+        )
+    );
+
+    // Neutral surfaces whatever the brand colour: Material tints them with it (#f9faf0 for the build's green, violet
+    // for others). branding.util.ts leaves these roles to this file.
+    --mat-sys-surface: light-dark(#ffffff, #191b19);
+    --mat-sys-background: light-dark(#ffffff, #191b19);
+    --mat-sys-surface-container-lowest: light-dark(#ffffff, #121412);
+    --mat-sys-surface-container-low: light-dark(#f7f8f6, #1d1f1d);
+    --mat-sys-surface-container: light-dark(#f1f2ef, #212420);
+    --mat-sys-surface-container-high: light-dark(#ebece9, #2a2d29);
+    --mat-sys-surface-container-highest: light-dark(#e5e6e3, #333632);
+    --mat-sys-surface-variant: light-dark(#e2e4df, #2d302c);
+
+    // The app's own tokens - everything outside Material's components takes its colours from these, never a literal.
+    // The brand colour itself (not Material's primary, which turns pale in the dark): set by BrandingEffects.
+    --app-brand: #49732a;
+    --app-on-brand: #ffffff;
+    --app-brand-soft: light-dark(
+        color-mix(in oklab, var(--app-brand) 11%, #ffffff),
+        color-mix(in oklab, var(--app-brand) 26%, #191b19)
+    );
+    --app-brand-softer: light-dark(
+        color-mix(in oklab, var(--app-brand) 6%, #ffffff),
+        color-mix(in oklab, var(--app-brand) 14%, #191b19)
+    );
+    // Text and icons in the brand colour - darker on white, lighter in the dark, so they stay readable.
+    --app-brand-text: light-dark(
+        color-mix(in oklab, var(--app-brand) 88%, #1b1d1a),
+        color-mix(in oklab, var(--app-brand) 55%, #ffffff)
+    );
+    --app-bg: light-dark(#f5f6f4, #111311);
+    --app-surface: var(--mat-sys-surface);
+    --app-surface-2: light-dark(#f0f1ee, #212420);
+    --app-surface-3: light-dark(#e8eae5, #2a2d29);
+    --app-border: light-dark(#e2e4df, #2d302c);
+    --app-border-strong: light-dark(#cfd2cb, #3d413b);
+    /* Behind a handbook's website: white in both schemes - the website keeps its own look, made for paper. */
+    --app-doc-site-bg: light-dark(#ffffff, #ffffff);
+    --app-text: light-dark(#1b1d1a, #e5e7e2);
+    --app-text-2: light-dark(#5a5f57, #a6aba1);
+    --app-text-3: light-dark(#868b82, #7c8177);
+    --app-ok: light-dark(#2c7a4b, #5fbf85);
+    --app-warn: light-dark(#a8640a, #e0a24a);
+    --app-err: light-dark(#c0392b, #ef7366);
+    --app-info: light-dark(#2b67ad, #71a6e6);
+    --app-shadow-1: 0 1px 2px light-dark(rgba(20, 24, 18, 0.06), rgba(0, 0, 0, 0.4));
+    --app-shadow-2:
+        0 8px 28px light-dark(rgba(20, 24, 18, 0.1), rgba(0, 0, 0, 0.45)),
+        0 2px 6px light-dark(rgba(20, 24, 18, 0.06), rgba(0, 0, 0, 0.3));
+    /* Code in the chat's answers (highlight.js). */
+    --app-code-keyword: light-dark(#a626a4, #c678dd);
+    --app-code-string: light-dark(#50a14f, #98c379);
+    --app-code-comment: light-dark(#8a8f87, #7f848e);
+    --app-code-number: light-dark(#986801, #d19a66);
+    --app-code-title: light-dark(#4078f2, #61afef);
+    --app-code-type: light-dark(#b76b01, #e5c07b);
+    --app-code-meta: light-dark(#0184bc, #56b6c2);
+    /* The graph of a scheduled task (components/shared/task-graph): one colour pair per kind of step. */
+    --app-flow-trigger: light-dark(#e8eae5, #2a2d29);
+    --app-flow-trigger-line: light-dark(#868b82, #7c8177);
+    --app-flow-step: light-dark(#e3f3ec, #173229);
+    --app-flow-step-line: light-dark(#1d9e75, #5dcaa5);
+    --app-flow-agent: light-dark(#eeedfe, #2a2750);
+    --app-flow-agent-line: light-dark(#7f77dd, #afa9ec);
+    --app-flow-output: light-dark(#faece7, #45231a);
+    --app-flow-output-line: light-dark(#d85a30, #f0997b);
+    --app-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    --mat-sys-on-surface: var(--app-text);
+
+    @include mat.card-overrides(
+        (
+            elevated-container-color: var(--app-surface),
+            elevated-container-elevation: none,
+            elevated-container-shape: 10px,
+            outlined-container-color: var(--app-surface),
+            outlined-container-shape: 10px,
+            outlined-outline-color: var(--app-border),
+            title-text-size: 15px,
+            title-text-weight: 600,
+            subtitle-text-color: var(--app-text-2),
+            subtitle-text-size: 13px,
+        )
+    );
+    @include mat.table-overrides(
+        (
+            background-color: transparent,
+            header-headline-color: var(--app-text-3),
+            header-headline-size: 12px,
+            header-headline-weight: 600,
+            row-item-outline-color: var(--app-border),
+            row-item-label-text-size: 13.5px,
+        )
+    );
+    @include mat.button-overrides(
+        (
+            filled-container-color: var(--app-brand),
+            filled-label-text-color: var(--app-on-brand),
+            filled-container-shape: 8px,
+            outlined-container-shape: 8px,
+            outlined-outline-color: var(--app-border-strong),
+            protected-container-shape: 8px,
+            tonal-container-shape: 8px,
+            text-container-shape: 8px,
+        )
+    );
+    @include mat.form-field-overrides(
+        (
+            outlined-container-shape: 8px,
+        )
+    );
+    @include mat.dialog-overrides(
+        (
+            container-color: var(--app-surface),
+            container-shape: 14px,
+        )
+    );
+    @include mat.menu-overrides(
+        (
+            container-color: var(--app-surface),
+            container-shape: 10px,
+        )
+    );
+    @include mat.paginator-overrides(
+        (
+            container-background-color: transparent,
+        )
+    );
+}
+
+body {
+    background-color: var(--app-bg);
+    color: var(--app-text);
+    font: var(--mat-sys-body-medium);
+    font-size: 14px;
+    -webkit-font-smoothing: antialiased;
+    margin: 0;
+    height: 100%;
+}
+
+/* iOS zooms into a field whose text is smaller than 16px as soon as it is tapped - the page then is wider than the
+   screen and has to be scrolled sideways (the chat's input, 14px). 16px on iOS only (-webkit-touch-callout exists
+   there alone); !important because Material sets its fields' size by class. */
+@supports (-webkit-touch-callout: none) {
+    input,
+    textarea,
+    select {
+        font-size: 16px !important;
+    }
+}
+
+:focus-visible {
+    outline: 2px solid var(--app-brand);
+    outline-offset: 2px;
+}
+
+/* Cards are flat surfaces with a fine border - a shadow on every block flattened the hierarchy. */
+.mat-mdc-card {
+    border: 1px solid var(--app-border);
+}
+
+.mat-mdc-card-header {
+    padding: 14px 16px 0 !important;
+}
+
+/* A page: the content column below the shell's top bar. */
+.page {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 28px 32px 48px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+@media (max-width: 960px) {
+    .page {
+        padding: 20px 16px 40px;
+    }
+}
+
+/* Numbers in columns line up. */
+.num,
+.mat-mdc-cell.num {
+    font-variant-numeric: tabular-nums;
+}
+
+.muted {
+    color: var(--app-text-3);
+}
+
+.mono {
+    font-family: var(--app-mono);
+    font-size: 12px;
+}
+
+/*
+ * The header row on a solid ground of its own: the table itself is transparent (it takes its panel's surface), and a
+ * sticky header would let the rows show through while they scroll beneath it.
+ */
+/* One step more specific than Material's own rule, which sets the header cells to inherit (and loads later). */
+.mat-mdc-table .mat-mdc-header-row .mat-mdc-header-cell {
+    background: var(--app-surface-2);
+}
+
+/* A row of a table lights up under the pointer. */
+.mat-mdc-row:hover > .mat-mdc-cell {
+    background: var(--app-brand-softer);
+}
+
+.mat-mdc-row.clickable {
+    cursor: pointer;
+}
+
+/*
+ * A status as a chip with a dot: .app-chip plus ok, warn, err, info (none: neutral). "plain" drops the dot -
+ * for a label such as a role. "running" lets the dot pulse.
+ */
+.app-chip {
+    --chip: var(--app-text-3);
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    font-weight: 500;
+    line-height: 20px;
+    padding: 0 9px 0 8px;
+    border-radius: 12px;
+    white-space: nowrap;
+    background: color-mix(in oklab, var(--chip) 13%, var(--app-surface));
+    color: color-mix(in oklab, var(--chip) 85%, var(--app-text));
+
+    &::before {
+        content: "";
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: var(--chip);
+    }
+
+    &.ok {
+        --chip: var(--app-ok);
+    }
+    &.warn {
+        --chip: var(--app-warn);
+    }
+    &.err {
+        --chip: var(--app-err);
+    }
+    &.info {
+        --chip: var(--app-info);
+    }
+    &.brand {
+        --chip: var(--app-brand-text);
+    }
+    &.plain::before {
+        display: none;
+    }
+    &.running::before {
+        animation: app-pulse 1.2s ease-in-out infinite;
+    }
+}
+
+@keyframes app-pulse {
+    50% {
+        opacity: 0.3;
+    }
+}
+
+/*
+ * A surface of its own on the page - a list, a form: .app-panel, with an .app-panel-head on top (title, search,
+ * filters, actions) and an .app-summary line below it.
+ */
+.app-panel {
+    background: var(--app-surface);
+    border: 1px solid var(--app-border);
+    border-radius: 10px;
+    min-width: 0;
+}
+
+.app-panel-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--app-border);
+
+    .spacer {
+        flex: 1 1 auto;
+    }
+}
+
+.app-panel-title {
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.app-panel-body {
+    padding: 16px;
+}
+
+.app-summary {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 16px;
+    color: var(--app-text-2);
+    font-size: 13px;
+    padding: 9px 14px;
+    border-bottom: 1px solid var(--app-border);
+    background: var(--app-surface-2);
+
+    b {
+        color: var(--app-text);
+        font-weight: 600;
+        font-variant-numeric: tabular-nums;
+    }
+}
+
+/* A search field in a panel head - lighter than a Material form field. */
+.app-search {
+    position: relative;
+    flex: 1 1 220px;
+    max-width: 320px;
+
+    mat-icon {
+        position: absolute;
+        left: 9px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--app-text-3);
+        font-size: 18px;
+        width: 18px;
+        height: 18px;
+    }
+
+    input {
+        width: 100%;
+        height: 34px;
+        border: 1px solid var(--app-border-strong);
+        border-radius: 8px;
+        padding: 0 10px 0 34px;
+        background: var(--app-surface);
+        color: var(--app-text);
+        font: inherit;
+        box-sizing: border-box;
+
+        &::placeholder {
+            color: var(--app-text-3);
+        }
+
+        &:focus {
+            outline: 2px solid color-mix(in oklab, var(--app-brand) 50%, transparent);
+            border-color: var(--app-brand);
+        }
+    }
+}
+
+/* Filter buttons with a count: aria-pressed marks the chosen one. */
+.app-filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.app-filter {
+    border: 1px solid var(--app-border);
+    background: var(--app-surface);
+    border-radius: 16px;
+    padding: 4px 11px;
+    font: inherit;
+    font-size: 12.5px;
+    color: var(--app-text-2);
+    display: inline-flex;
+    gap: 6px;
+    align-items: center;
+    cursor: pointer;
+
+    b {
+        font-weight: 600;
+        color: var(--app-text-3);
+        font-variant-numeric: tabular-nums;
+    }
+
+    &:hover {
+        background: var(--app-surface-2);
+    }
+
+    &[aria-pressed="true"] {
+        background: var(--app-brand-soft);
+        border-color: transparent;
+        color: var(--app-brand-text);
+        font-weight: 600;
+
+        b {
+            color: inherit;
+        }
+    }
+}
+
+/* A file's type as a small badge in front of its name ("PDF"). */
+.app-filetype {
+    width: 32px;
+    height: 32px;
+    border-radius: 7px;
+    display: grid;
+    place-items: center;
+    flex: 0 0 auto;
+    font: 600 9.5px/1 var(--app-mono);
+    background: var(--app-surface-2);
+    color: var(--app-text-2);
+    border: 1px solid var(--app-border);
+}
+
+/* A small grey label, e.g. where a document came from. */
+.app-tag {
+    font-size: 11.5px;
+    padding: 1px 8px;
+    border-radius: 6px;
+    background: var(--app-surface-2);
+    color: var(--app-text-2);
+    border: 1px solid var(--app-border);
+    white-space: nowrap;
+}
+
+/* Initials in a circle - a person in a table or the shell. */
+.app-avatar {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: inline-grid;
+    place-items: center;
+    flex: 0 0 auto;
+    background: var(--app-brand-soft);
+    color: var(--app-brand-text);
+    font-weight: 600;
+    font-size: 11.5px;
+}
+
+/* A note on a page: an icon, a sentence, maybe an action. */
+.app-note {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    padding: 12px 14px;
+    border-radius: 10px;
+    background: var(--app-brand-softer);
+    color: var(--app-text-2);
+    font-size: 13px;
+
+    mat-icon {
+        color: var(--app-brand-text);
+        flex: 0 0 auto;
+    }
+
+    &.warn {
+        background: color-mix(in oklab, var(--app-warn) 10%, var(--app-surface));
+
+        mat-icon {
+            color: var(--app-warn);
+        }
+    }
+}
+
+/* Name and second line in a table cell, with an icon or avatar in front. */
+.cell-main {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+
+    .cell-title {
+        font-weight: 500;
+    }
+
+    .cell-sub {
+        font-size: 12px;
+        color: var(--app-text-3);
+    }
+}
+
+/*
+ * Some air below every form field with a label - fields take only the room their hint or error needs
+ * (subscriptSizing "dynamic", app.config.ts), so without it they would stick together. Fields without a
+ * label (inline in tables and rows) stay flush, and so do those in filter and action bars.
+ */
+.mat-mdc-form-field:has(.mdc-floating-label) {
+    margin-bottom: 12px;
+}
+
+/* In grids a field keeps its own height - a hint under its neighbour must not stretch it. */
+.grid > .mat-mdc-form-field {
+    align-self: start;
+}
+
+.mat-mdc-form-field-hint-wrapper,
+.mat-mdc-form-field-error-wrapper {
+    padding-top: 2px;
+}
+
+.filter-section .mat-mdc-form-field,
+.header-actions .mat-mdc-form-field,
+.mat-mdc-paginator .mat-mdc-form-field {
+    margin-bottom: 0;
+}
+
+/* Dialog content with a little more room at the top (the first field's label is not squeezed). */
+.mat-mdc-dialog-content > :first-child {
+    margin-top: 8px;
+}
+
+/*
+ * The icon buttons at the end of a table row: the column is exactly as wide as its buttons. A fixed width was too
+ * narrow in some browsers, and Material's cells cut overflowing content off with an ellipsis - the last button
+ * showed as "…".
+ */
+.mat-mdc-table .actions-column {
+    width: 1%;
+    white-space: nowrap;
+    text-align: right;
+    text-overflow: clip;
+}
+
+/* Responsive scroll wrapper for wide tables (mat-table etc.) */
+.table-container {
+    width: 100%;
+    overflow-x: auto;
+}
+
+/*
+ * Responsive toolbar rows used across the list pages (filter bar + action buttons).
+ * Each list component still declares its own `.header-actions`/`.filter-section` with
+ * `display: flex; gap: ...`; this only switches them to a stacked, full-width layout on
+ * small screens so buttons stop shrinking, wrapping their label onto two lines and
+ * overlapping their icon.
+ */
+@media (max-width: 768px) {
+    .filter-section,
+    .header-actions {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .filter-section mat-form-field,
+    .header-actions mat-form-field {
+        width: 100% !important;
+        min-width: 0 !important;
+    }
+}
+
+/* Error Snackbar Styling */
+.error-snackbar {
+    // #f44336 (Material red 500) with white text is only ~3.7:1 contrast, below WCAG AA's 4.5:1 for
+    // normal-size text. Red 700 keeps the same error-red hue but reaches ~5.2:1 with white.
+    --mat-snack-bar-container-color: #d32f2f !important;
+    --mat-snack-bar-supporting-text-color: #ffffff !important;
+    --mat-snack-bar-button-color: #ffffff !important;
+
+    .mat-mdc-snack-bar-label {
+        color: #ffffff !important;
+    }
+
+    .mat-mdc-button {
+        color: #ffffff !important;
+    }
+}
+
+// Master-data dialogs: keep the height stable while switching tabs.
+.master-data-tabs .mat-mdc-tab-body-wrapper {
+    min-height: 320px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before {
+        animation: none !important;
+        transition: none !important;
+    }
+}
+
+/* Code blocks in the chat's answers (markdown.util.ts): language, copy control and highlight.js's spans. Global, as the
+   chat's component styles would outgrow their budget. */
+.markdown .code-block {
+    margin: 0 0 10px;
+    background: var(--app-surface-2);
+    border: 1px solid var(--app-border);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.markdown .code-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 4px 8px 4px 12px;
+    border-bottom: 1px solid var(--app-border);
+    font-size: 12px;
+    color: var(--app-text-3);
+}
+
+.markdown .code-lang {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.markdown .code-copy {
+    flex-shrink: 0;
+    padding: 2px 8px;
+    border-radius: 5px;
+    color: var(--app-text-2);
+    cursor: pointer;
+    user-select: none;
+}
+
+.markdown .code-copy:hover {
+    background: var(--app-surface-3);
+    color: var(--app-text);
+}
+
+/* highlight.js marks the code in spans. */
+.markdown :is(.hljs-keyword, .hljs-built_in, .hljs-literal, .hljs-selector-tag, .hljs-doctag) {
+    color: var(--app-code-keyword);
+}
+
+.markdown :is(.hljs-string, .hljs-regexp, .hljs-template-tag) {
+    color: var(--app-code-string);
+}
+
+.markdown :is(.hljs-comment, .hljs-quote) {
+    color: var(--app-code-comment);
+    font-style: italic;
+}
+
+.markdown :is(.hljs-number, .hljs-symbol, .hljs-bullet, .hljs-variable.constant_) {
+    color: var(--app-code-number);
+}
+
+.markdown :is(.hljs-title, .hljs-section, .hljs-name, .hljs-selector-id, .hljs-selector-class) {
+    color: var(--app-code-title);
+}
+
+.markdown :is(.hljs-type, .hljs-attr, .hljs-attribute, .hljs-property) {
+    color: var(--app-code-type);
+}
+
+.markdown :is(.hljs-meta, .hljs-tag, .hljs-subst, .hljs-template-variable, .hljs-variable) {
+    color: var(--app-code-meta);
+}
+
+.markdown .hljs-deletion {
+    color: var(--app-err);
+}
+
+.markdown .hljs-addition {
+    color: var(--app-ok);
+}
+
+/* Foblex Flow (the task graph): its theme mapped once onto the app's tokens, so light and dark follow - set here, not
+   per component. */
+f-flow,
+.f-flow {
+    --ff-flow-background-color: var(--app-surface);
+    --ff-flow-text-color: var(--app-text);
+    --ff-canvas-background-color: var(--app-surface);
+    --ff-node-background-color: var(--app-surface);
+    --ff-node-border-color: var(--app-border);
+    --ff-node-color: var(--app-text);
+    --ff-connection-color: var(--app-text-3);
+    --ff-connection-hover-color: var(--app-text-2);
+    --ff-connection-selected-color: var(--app-brand);
+    --ff-connection-content-background-color: var(--app-surface);
+    --ff-connection-content-border-color: var(--app-border-strong);
+    --ff-connection-content-color: var(--app-text-2);
+    --ff-connection-label-color: var(--app-text-2);
+    --ff-connector-background-color: var(--app-surface);
+    --ff-connector-border-color: var(--app-border-strong);
+    --ff-connector-connected-color: var(--app-text-3);
+    --ff-connector-node-ring-color: var(--app-surface);
+}
+
+.f-connection .f-connection-path {
+    stroke: var(--app-text-3) !important;
+    stroke-width: 1.5;
+}
+
+.f-connection.back .f-connection-path {
+    stroke-dasharray: 5 4;
+}
+
+.f-connection marker path,
+.f-connection svg[fMarker] {
+    fill: var(--app-text-3);
+}
+
+f-flow,
+.f-flow {
+    background: transparent;
+}

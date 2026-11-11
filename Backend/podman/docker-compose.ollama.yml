@@ -1,0 +1,25 @@
+# A local Ollama with an embedding model (ollama/Dockerfile), for the company's knowledge without a cloud provider -
+# README.md "Embeddings with a local Ollama". Independent of the app's stack: its own project and container.
+# Its own project name: compose names a project after its folder ("podman"), shared with every other project's podman/.
+name: alpdesk-ai-ollama
+
+services:
+
+  ollama:
+    build:
+      context: ./ollama
+      args:
+        EMBEDDING_MODEL: "${EMBEDDING_MODEL:-bge-m3}"
+    image: localhost/alpdesk/ollama-embeddings:latest
+    container_name: alpdesk-ai-ollama
+
+    # Ollama has neither TLS nor keys: published on the loopback interface only - for a backend started on this
+    # machine (http://localhost:11434). The app's container reaches it over the app's network instead (README).
+    ports:
+      - "127.0.0.1:11434:11434"
+
+    environment:
+      # How long a model stays in memory after its last use (Ollama's default: 5m).
+      OLLAMA_KEEP_ALIVE: "${OLLAMA_KEEP_ALIVE:-30m}"
+
+    restart: always

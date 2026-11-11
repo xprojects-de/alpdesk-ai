@@ -1,0 +1,219 @@
+# The general chat's test stack (README.md): one installation behind Caddy - with Authelia as the WAM proxy, or without
+# WAM (password login): `./mode.sh wam` / `./mode.sh plain` writes .env, which compose reads (each mode its own database
+# and files, kept when switching). PostgreSQL of its own.
+# Its own project name - never "podman" or another project's: a `down` there would remove other containers.
+name: alpdesk-ai-general-chat-test
+
+services:
+
+  postgres:
+    image: docker.io/pgvector/pgvector:pg18
+    container_name: general-chat-test-db
+    environment:
+      POSTGRES_DB: "alpdesk_ai"
+      POSTGRES_USER: "generalchat"
+      POSTGRES_PASSWORD: "general-chat-test-db"
+    volumes:
+      - pgdata:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U generalchat -d alpdesk_ai"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  alpdesk-ai:
+    build:
+      context: ../../Backend
+      dockerfile: podman/Dockerfile
+      # From the working tree, as the local test stack - the frontend must be built into it first (README.md).
+      target: from-source
+    image: localhost/alpdesk/alpdesk-ai:general-chat-test
+    container_name: general-chat-test-app
+    # No published port: the app is reached through Caddy and Authelia only.
+    environment:
+      MICRONAUT_ENVIRONMENTS: "dev"
+      APP_USERNAME: "admin"
+      APP_PASSWORD: "Admin-Testpasswort-2026"
+      JWT_GENERATOR_SIGNATURE_SECRET: "general-chat-test-jwt-secret-general-chat-test-jwt"
+      APP_SECRET_KEY: "vP7nC0qKk3o6m9b0eS1tY2u4w5x6z7a8b9c0d1e2f3g="
+      DATASOURCES_DEFAULT_URL: "jdbc:postgresql://postgres:5432/alpdesk_ai"
+      DATASOURCES_DEFAULT_USERNAME: "generalchat"
+      DATASOURCES_DEFAULT_PASSWORD: "general-chat-test-db"
+      # The topics' /mcp is reached at the app's own internal address - never through Caddy and Authelia; the A2A test
+      # agent runs on this machine (devtools/a2a-test-agent, setup.py a2a), reached as a company's own engine would be.
+      # The embedding model runs in the stack too (the container embeddings) - the knowledge needs no provider key.
+      APP_AI_PLAIN_HTTP_HOSTS: "alpdesk-ai,host.containers.internal,mcp-software,oauth-fake,embeddings"
+      # The file store of `setup.py stores` (the container sftp) - an internal host the installation names.
+      APP_FILE_STORE_INTERNAL_HOSTS: "sftp"
+      # Every mail - a task's findings, the daily report - goes to the stack's MailHog (mail.general-chat.localhost).
+      APP_MAIL_HOST: "mailhog"
+      APP_MAIL_PORT: "1025"
+      APP_MAIL_SECURITY: "NONE"
+      APP_MAIL_FROM: "alpdesk-ai@example.com"
+      APP_MONITORING_MAIL_TO: "betrieb@example.com"
+      # The web search goes to the Tavily fake below (devtools/tavily-fake) - no Tavily account, invented pages.
+      APP_WEB_SEARCH_ADDRESS: "http://tavily-fake:8000"
+      # The mode's switch (.env of mode.sh): with WAM the people sign in through Authelia, without it with a password.
+      APP_WAM_ENABLED: "${APP_WAM_ENABLED:-true}"
+      APP_WAM_USER_HEADER: "Remote-User"
+      APP_WAM_NAME_HEADER: "Remote-Name"
+      APP_WAM_GROUPS_HEADER: "Remote-Groups"
+      APP_WAM_GROUPS_SEPARATOR: ","
+    volumes:
+      - files:/home/app/files
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  # The topic "Wartung"'s own sandbox for Python and shell (setup.py full) - as an installation starts one per tenant,
+  # built from the working tree (the image sandbox-qualitaet starts too). The token is published, for this stack only.
+  sandbox-wartung:
+    build:
+      context: ../..
+      dockerfile: Backend/podman/sandbox/Dockerfile
+      target: sandbox
+    image: localhost/alpdesk/alpdesk-ai-sandbox:general-chat-test
+    container_name: general-chat-test-sandbox-wartung
+    environment:
+      SANDBOX_TOKEN: "general-chat-test-sandbox-token-wartung-0001"
+    read_only: true
+    tmpfs:
+      - /work:rw,size=1g,mode=1777
+      - /tmp:rw,size=512m,mode=1777
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges
+
+  # The topic "Qualitaet"'s own - the same image, its own token: never shared between tenants.
+  sandbox-qualitaet:
+    image: localhost/alpdesk/alpdesk-ai-sandbox:general-chat-test
+    container_name: general-chat-test-sandbox-qualitaet
+    environment:
+      SANDBOX_TOKEN: "general-chat-test-sandbox-token-qualitaet-01"
+    read_only: true
+    tmpfs:
+      - /work:rw,size=1g,mode=1777
+      - /tmp:rw,size=512m,mode=1777
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges
+    depends_on:
+      - sandbox-wartung
+
+  # The browser walk's tenant's own sandbox (walk/walk.md) - registered by the walk in the tenant's dialog. With
+  # WALK_SANDBOX_IMAGE=localhost/alpdesk/alpdesk-ai-sandbox:video (built by `./gradlew videoSandboxBuild`) the video
+  # sandbox, so the walk's clip is examined; without it the plain one and the video steps are left out.
+  sandbox-rundgang:
+    image: ${WALK_SANDBOX_IMAGE:-localhost/alpdesk/alpdesk-ai-sandbox:general-chat-test}
+    container_name: general-chat-test-sandbox-rundgang
+    environment:
+      SANDBOX_TOKEN: "general-chat-test-sandbox-token-rundgang-001"
+    read_only: true
+    tmpfs:
+      - /work:rw,size=1g,mode=1777
+      - /tmp:rw,size=512m,mode=1777
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges
+    depends_on:
+      - sandbox-wartung
+
+  # The connected software of the topics in full (Wartung, Qualitaet): the MCP test server (devtools/mcp-test-server) -
+  # reading tools, files, a changing one (cancel_order), invented data.
+  mcp-software:
+    build:
+      context: ../mcp-test-server
+      dockerfile: Containerfile
+    image: localhost/alpdesk-mcp-test:general-chat-test
+    container_name: general-chat-test-mcp-software
+    volumes:
+      - ../mcp-test-server/server.py:/app/server.py:ro,Z
+
+  # A hosted software that signs in with OAuth (devtools/oauth-fake): its authorization server and its MCP server
+  # "Ticketsystem". The app reaches it here, the browser its consent page through Caddy (signin.general-chat.localhost).
+  oauth-fake:
+    image: docker.io/library/python:3.13-slim
+    container_name: general-chat-test-oauth-fake
+    command: ["python", "-I", "/app/server.py"]
+    environment:
+      INTERNAL_URL: "http://oauth-fake:9100"
+      PUBLIC_URL: "https://signin.general-chat.localhost:8443"
+    volumes:
+      - ../oauth-fake/server.py:/app/server.py:ro,Z
+
+  # Answers the web search like Tavily (devtools/tavily-fake): its log shows every query the app sent out.
+  tavily-fake:
+    image: docker.io/library/python:3.13-slim
+    container_name: general-chat-test-tavily-fake
+    command: ["python", "-I", "/app/server.py"]
+    volumes:
+      - ../tavily-fake/server.py:/app/server.py:ro,Z
+
+  # The embedding model of every tenant (setup.py knowledge): Ollama with bge-m3 baked in (Backend/podman/ollama, the
+  # published image's source), started as an installation starts it (docker-compose.embeddings.yml) - built here for
+  # this machine's architecture: amd64 emulated on Apple Silicon took 1-2 minutes per small document (9 November 2026).
+  # Once 2.0.0 is released and its run of "Build Embeddings Image" published linux/arm64: back to
+  # `image: ghcr.io/xprojects-de/alpdesk-ai-embeddings:<version>` without `build:`.
+  embeddings:
+    build:
+      context: ../../Backend/podman/ollama
+    image: localhost/alpdesk/ollama-embeddings:general-chat-test
+    container_name: general-chat-test-embeddings
+    environment:
+      OLLAMA_KEEP_ALIVE: "30m"
+    read_only: true
+    tmpfs:
+      - /tmp:rw,size=64m,mode=1777
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges
+
+  # The file store of the topic Wartung (setup.py stores): the SFTP server of the file store specs - user "check",
+  # a new host key with every image build (then `setup.py stores` again: it confirms the new fingerprint). Its files
+  # are written by check.py and scenarios.py (`podman exec`) and gone with the container.
+  sftp:
+    build:
+      context: ../../Backend/src/test/resources/filestore/sftp
+    image: localhost/alpdesk-ai-test-sftp:general-chat-test
+    container_name: general-chat-test-sftp
+
+  # Takes every mail the app sends; its page and API through Caddy (mail.general-chat.localhost).
+  mailhog:
+    image: docker.io/mailhog/mailhog:latest
+    container_name: general-chat-test-mailhog
+
+  authelia:
+    image: docker.io/authelia/authelia:4.38
+    # The WAM mode only (COMPOSE_PROFILES in .env).
+    profiles: ["wam"]
+    container_name: general-chat-test-authelia
+    volumes:
+      - ./authelia:/config:ro
+      - authelia:/data
+
+  caddy:
+    image: docker.io/library/caddy:2
+    container_name: general-chat-test-caddy
+    ports:
+      - "127.0.0.1:8443:443"
+    volumes:
+      # Caddyfile with Authelia's forward auth, Caddyfile.plain without (.env of mode.sh).
+      - ./${CADDYFILE:-Caddyfile}:/etc/caddy/Caddyfile:ro
+      # The browser walk's files, served at files.general-chat.localhost (walk/walk.md).
+      - ./walk/files:/srv/walk-files:ro
+      - caddy:/data
+    depends_on:
+      - alpdesk-ai
+
+volumes:
+  # Each mode its own database and files (.env of mode.sh) - the WAM mode's names as they were before the switch.
+  pgdata:
+    name: "alpdesk-ai-general-chat-test_pgdata${VOLUME_SUFFIX:-}"
+  files:
+    name: "alpdesk-ai-general-chat-test_files${VOLUME_SUFFIX:-}"
+  authelia:
+  caddy:

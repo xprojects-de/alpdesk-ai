@@ -1,0 +1,399 @@
+import com.github.jk1.license.filter.SpdxLicenseBundleNormalizer
+import com.github.jk1.license.render.JsonReportRenderer
+import com.github.jk1.license.render.TextReportRenderer
+
+plugins {
+    id("java")
+    id("groovy")
+    id("io.micronaut.application") version "5.0.2"
+    id("com.gradleup.shadow") version "9.6.1"
+    id("io.micronaut.aot") version "5.0.2"
+    id("com.github.jk1.dependency-license-report") version "3.1.5"
+}
+
+version = {
+    def propertiesFile = file('src/main/resources/application.properties')
+    def properties = new Properties()
+    propertiesFile.withInputStream { properties.load(it) }
+    def declared = properties.getProperty('app.version')?.trim()
+    if (!declared) {
+        throw new GradleException("app.version is missing from ${propertiesFile} - the build derives its version from it")
+    }
+    return declared
+}()
+
+group = "de.alpdesk"
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    annotationProcessor("io.micronaut:micronaut-http-validation")
+    annotationProcessor("io.micronaut.serde:micronaut-serde-processor")
+    annotationProcessor("io.micronaut.openapi:micronaut-openapi")
+    implementation("io.micronaut.serde:micronaut-serde-jackson")
+    compileOnly("io.micronaut.openapi:micronaut-openapi-annotations")
+    implementation("io.micronaut:micronaut-http-client")
+    implementation("org.slf4j:slf4j-api")
+    // Not runtimeOnly: logging.RecentLogAppender keeps the last warnings and errors for the daily report.
+    implementation("ch.qos.logback:logback-classic")
+    // POI logs through the Log4j API: without a bridge its messages are lost and it complains about a missing provider.
+    runtimeOnly("org.apache.logging.log4j:log4j-to-slf4j")
+    testImplementation("io.micronaut:micronaut-http-client")
+    // The daily report over SMTP (mail.MailSender); the tests receive it with GreenMail.
+    implementation("org.eclipse.angus:angus-mail:2.0.5")
+    testImplementation("com.icegreen:greenmail:2.1.15")
+    // Needed for Spock's Mock() to mock concrete classes, not just interfaces - Spock's built-in java-proxy mocker
+    // only handles interfaces.
+    testImplementation("net.bytebuddy:byte-buddy:1.18.17")
+    testImplementation("org.objenesis:objenesis:3.6")
+    // The tests' own PostgreSQL with pgvector (jdbc:tc: URL in application-test.properties), separate from the dev
+    // database of `./gradlew run` - started through services.tenant.TestDatabaseProvider (more shared memory).
+    testImplementation("org.testcontainers:testcontainers-postgresql")
+    // The file store specs' SFTP and FTPS servers (src/test/resources/filestore/), built and started as containers.
+    testImplementation("org.testcontainers:testcontainers")
+    annotationProcessor("io.micronaut.security:micronaut-security-processor")
+    annotationProcessor("io.micronaut.security:micronaut-security-annotations")
+    implementation("io.micronaut.security:micronaut-security")
+    implementation("io.micronaut.security:micronaut-security-jwt")
+    aotPlugins platform("io.micronaut.platform:micronaut-platform")
+    aotPlugins("io.micronaut.security:micronaut-security-aot")
+    implementation("io.micronaut.reactor:micronaut-reactor-http-client")
+    runtimeOnly("org.postgresql:postgresql")
+    runtimeOnly("org.flywaydb:flyway-database-postgresql")
+    implementation("io.micronaut.flyway:micronaut-flyway")
+    implementation("io.micronaut.data:micronaut-data-jdbc")
+    // Not runtimeOnly: every tenant database gets a HikariCP pool of its own (services.tenant.TenantDatabases).
+    implementation("io.micronaut.sql:micronaut-jdbc-hikari")
+    // Text extraction from uploaded documents (services.document.DocumentTextExtractor).
+    implementation("org.apache.tika:tika-core:4.2.0")
+    // Without junrar (RAR archives, not among the allowed types): the only library under a license that is not open
+    // source (THIRD-PARTY.md). Tika then reads no RAR - nothing else changes.
+    implementation("org.apache.tika:tika-parsers-standard-package:4.2.0") {
+        exclude(group: "com.github.junrar", module: "junrar")
+    }
+    // Files the chat's model creates (services.chat.FileRenderer): Markdown parsed by flexmark, DOCX and XLSX written
+    // with POI (the version Tika brings), PDF from HTML with openhtmltopdf (on PDFBox 3, like Tika), jsoup making the
+    // HTML well-formed for it.
+    // The OOXML schemas come from poi-ooxml-full (every schema), which Tika's Microsoft parsers and our DOCX tables
+    // need; since Tika 4 the application chooses them - Tika excludes poi-ooxml-lite and brings none. poi-ooxml's own
+    // poi-ooxml-lite holds the same classes with a smaller type index, and in the fat jar one would shadow the other.
+    implementation("org.apache.poi:poi-ooxml-full:5.5.1")
+    implementation("org.apache.poi:poi-ooxml:5.5.1") {
+        exclude(group: "org.apache.poi", module: "poi-ooxml-lite")
+    }
+    implementation("com.vladsch.flexmark:flexmark:0.64.8")
+    implementation("com.vladsch.flexmark:flexmark-ext-tables:0.64.8")
+    implementation("io.github.openhtmltopdf:openhtmltopdf-pdfbox:1.1.110")
+    implementation("org.jsoup:jsoup:1.24.1")
+    // The AI features (docs/architecture/ai-features.md): one module per provider, pgvector for the tenants'
+    // embeddings, the core for splitting documents.
+    implementation(platform("dev.langchain4j:langchain4j-bom:1.23.0"))
+    implementation("dev.langchain4j:langchain4j")
+    implementation("dev.langchain4j:langchain4j-anthropic")
+    implementation("dev.langchain4j:langchain4j-open-ai")
+    implementation("dev.langchain4j:langchain4j-google-ai-gemini")
+    implementation("dev.langchain4j:langchain4j-ollama")
+    // Own model servers get an HTTP client that follows no redirect (services.ai.AiModels).
+    implementation("dev.langchain4j:langchain4j-http-client-jdk")
+    // The tenant's MCP server and the MCP clients to the tenants' software (docs/architecture/mcp.md).
+    implementation("io.micronaut.mcp:micronaut-mcp-server-java-sdk")
+    implementation("io.micronaut.mcp:micronaut-mcp-client-java-sdk")
+    // The tenant's A2A agent and the A2A clients to agents (docs/architecture/a2a.md):
+    // the official SDK's server core (the task lifecycle behind a controller of ours) and its client.
+    implementation("org.a2aproject.sdk:a2a-java-sdk-server-common:1.5.0.Final")
+    implementation("org.a2aproject.sdk:a2a-java-sdk-transport-jsonrpc:1.5.0.Final")
+    implementation("org.a2aproject.sdk:a2a-java-sdk-client:1.5.0.Final")
+    implementation("org.a2aproject.sdk:a2a-java-sdk-client-transport-jsonrpc:1.5.0.Final")
+    implementation("dev.langchain4j:langchain4j-pgvector")
+    // Models of Amazon Bedrock - Claude in the EU (docs/architecture/ai-features.md "Amazon Bedrock"): its Converse API
+    // through the AWS SDK (the platform's version, as S3's), streamed over the SDK's Netty client - Micronaut brings
+    // Netty anyway; the Apache client is left out as for S3 (services.ai.BedrockClients sets both clients explicitly).
+    implementation("dev.langchain4j:langchain4j-bedrock") {
+        exclude(group: "software.amazon.awssdk", module: "apache-client")
+        exclude(group: "software.amazon.awssdk", module: "apache5-client")
+    }
+    implementation("software.amazon.awssdk:netty-nio-client")
+    // The chat's web search (docs/architecture/ai-features.md "Web search").
+    implementation("dev.langchain4j:langchain4j-web-search-engine-tavily")
+    // The tenants' file stores (docs/architecture/file-stores.md): SFTP through Apache MINA SSHD, FTPS through Commons Net.
+    implementation("org.apache.sshd:sshd-sftp:2.20.1")
+    implementation("commons-net:commons-net:3.13.0")
+    // S3 through the AWS SDK (its version the platform's), with the JDK's HTTP connection instead of the Apache and
+    // Netty clients it brings - S3StoreClient sets that one explicitly.
+    implementation("software.amazon.awssdk:s3") {
+        exclude(group: "software.amazon.awssdk", module: "apache-client")
+        exclude(group: "software.amazon.awssdk", module: "apache5-client")
+        exclude(group: "software.amazon.awssdk", module: "netty-nio-client")
+    }
+    implementation("software.amazon.awssdk:url-connection-client")
+    // SharePoint and OneDrive: the app's token through Microsoft's own authentication library (MSAL); the few Graph
+    // calls themselves need no SDK (services.filestore.GraphStoreClient).
+    implementation("com.microsoft.azure:msal4j:1.26.0")
+    // Connected software that signs in with OAuth (docs/architecture/mcp.md "Signing in to the software's server"):
+    // Nimbus builds and parses the OAuth messages only - our own HttpClient sends them under the address rules.
+    implementation("com.nimbusds:oauth2-oidc-sdk:11.39")
+    // Scheduled tasks (docs/architecture/tasks.md): written as YAML 1.2 (the platform's SnakeYAML Engine, whose nodes
+    // keep their lines), run as a langgraph4j graph with checkpoints in the tenant database.
+    implementation("org.snakeyaml:snakeyaml-engine")
+    implementation("org.bsc.langgraph4j:langgraph4j-core:1.9.9")
+    implementation("org.bsc.langgraph4j:langgraph4j-postgres-saver:1.9.9")
+    // Fixes the Micronaut platform does not bring yet - each goes once micronautVersion manages the version or later.
+    // Jackson 2 is langchain4j's (provider answers) and Tika's CAD module's; Micronaut Serde runs on Jackson 3.
+    constraints {
+        implementation("com.fasterxml.jackson.core:jackson-core:2.22.4") {
+            because("CVE-2026-89425, CVE-2026-89407 - fixed in 2.22.3, the platform 5.2.x manages 2.22.2")
+        }
+        implementation("com.fasterxml.jackson.core:jackson-databind:2.22.4") {
+            because("CVE-2026-91776, CVE-2026-91777 - fixed in 2.22.3, the platform 5.2.x manages 2.22.2")
+        }
+    }
+}
+
+application {
+    mainClass = "de.alpdesk.Application"
+}
+
+java {
+    sourceCompatibility = JavaVersion.toVersion("25")
+    targetCompatibility = JavaVersion.toVersion("25")
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(25)
+    }
+}
+
+micronaut {
+    runtime("netty")
+    testRuntime("spock2")
+    processing {
+        // Not incremental: micronaut-openapi writes the published API documentation from the sources it compiles in
+        // this run only - an incremental build left out /login (@OpenAPIInclude on Application) and the descriptions
+        // of every controller not compiled again. A full compile costs about 10 s more.
+        incremental(false)
+        annotations("de.alpdesk.*")
+    }
+    aot {
+        // Please review carefully the optimizations enabled below
+        // Check https://micronaut-projects.github.io/micronaut-aot/latest/guide/ for more details
+        optimizeServiceLoading = false
+        convertYamlToJava = false
+        precomputeOperations = true
+        cacheEnvironment = true
+        optimizeClassLoading = true
+        deduceEnvironment = true
+        optimizeNetty = true
+        replaceLogbackXml = true
+    }
+}
+
+// The deliverable is the AOT-optimized fat jar (optimizedJitJarAll below), run on a plain Java 25
+// JRE in the container. Micronaut AOT works on the JVM too - GraalVM is not needed and not used,
+// and neither are jpackage installers or the Micronaut Docker tasks.
+//
+// Note: the plain `shadowJar` does NOT contain the AOT optimizations - the aot {} block above only
+// feeds the optimized* tasks. That is why the release builds optimizedJitJarAll, not shadowJar.
+
+// Gradle 9 fails a test task that discovers no tests at all - kept enabled on purpose, so a
+// misconfigured test source set fails the build instead of silently passing with nothing to run.
+
+// The specs' stored files start empty on every run: each run gets a fresh database whose ids start again, and files an
+// earlier run left under the same tenant id would count as this run's.
+tasks.named('test') {
+    // Gradle's default of 512 MB is too small for the suite: its ~90 application contexts stay in memory until the run
+    // ends, and specs read files of 50 MB and more (an archive, an FTPS listing up to its bound) - OutOfMemoryError.
+    maxHeapSize = '2g'
+    def testStorage = layout.buildDirectory.dir('test-storage')
+    doFirst {
+        testStorage.get().asFile.deleteDir()
+    }
+}
+
+// micronaut-openapi also documents the Groovy test sources; nothing there is an API of ours.
+tasks.named('compileTestGroovy') {
+    groovyOptions.forkOptions.jvmArgs += '-Dmicronaut.openapi.enabled=false'
+}
+
+// `./gradlew run` is local development: the "dev" environment lets it start with the default
+// secrets from application.properties, which the packaged jar refuses (security.ProductionSecretsCheck),
+// and loads application-dev.properties with the dev database (podman/docker-compose.dev.yml).
+tasks.matching { it.name in ['run', 'optimizedRun'] }.configureEach {
+    systemProperty 'micronaut.environments', 'dev'
+}
+
+// matching() instead of named(): the AOT plugin registers this task only after the build script
+// has been evaluated.
+tasks.matching { it.name == 'optimizedJitJarAll' }.configureEach {
+    archiveFileName = 'alpdesk-ai.jar'
+}
+
+// Unoptimized fat jar, kept for comparison/debugging only (e.g. to rule out an AOT issue).
+shadowJar {
+    archiveFileName = 'alpdesk-ai-no-aot.jar'
+    manifest {
+        attributes 'Main-Class': 'de.alpdesk.Application'
+    }
+    mergeServiceFiles()
+}
+
+// Copies the built Angular frontend into the jar's static resources (gitignored, CI builds it).
+tasks.register('copyFrontend', Copy) {
+    from '../Frontend/dist/alpdesk-ai/browser'
+    into 'src/main/resources/public'
+    doFirst {
+        delete fileTree('src/main/resources/public')
+    }
+}
+
+// Lets copyFrontend be combined with other tasks in one invocation (`./gradlew copyFrontend
+// shadowJar`): several tasks read src/main/resources, which copyFrontend writes, so Gradle needs
+// the order spelled out. mustRunAfter only orders - it never pulls copyFrontend in by itself.
+tasks.configureEach { task ->
+    if (task.name != 'copyFrontend') {
+        task.mustRunAfter 'copyFrontend'
+    }
+}
+
+// The dev database of `./gradlew run` (podman/docker-compose.dev.yml, data in Backend/database/), so it can be
+// started and stopped from the IDE's Gradle tool window. `--wait` returns once PostgreSQL is healthy.
+// An IDE started from the Dock does not have the shell's PATH, so the usual install folders of Podman (installer,
+// Homebrew) and of the compose provider podman calls (docker-compose in /usr/local/bin) are added to it.
+def devDbPath = (['/opt/podman/bin', '/opt/homebrew/bin', '/usr/local/bin'] + System.getenv('PATH').tokenize(File.pathSeparator)).unique()
+def devDbPodman = devDbPath.collect { new File(it, 'podman') }.find { it.canExecute() }?.path ?: 'podman'
+def devDbCompose = [devDbPodman, 'compose', '-f', 'podman/docker-compose.dev.yml']
+
+tasks.register('devDbStart', Exec) {
+    group = 'dev database'
+    description = 'Starts the dev database (127.0.0.1:15433) and waits until it is ready.'
+    environment 'PATH', devDbPath.join(File.pathSeparator)
+    commandLine devDbCompose + ['up', '-d', '--wait']
+}
+
+tasks.register('devDbStop', Exec) {
+    group = 'dev database'
+    description = 'Stops the dev database and removes its container; the data in Backend/database/ stays.'
+    environment 'PATH', devDbPath.join(File.pathSeparator)
+    commandLine devDbCompose + ['down']
+}
+
+// The sandbox for the chat's Python and shell, for the backend started here (application-dev.properties points to it).
+def devSandboxCompose = [devDbPodman, 'compose', '-f', 'podman/docker-compose.sandbox.yml']
+
+tasks.register('sandboxStart', Exec) {
+    group = 'dev database'
+    description = 'Builds and starts the sandbox for code execution (127.0.0.1:19180) and waits until it answers.'
+    environment 'PATH', devDbPath.join(File.pathSeparator)
+    commandLine devSandboxCompose + ['up', '-d', '--build', '--wait']
+    finalizedBy 'sandboxPruneImages'
+}
+
+// Every `--build` leaves the previous sandbox image behind untagged (<none>); within days they filled the Podman
+// machine by tens of GB. `image prune` removes only such dangling images, never tagged ones or ones a container uses.
+tasks.register('sandboxPruneImages', Exec) {
+    group = 'dev database'
+    description = 'Removes the untagged images the sandbox builds leave behind.'
+    environment 'PATH', devDbPath.join(File.pathSeparator)
+    commandLine devDbPodman, 'image', 'prune', '-f'
+}
+
+tasks.register('sandboxStop', Exec) {
+    group = 'dev database'
+    description = 'Stops the sandbox and removes its container - it keeps nothing.'
+    environment 'PATH', devDbPath.join(File.pathSeparator)
+    commandLine devSandboxCompose + ['down']
+}
+
+// The video sandbox (Dockerfile target "video": ffmpeg, RTMPose - docs/architecture/code-execution.md "Videos") in the
+// sandbox's container and port. Its stage "video-libraries" fetches the pose models (about 150 MB from a server
+// delivering some 30 KB/s - an hour). The final image only copies from that stage, so the stage's image has no tag and
+// no child: sandboxPruneImages took it for dangling and removed it, and the next build fetched the models again
+// (19 October 2026). Built under a tag of its own first, it stays in the cache.
+tasks.register('videoSandboxLibraries', Exec) {
+    group = 'dev database'
+    description = 'Builds the video sandbox\'s stage with the pose models under a tag of its own (localhost/alpdesk/alpdesk-ai-sandbox:video-libraries), so no prune removes it - the first build can take an hour.'
+    workingDir projectDir.parentFile
+    environment 'PATH', devDbPath.join(File.pathSeparator)
+    commandLine devDbPodman, 'build', '-f', 'Backend/podman/sandbox/Dockerfile', '--target', 'video-libraries',
+            '-t', 'localhost/alpdesk/alpdesk-ai-sandbox:video-libraries', '.'
+}
+
+tasks.register('videoSandboxBuild', Exec) {
+    group = 'dev database'
+    description = 'Builds the video sandbox image (localhost/alpdesk/alpdesk-ai-sandbox:video), its pose models from the cache.'
+    dependsOn 'videoSandboxLibraries'
+    workingDir projectDir.parentFile
+    environment 'PATH', devDbPath.join(File.pathSeparator)
+    commandLine devDbPodman, 'build', '-f', 'Backend/podman/sandbox/Dockerfile', '--target', 'video',
+            '-t', 'localhost/alpdesk/alpdesk-ai-sandbox:video', '.'
+}
+
+tasks.register('videoSandboxStart', Exec) {
+    group = 'dev database'
+    description = 'Builds and starts the video sandbox (127.0.0.1:19180, in place of the sandbox) and waits until it answers.'
+    dependsOn 'videoSandboxBuild'
+    environment 'PATH', devDbPath.join(File.pathSeparator)
+    environment 'SANDBOX_TARGET', 'video'
+    commandLine devSandboxCompose + ['up', '-d', '--no-build', '--wait']
+    finalizedBy 'sandboxPruneImages'
+}
+
+// The same container as the sandbox's: stopping either stops it.
+tasks.register('videoSandboxStop') {
+    group = 'dev database'
+    description = 'Stops the video sandbox and removes its container - the same as sandboxStop.'
+    dependsOn 'sandboxStop'
+}
+
+tasks.register('devDbDelete', Delete) {
+    group = 'dev database'
+    description = 'Stops the dev database and deletes its data (Backend/database/) - the next start is empty.'
+    dependsOn 'devDbStop'
+    delete 'database'
+}
+
+// The licenses of everything the jar ships (THIRD-PARTY.md is the readable overview). generateLicenseReport writes
+// each library's license, read from its POM and manifest, and the license files the library's jar carries;
+// checkLicense fails the build when a library has none of the licenses in config/allowed-licenses.json - a dependency
+// update that brings a new license is looked at before it ships. Permissive licenses are allowed for every library,
+// weak copyleft (EPL, LGPL, MPL, CDDL) only for the libraries named there, used unmodified (THIRD-PARTY.md).
+licenseReport {
+    configurations = ['runtimeClasspath']
+    excludeBoms = true
+    filters = [new SpdxLicenseBundleNormalizer()]
+    renderers = [new TextReportRenderer('dependency-licenses.txt'), new JsonReportRenderer('dependency-licenses.json')]
+    allowedLicensesFile = layout.projectDirectory.file('config/allowed-licenses.json').asFile
+}
+
+tasks.named('check') {
+    dependsOn 'checkLicense'
+}
+
+// What every jar carries under META-INF/third-party: the project's LICENSE, NOTICE and THIRD-PARTY.md, the report
+// with the license files of the libraries, and the frontend's licenses (written by ng build, there once the frontend
+// was built - the release workflow checks it). Its own folder: the libraries' META-INF/LICENSE and NOTICE files
+// overwrite each other in a fat jar.
+def licenseReportDir = layout.buildDirectory.dir('reports/dependency-license')
+tasks.register('thirdPartyNotices', Sync) {
+    dependsOn 'checkLicense'
+    from('..') {
+        include 'LICENSE', 'NOTICE', 'THIRD-PARTY.md'
+    }
+    from(licenseReportDir) {
+        exclude '*.html', '*.json'
+        into 'backend'
+    }
+    from('../Frontend/dist/alpdesk-ai') {
+        include '3rdpartylicenses.txt'
+        rename { 'frontend-licenses.txt' }
+    }
+    into layout.buildDirectory.dir('third-party')
+}
+
+// matching(): optimizedJitJarAll is registered only after the build script has been evaluated.
+tasks.matching { it.name in ['shadowJar', 'optimizedJitJarAll'] }.configureEach {
+    // More than 65,535 entries with poi-ooxml-full (every OOXML schema as classes); Java reads Zip64 jars.
+    zip64 = true
+    from(tasks.named('thirdPartyNotices')) {
+        into 'META-INF/third-party'
+    }
+}

@@ -1,0 +1,51 @@
+[
+  {"id": "exact-1", "type": "EXACT", "question": "Was bedeutet der Fehlercode E23?", "expected": [{"file": "Fehlercodes_NK-Serie.docx", "contains": "Abgastemperatur zu hoch"}]},
+  {"id": "exact-2", "type": "EXACT", "question": "Welche Artikelnummer hat die Zündelektrode?", "expected": [{"file": "Ersatzteilliste.csv", "contains": "2210-Z"}, {"file": "Fehlercodes_NK-Serie.docx", "contains": "2210-Z"}]},
+  {"id": "exact-3", "type": "EXACT", "question": "Was kostet die 4711-B?", "expected": [{"file": "Preisliste_2026.xlsx", "contains": "Umwälzpumpe UP-25"}]},
+  {"id": "exact-4", "type": "EXACT", "question": "Was heißt F33 auf dem Display?", "expected": [{"file": "Fehlercodes_NK-Serie.docx", "contains": "Wartung fällig"}]},
+  {"id": "exact-5", "type": "EXACT", "question": "Wofür ist der Parameter P.17?", "expected": [{"file": "Betriebsanleitung_NK-24.pdf", "contains": "Offset-Parameter P.17"}]},
+  {"id": "exact-6", "type": "EXACT", "question": "Was regelt das DVGW-Arbeitsblatt G 600?", "expected": [{"file": "Normen_und_Vorschriften.pdf", "contains": "TRGI"}]},
+  {"id": "exact-7", "type": "EXACT", "question": "Was kostet das KM-4?", "expected": [{"file": "Preisliste_2026.xlsx", "contains": "Kaskadenmodul"}]},
+  {"id": "exact-8", "type": "EXACT", "question": "Welche Durchwahl hat Petra Lindner?", "expected": [{"file": "Ansprechpartner.xlsx", "contains": "Petra Lindner"}, {"file": "Arbeitssicherheit_Baustelle.md", "contains": "Durchwahl 214"}]},
+
+  {"id": "table-1", "type": "TABLE", "question": "Wie schwer ist der NK 24 ohne Wasser?", "expected": [{"file": "Betriebsanleitung_NK-24.pdf", "contains": "38 kg"}]},
+  {"id": "table-2", "type": "TABLE", "question": "Wie oft muss beim NK 35 der Wärmetauscher gereinigt werden?", "expected": [{"file": "Wartungsanleitung_NK.pdf", "contains": "Reinigung Wärmetauscher"}]},
+  {"id": "table-3", "type": "TABLE", "question": "Wie lange ist die Lieferzeit für den 300-Liter-Speicher?", "expected": [{"file": "Preisliste_2026.xlsx", "contains": "SP-300"}]},
+  {"id": "table-4", "type": "TABLE", "question": "Welcher Vorlauffühler passt in den NK 35?", "expected": [{"file": "Ersatzteilliste.csv", "contains": "3107-V"}]},
+  {"id": "table-5", "type": "TABLE", "question": "Wie viel Strom braucht der NK 24 höchstens?", "expected": [{"file": "Betriebsanleitung_NK-24.pdf", "contains": "78 W"}]},
+
+  {"id": "split-1", "type": "SPLIT", "question": "Wie viel Wasser kommt bei der Erstinbetriebnahme in den Siphon?", "expected": [{"file": "Betriebsanleitung_NK-24.pdf", "contains": "0,3 Liter"}]},
+  {"id": "split-2", "type": "SPLIT", "question": "Mit welchem Drehmoment werden die Muttern des Brennerdeckels angezogen?", "expected": [{"file": "Wartungsanleitung_NK.pdf", "contains": "mit 8 Nm an"}]},
+  {"id": "split-3", "type": "SPLIT", "question": "Was muss am Ende der Inbetriebnahme ausgefüllt werden, damit die Garantie auf den Wärmetauscher bleibt?", "expected": [{"file": "Betriebsanleitung_NK-24.pdf", "contains": "Inbetriebnahmeprotokoll"}, {"file": "Garantiebedingungen.docx", "contains": "Inbetriebnahmeprotokoll"}]},
+  {"id": "split-4", "type": "SPLIT", "question": "Welche Bürste nehme ich für den Wärmetauscher?", "expected": [{"file": "Wartungsanleitung_NK.pdf", "contains": "Kunststoffbürste"}]},
+  {"id": "split-5", "type": "SPLIT", "question": "Wie lange muss der Kessel vor der Reinigung abkühlen?", "expected": [{"file": "Wartungsanleitung_NK.pdf", "contains": "20 Minuten"}]},
+  {"id": "split-6", "type": "SPLIT", "question": "Bis wann muss ein Techniker seinen Einsatz in der App abschließen?", "expected": [{"file": "AA-07_Kundendiensteinsatz.docx", "contains": "bis 18 Uhr"}]},
+
+  {"id": "para-1", "type": "PARAPHRASE", "question": "Wie lange habe ich Gewähr auf den Wärmetauscher?", "expected": [{"file": "Garantiebedingungen.docx", "contains": "10 Jahre auf den Wärmetauscher"}]},
+  {"id": "para-2", "type": "PARAPHRASE", "question": "Wie viele freie Tage bekomme ich im Jahr?", "expected": [{"file": "Urlaubsregelung.txt", "contains": "30 Arbeitstage"}]},
+  {"id": "para-3", "type": "PARAPHRASE", "question": "Was kostet es extra, wenn ihr am Samstag kommt?", "expected": [{"file": "AA-07_Kundendiensteinsatz.docx", "contains": "Notdienstpauschale von 95 Euro"}]},
+  {"id": "para-4", "type": "PARAPHRASE", "question": "Meine Heizung blubbert, was kann ich tun?", "expected": [{"file": "FAQ_Kunden.html", "contains": "Entlüftungsschlüssel"}]},
+  {"id": "para-5", "type": "PARAPHRASE", "question": "Darf ich mit dem Firmenauto am Wochenende privat fahren?", "expected": [{"file": "Fahrzeugordnung.docx", "contains": "Private Fahrten"}]},
+  {"id": "para-6", "type": "PARAPHRASE", "question": "Was mache ich, wenn es im Keller nach Gas riecht?", "expected": [{"file": "Betriebsanleitung_NK-24.pdf", "contains": "Gashaupthahn schließen"}]},
+  {"id": "para-7", "type": "PARAPHRASE", "question": "Bis wann muss ich meine alten Urlaubstage nehmen?", "expected": [{"file": "Urlaubsregelung.txt", "contains": "31. März"}]},
+  {"id": "para-8", "type": "PARAPHRASE", "question": "Wer bezahlt die Reparaturstunden, wenn der Kessel nach drei Jahren kaputtgeht?", "expected": [{"file": "Garantiebedingungen.docx", "contains": "trägt der Betreiber die Arbeitskosten"}]},
+  {"id": "para-9", "type": "PARAPHRASE", "question": "Wo darf ich das Servicefahrzeug volltanken?", "expected": [{"file": "Fahrzeugordnung.docx", "contains": "Partnerkette"}]},
+  {"id": "para-10", "type": "PARAPHRASE", "question": "Muss der Strom aus sein, bevor ich an die Elektrik vom Kessel gehe?", "expected": [{"file": "Arbeitssicherheit_Baustelle.md", "contains": "spannungsfrei"}]},
+
+  {"id": "distract-1", "type": "DISTRACTOR", "question": "Welchen Code brauche ich für das Fachhandwerkermenü beim NK 35?", "expected": [{"file": "Betriebsanleitung_NK-35.pdf", "contains": "0035"}]},
+  {"id": "distract-2", "type": "DISTRACTOR", "question": "Welcher CO2-Wert gilt beim NK 24 unter Volllast?", "expected": [{"file": "Betriebsanleitung_NK-24.pdf", "contains": "9,0 %"}]},
+  {"id": "distract-3", "type": "DISTRACTOR", "question": "Ab welchem Druck zeigt der NK 35 die Meldung F12?", "expected": [{"file": "Betriebsanleitung_NK-35.pdf", "contains": "unter 1,2 bar"}]},
+  {"id": "distract-4", "type": "DISTRACTOR", "question": "Was kostet der Basis-Wartungsvertrag für den NK 35?", "expected": [{"file": "Preisliste_2026.xlsx", "contains": "WV-3"}]},
+  {"id": "distract-5", "type": "DISTRACTOR", "question": "Wie hoch ist der maximale Betriebsdruck beim NK 35?", "expected": [{"file": "Betriebsanleitung_NK-35.pdf", "contains": "4,0 bar"}]},
+
+  {"id": "code-1", "type": "CODE", "question": "Wie binde ich das KM-4 in die NordControl-Leittechnik ein?", "expected": [{"file": "KM-4_Konfiguration.md", "contains": "className=\"KM4\""}]},
+  {"id": "code-2", "type": "CODE", "question": "Welche Parameter braucht das Kaskadenmodul in der Konfiguration?", "expected": [{"file": "KM-4_Konfiguration.md", "contains": "busAddress"}]},
+  {"id": "code-3", "type": "CODE", "question": "Was trage ich bei KM4 als busAddress ein?", "expected": [{"file": "KM-4_Konfiguration.md", "contains": "rotary switch"}]},
+  {"id": "code-4", "type": "CODE", "question": "Wie konfiguriere ich die Kessel der Kaskade mit ihrer maximalen Vorlauftemperatur?", "expected": [{"file": "KM-4_Konfiguration.md", "contains": "maxFlowTemperature"}]},
+  {"id": "table-6", "type": "TABLE", "question": "Bei welcher Umgebungstemperatur darf das Kaskadenmodul betrieben werden?", "expected": [{"file": "Kaskadenmodul_KM-4.md", "contains": "0 °C bis +50 °C"}]},
+
+  {"id": "none-1", "type": "NONE", "question": "Wie hoch ist das Gehalt eines Kundendiensttechnikers?", "expected": []},
+  {"id": "none-2", "type": "NONE", "question": "Verkauft die Firma auch Wärmepumpen?", "expected": []},
+  {"id": "none-3", "type": "NONE", "question": "Wie lautet das WLAN-Passwort im Büro?", "expected": []},
+  {"id": "none-4", "type": "NONE", "question": "Wann ist die Weihnachtsfeier?", "expected": []}
+]

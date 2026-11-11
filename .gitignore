@@ -1,17 +1,67 @@
-# What an installation keeps next to the files of this repository - never part of it, never touched by an update.
-# The secrets (template: .env.example)
-.env
-# The tenants' sandboxes, one settings file each (README.md "Code execution")
-sandboxes/
-# PostgreSQL's data
-pgdata/
-# Backups taken in the installation folder (README.md "Backups")
-*.dump
-*.sql
-*.tgz
+# ---------------------------------------------------------------------------
+# Personenbezogene Daten
+#
+# Hochgeladene Dokumente, Chat-Verlaeufe und Datenbanken der Mandanten sind
+# personenbezogen. Was einmal committet wurde, bleibt in der Historie, auch wenn die
+# Datei spaeter geloescht wird. Tests laufen deshalb auf synthetischen Daten; echte
+# Daten gehoeren nach local-data/ oder ganz ausserhalb des Repos.
+# ---------------------------------------------------------------------------
+*.db
+*.sqlite
+*.sqlite3
+# Daten der Dev-Datenbank (Backend/podman/docker-compose.dev.yml, ./gradlew devDbStart).
+/Backend/database/
+# Dateien der Chats im lokalen Dateispeicher (app.storage.local.path).
+/Backend/data/
+# Release-Jars, aus denen das Produktions-Image gebaut wird (Backend/podman/README.md "Release").
+/Backend/podman/release/
+# .env, pgdata/ und sandboxes/ einer Installation liegen neben den Compose-Dateien:
+# Backend/podman/public/.gitignore.
 
-# IDE and editor
+# Lokale Testdaten, die nie ins Repo gehoeren.
+local-data/
+
+# ---------------------------------------------------------------------------
+# Build-Ergebnisse
+#
+# Backend/src/main/resources/public ist das gebaute Frontend (./gradlew copyFrontend).
+# Es wird nicht eingecheckt: GitHub Actions baut das Frontend bei jedem Build selbst.
+# ---------------------------------------------------------------------------
+/Backend/src/main/resources/public/
+/Backend/build/
+/Backend/.gradle/
+/Frontend/.angular/
+/Frontend/dist/
+/Frontend/coverage/
+
+# npm-Abhaengigkeiten an jeder Stelle im Baum.
+node_modules/
+
+# ---------------------------------------------------------------------------
+# IDE und Editor (rechnerspezifisch)
+# ---------------------------------------------------------------------------
 .idea/
 *.iml
 .vscode/
+
+# Lokale Claude-Code-Einstellungen und Test-Logins der Dev-Datenbank des jeweiligen Entwicklers.
+.claude/settings.local.json
+.claude/dev-test-logins.md
+
+# Logdateien
+*.log
+
+# ---------------------------------------------------------------------------
+# Betriebssystem
+# ---------------------------------------------------------------------------
 .DS_Store
+._*
+Thumbs.db
+
+# Heap-Dumps abgestürzter JVMs (Tests, Gradle)
+*.hprof
+
+# Python (Sandbox-Skripte lokal ausgeführt, z. B. selftest.py)
+__pycache__/
+*.pyc
+/localData/

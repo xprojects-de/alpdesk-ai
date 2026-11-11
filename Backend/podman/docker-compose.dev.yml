@@ -1,0 +1,29 @@
+# Local development: only the PostgreSQL database (with pgvector), reachable from the host on 127.0.0.1:15433, for the
+# backend started from Gradle or the IDE. `./gradlew devDbStart` / `devDbStop` / `devDbDelete` in Backend/ (or
+# `podman compose -f docker-compose.dev.yml up -d` here). The data lives in Backend/database/ (gitignored): `down`
+# keeps it, deleting that folder starts over empty.
+# Its own project name: by default compose names the project after the folder ("podman"), shared with
+# docker-compose.yml - both have a service "postgres", so a `down` of one would remove the other's database.
+name: alpdesk-ai-dev
+
+services:
+
+  postgres:
+    image: docker.io/pgvector/pgvector:pg18
+    container_name: alpdesk-ai-dev-db
+    environment:
+      POSTGRES_DB: "alpdesk_ai"
+      POSTGRES_USER: "alpdeskai"
+      POSTGRES_PASSWORD: "local-db-password"
+    ports:
+      # 15433: not the port of a PostgreSQL installed on the machine (5432) or of another project's dev database.
+      - "127.0.0.1:15433:5432"
+    volumes:
+      # A bind mount into the project instead of a named volume, so the data is visible and easy to reset.
+      - ../database:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U alpdeskai -d alpdesk_ai"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped

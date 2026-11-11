@@ -1,0 +1,2708 @@
+{
+  "common": {
+    "ok": "OK",
+    "save": "Speichern",
+    "cancel": "Abbrechen",
+    "delete": "Löschen",
+    "close": "Schließen",
+    "edit": "Bearbeiten",
+    "create": "Anlegen",
+    "remove": "Entfernen",
+    "back": "Zurück",
+    "copy": "Kopieren",
+    "download": "Herunterladen",
+    "active": "Aktiv",
+    "inactive": "Inaktiv",
+    "name": "Name",
+    "more": "Weitere Aktionen"
+  },
+  "language": {
+    "label": "Sprache"
+  },
+  "paginator": {
+    "range": "{{start}} – {{end}} von {{length}}",
+    "rangeEmpty": "0 von {{length}}",
+    "next": "Nächste Seite",
+    "previous": "Vorherige Seite",
+    "first": "Erste Seite",
+    "last": "Letzte Seite"
+  },
+  "shell": {
+    "mainMenu": "Hauptmenü",
+    "userMenu": "Benutzermenü",
+    "appearance": "Darstellung",
+    "scheme": {
+      "system": "Automatisch",
+      "light": "Hell",
+      "dark": "Dunkel"
+    },
+    "logout": "Abmelden",
+    "closeMenu": "Menü schließen",
+    "openMenu": "Menü öffnen",
+    "connected": "Verbunden",
+    "offline": "Server nicht erreichbar - Änderungen werden möglicherweise nicht gespeichert.",
+    "checkAgain": "Jetzt erneut prüfen",
+    "version": "v{{version}}",
+    "administration": "Administration",
+    "administrator": "Administrator",
+    "roleAdmin": "Admin",
+    "roleUser": "Benutzer",
+    "tenant": "Firma",
+    "switchTenant": {
+      "title": "Wechseln zu {{tenant}}",
+      "hint": "Geben Sie das Passwort Ihres Benutzers in dieser Firma ein.",
+      "password": "Passwort",
+      "submit": "Wechseln"
+    }
+  },
+  "nav": {
+    "tenants": "Mandanten",
+    "accessRequests": "Zugangsanfragen",
+    "ai": "KI",
+    "models": "KI-Modelle",
+    "globalKeys": "Globale API-Keys",
+    "usage": "Verbrauch",
+    "work": "Arbeiten",
+    "chat": "Chat",
+    "handbook": "Handbuch",
+    "account": "Konto",
+    "manage": "Verwaltung",
+    "knowledge": "Firmenwissen",
+    "assistant": "Assistent",
+    "users": "Benutzer",
+    "apiKeys": "API-Keys",
+    "software": "Software",
+    "fileStores": "Dateiablagen",
+    "system": "System",
+    "applicationLog": "Anwendungslog",
+    "tasks": "Aufgaben"
+  },
+  "login": {
+    "title": "Anmelden",
+    "wamSigningIn": "Anmeldung über Ihr Firmenkonto …",
+    "wamRequested": "Zugang angefragt",
+    "wamWaiting": "Ihr Zugang wartet auf die Freigabe durch einen Administrator. Sobald er freigegeben ist, können Sie loslegen.",
+    "checkAgain": "Erneut prüfen",
+    "signedOut": "Sie sind abgemeldet.",
+    "signInAgain": "Erneut anmelden",
+    "tryAgain": "Erneut versuchen",
+    "asAdmin": "Als Administrator anmelden",
+    "withPassword": "Mit Ihrem Benutzernamen und Passwort.",
+    "username": "Benutzername",
+    "usernameRequired": "Benutzername ist erforderlich",
+    "password": "Passwort",
+    "passwordRequired": "Passwort ist erforderlich",
+    "signingIn": "Anmelden …",
+    "signIn": "Anmelden",
+    "pageTitle": "Anmeldung",
+    "chooseTenant": "Sie haben Zugang zu mehreren Firmen - wo möchten Sie arbeiten?"
+  },
+  "notFound": {
+    "title": "Seite nicht gefunden",
+    "text": "Diese Seite existiert nicht oder wurde verschoben.",
+    "home": "Zur Startseite"
+  },
+  "errors": {
+    "loadFailed": "FEHLER beim Laden: {{error}}",
+    "language": {
+      "save": "Die Sprache konnte nicht im Konto gespeichert werden"
+    },
+    "backend": {
+      "request": {
+        "timeout": "Zeitüberschreitung: Der Server hat nicht rechtzeitig geantwortet",
+        "notFound": "Nicht gefunden.",
+        "parameterInvalid": "Der Parameter '{{name}}' hat einen ungültigen Wert.",
+        "parameterMissing": "Der erforderliche Parameter '{{name}}' fehlt.",
+        "refused": "Die Anfrage wurde abgelehnt (HTTP {{status}})",
+        "tooLarge": "Der Upload überschreitet die Größenbegrenzung des Servers.",
+        "unreadable": "Der Inhalt der Anfrage ist kein gültiges JSON.",
+        "uriInvalid": "Die URI der Anfrage ist ungültig."
+      },
+      "accessRequest": {
+        "tenantRequired": "Der Mandant ist erforderlich"
+      },
+      "account": {
+        "currentPasswordWrong": "Das aktuelle Passwort ist falsch",
+        "wamNoPassword": "Sie melden sich über den WAM-Proxy an und haben kein Passwort",
+        "switchTenantNotFound": "Sie haben in dieser Firma keinen Benutzer",
+        "passwordRequired": "Geben Sie das Passwort Ihres Benutzers in dieser Firma ein",
+        "switchPasswordWrong": "Das Passwort Ihres Benutzers in dieser Firma ist falsch"
+      },
+      "action": {
+        "decided": "Über diese Aktion wurde bereits entschieden",
+        "expired": "Diese Aktion ist abgelaufen - bitte fragen Sie erneut",
+        "notFound": "Aktion nicht gefunden",
+        "toolTurnedOff": "Dieses Werkzeug ist für Sie nicht mehr eingeschaltet"
+      },
+      "apiKey": {
+        "nameRequired": "Der Name ist erforderlich",
+        "taskUnknown": "Unbekannte Aufgabe {{id}}",
+        "unknownConnection": "Diese angebundene Software gibt es nicht (mehr)"
+      },
+      "applicationLog": {
+        "levelInvalid": "Die Stufe muss WARN oder ERROR sein"
+      },
+      "archive": {
+        "tooLarge": "Das Archiv ist entpackt größer als {{maxMb}} MB",
+        "tooManyEntries": "Das Archiv darf höchstens {{max}} Einträge enthalten",
+        "unreadable": "Das Archiv konnte nicht gelesen werden - ist es eine ZIP-Datei?"
+      },
+      "assistant": {
+        "instructionsTooLong": "Die Anweisungen dürfen höchstens {{max}} Zeichen haben",
+        "noDefaultModel": "Kein Standardmodell gewählt - ein Mandanten-Admin wählt es in den Einstellungen des Assistenten",
+        "searchResultsOutOfRange": "Die Anzahl der Suchergebnisse muss zwischen {{min}} und {{max}} liegen",
+        "settingsRequired": "Antwortquelle, Kreativität, Nachdenken und Suchergebnisse sind erforderlich"
+      },
+      "auth": {
+        "forbidden": "Sie dürfen diese Aktion nicht ausführen.",
+        "invalidCredentials": "Benutzername oder Passwort ist falsch.",
+        "required": "Eine Anmeldung ist erforderlich."
+      },
+      "branding": {
+        "colorInvalid": "Die Farbe muss im Format #rrggbb angegeben werden",
+        "logoEmpty": "Das Logo ist leer",
+        "logoTooLarge": "Das Logo darf höchstens {{maxKb}} KB groß sein",
+        "logoType": "Das Logo muss ein PNG-, JPEG- oder WebP-Bild sein",
+        "nameTooLong": "Der Name darf höchstens {{max}} Zeichen haben"
+      },
+      "chat": {
+        "answerNotCompleted": "Die Antwort konnte nicht abgeschlossen werden",
+        "answerNotStored": "Die Antwort konnte nicht gespeichert werden",
+        "filesNeedNoHistory": "Dateien können nur mit einem API-Key ohne Verlauf direkt mit der Frage gesendet werden - fügen Sie sie mit POST /api/v1/chat/files einem Chat hinzu",
+        "noAnswer": "{{model}} hat keine Antwort gegeben - bitte versuchen Sie es erneut",
+        "noHistoryConversation": "Dieser API-Key speichert keinen Verlauf - lassen Sie conversationId weg",
+        "outputLimitUsedByReasoning": "{{model}} hat sein Ausgabelimit beim Nachdenken aufgebraucht, bevor es geantwortet hat - ein Admin erhöht die Ausgabe-Token des Modells im Modellkatalog",
+        "questionLength": "Die Frage muss 1 bis {{max}} Zeichen haben",
+        "unknownConnection": "Dieses Thema steht Ihnen nicht (mehr) zur Verfügung - laden Sie die Seite neu",
+        "noTemplateWithAgent": "Der Chat antwortet über einen Agenten - seine Fähigkeiten ersetzen die Vorlagen",
+        "unknownSkill": "Unbekannte Fähigkeit des Agenten"
+      },
+      "chatFile": {
+        "contentMissing": "Der Inhalt der Datei fehlt",
+        "expired": "Die Datei wurde nach ihrer Aufbewahrungszeit gelöscht",
+        "noFile": "Es wurde keine Datei gesendet",
+        "noFileField": "Es wurde keine Datei gesendet (Multipart-Feld \"files\")",
+        "noHistory": "Dieser API-Key speichert keinen Verlauf - senden Sie die Dateien mit der Frage (POST /api/v1/chat, \"files\")",
+        "noText": "Die Datei enthält keinen Text",
+        "notFound": "Datei nicht gefunden",
+        "pdfNotCreated": "Das PDF konnte nicht erstellt werden",
+        "scanTooManyPages": "Ein gescanntes PDF darf höchstens {{max}} Seiten haben",
+        "tooLarge": "Eine Datei darf höchstens {{maxMb}} MB haben, ein Video {{videoMaxMb}} MB",
+        "tooMany": "Höchstens {{max}} Dateien auf einmal",
+        "tooManyImages": "Eine Datei darf höchstens {{max}} Bilder (Seiten eines Scans) enthalten",
+        "tooMuchText": "Eine Datei darf höchstens {{max}} Zeichen Text enthalten",
+        "typeNotSupported": "Dieser Dateityp wird nicht unterstützt ({{type}}) - erlaubt: PDF, DOCX, ODT, RTF, TXT, Markdown, HTML, PPTX, XLSX, ODS, CSV, PNG, JPEG, GIF, BMP, Audio, Video",
+        "uploadTooLarge": "Die Dateien eines Uploads dürfen zusammen höchstens {{maxMb}} MB groß sein",
+        "videoNeedsSandbox": "Ein Video kann nur mit der Code-Ausführung untersucht werden - ein Administrator trägt dafür die Sandbox beim Mandanten ein",
+        "videoNeedsVideoSandbox": "Die Code-Ausführung dieser Firma untersucht keine Videos - ein Administrator gibt ihr die Video-Sandbox",
+        "videosTooLarge": "Die Videos einer Unterhaltung dürfen zusammen höchstens {{videoMaxMb}} MB groß sein - beginnen Sie eine neue Unterhaltung oder löschen Sie ein Video",
+        "xlsxNotCreated": "Die XLSX-Datei konnte nicht erstellt werden - eine Zelle fasst höchstens 32.767 Zeichen, ein Blatt höchstens 16.384 Spalten"
+      },
+      "conversation": {
+        "notFound": "Chat nicht gefunden"
+      },
+      "dailyReport": {
+        "notConfigured": "Es kann keine Mail verschickt werden: Mailserver (APP_MAIL_HOST) und Empfänger (APP_MONITORING_MAIL_TO) müssen gesetzt sein",
+        "sendFailed": "Der Mailserver hat den Bericht abgelehnt: {{reason}}"
+      },
+      "db": {
+        "busy": "Der Server ist ausgelastet - bitte versuchen Sie es erneut.",
+        "changedMeanwhile": "Die Daten werden gerade von einer anderen Anfrage geändert - bitte versuchen Sie es erneut.",
+        "invalidData": "Die Anfrage enthält ungültige oder unvollständige Daten.",
+        "unavailable": "Die Datenbank ist kurzzeitig nicht erreichbar - bitte versuchen Sie es erneut.",
+        "uniqueness": "Die Aktion steht im Konflikt mit einem vorhandenen Eintrag und konnte nicht ausgeführt werden."
+      },
+      "document": {
+        "areaInvalid": "area muss \"company\" oder die ID eines Bereichs sein",
+        "areaNotAssigned": "Dieser API-Key ist dem Bereich {{area}} nicht zugeordnet",
+        "changedMeanwhile": "Das Dokument wurde zwischenzeitlich geändert - bitte senden Sie es erneut",
+        "chooseEmbeddingModel": "Wählen Sie zuerst ein Embedding-Modell",
+        "empty": "Das Dokument ist leer",
+        "externalIdLength": "externalId muss 1 bis {{max}} Zeichen haben",
+        "externalIdOtherArea": "Das Dokument mit dieser externalId gehört zu einem Bereich, dem dieser API-Key nicht zugeordnet ist",
+        "externalIdRequired": "externalId ist erforderlich",
+        "fileNameMissing": "Der Dateiname fehlt",
+        "imageNeedsScanModel": "Bilder liest das Modell für Bilder und Scans - der Admin wählt es im Modellkatalog und weist es dem Mandanten zu",
+        "noEmbeddingModel": "Kein Embedding-Modell gewählt",
+        "noScanModel": "Für diesen Mandanten liest kein Modell Bilder und Scans - der Admin wählt eines im Modellkatalog",
+        "noText": "Das Dokument enthält keinen Text",
+        "notFound": "Dokument nicht gefunden",
+        "originalChanged": "Das Dokument wurde ersetzt, während es gelesen wurde - bitte laden Sie es erneut hoch",
+        "originalMissing": "Die Originaldatei fehlt - bitte laden Sie sie erneut hoch",
+        "partTooLarge": "Das Dokument entpackt sich auf mehr als {{max}} MB - es kann nicht gelesen werden",
+        "passwordProtected": "Das Dokument ist passwortgeschützt",
+        "samePathInArea": "In diesem Bereich gibt es bereits ein Dokument mit demselben Pfad",
+        "scanFoundNothing": "Das Bildmodell hat im Dokument weder Text noch ein Bild gefunden",
+        "tooLarge": "Ein Dokument darf höchstens {{maxMb}} MB groß sein",
+        "tooMuchText": "Das Dokument enthält zu viel Text - höchstens {{max}} Zeichen",
+        "typeNotSupported": "Dieser Dateityp wird nicht unterstützt ({{type}}) - erlaubt: PDF, DOCX, ODT, RTF, TXT, Markdown, HTML, PPTX, XLSX, ODS, CSV",
+        "unreadable": "Das Dokument konnte nicht gelesen werden",
+        "searchLanguageMissing": "Bitte wählen Sie eine Suchsprache."
+      },
+      "error": {
+        "unexpected": "Ein unerwarteter Fehler ist aufgetreten."
+      },
+      "image": {
+        "tooLarge": "Das Bild ist zu groß - höchstens {{maxMegapixels}} Megapixel",
+        "unreadable": "Das Bild konnte nicht gelesen werden"
+      },
+      "key": {
+        "notApiKey": "Das ist kein API-Key"
+      },
+      "knowledgeArea": {
+        "hasDocSite": "Der Bereich hat noch eine Handbuch-Website - entfernen Sie sie zuerst",
+        "nameRequired": "Der Name ist erforderlich",
+        "nameTaken": "Der Mandant hat bereits einen Bereich mit diesem Namen",
+        "nameTooLong": "Der Name darf höchstens {{max}} Zeichen haben",
+        "notEmpty": "Der Bereich enthält noch Dokumente - löschen oder verschieben Sie diese zuerst",
+        "unknown": "Unbekannter Bereich",
+        "unknownName": "Unbekannter Bereich: {{name}}",
+        "usedBySource": "Die Quellen {{sources}} schreiben in den Bereich - ändern Sie diese zuerst"
+      },
+      "mcp": {
+        "templateUnknown": "Unbekannte Vorlage \"{{name}}\""
+      },
+      "mcpAddress": {
+        "internalNetwork": "Die Adresse führt in ein internes Netz - erlaubt sind dort nur die Hosts aus APP_AI_PLAIN_HTTP_HOSTS",
+        "unknownHost": "Der Host {{host}} ist nicht bekannt"
+      },
+      "mcpConnection": {
+        "nameRequired": "Der Name ist erforderlich",
+        "nameTooLong": "Der Name darf höchstens {{max}} Zeichen haben",
+        "notFound": "Verbindung nicht gefunden",
+        "passThroughRequired": "Geben Sie an, ob die Software an MCP-Clients weitergegeben wird",
+        "a2aNotAllowed": "Der Mandant darf keine A2A-Agenten anbinden - das erlaubt der Administrator",
+        "protocolFixed": "Das Protokoll einer Verbindung lässt sich nicht ändern - legen Sie eine neue Verbindung an",
+        "unsupportedBinding": "{{name}} bietet keine JSON-RPC-Schnittstelle - die einzige unterstützte",
+        "cardInvalid": "{{name}} bietet keine gültige Agent-Karte",
+        "unreachable": "{{name}} war für seine Agent-Karte nicht erreichbar",
+        "notForA2a": "Ein A2A-Agent hat keine Werkzeuge, die an MCP-Clients weitergegeben werden",
+        "keyLeaks": "Der Schlüssel von {{name}} ginge an einen anderen Host als den der Verbindung - abgelehnt",
+        "answersChatOnlyA2a": "Nur ein A2A-Agent kann den Chat beantworten",
+        "answersChatTaken": "{{name}} beantwortet den Chat bereits - nur ein Agent kann das",
+        "checkOnlyA2a": "Nur ein A2A-Agent kann geprüft werden"
+      },
+      "mcpServer": {
+        "endlessToolPages": "{{name}} sendet immer weitere Seiten mit Werkzeugen",
+        "error": "{{name}} hat mit einem Fehler geantwortet: {{error}}",
+        "internalNetwork": "{{name}}: Die Adresse führt in ein internes Netz - erlaubt sind dort nur die Hosts aus APP_AI_PLAIN_HTTP_HOSTS",
+        "keyRefused": "{{name}} hat unseren Key abgelehnt - prüfen Sie ihn in der Verbindung",
+        "keyUnreadable": "{{name}}: Der gespeicherte Key ist nicht mehr lesbar - geben Sie ihn in der Verbindung neu ein",
+        "notMcp": "{{name}} hat nicht wie ein MCP-Server geantwortet",
+        "requestFailed": "{{name}} konnte die Anfrage nicht ausführen - z. B. wegen eines Werts, den es nicht annimmt",
+        "tooLarge": "{{name}} hat eine Antwort größer als {{max}} MB geschickt",
+        "timeout": "{{name}} hat nicht rechtzeitig geantwortet",
+        "toolTwice": "{{name}} bietet das Werkzeug {{tool}} zweimal an",
+        "promptTwice": "{{name}} bietet den Prompt {{prompt}} zweimal an",
+        "tooManyTools": "{{name}} bietet mehr als {{max}} Werkzeuge an",
+        "toolNameTooLong": "{{name}} bietet ein Werkzeug mit einem Namen von mehr als {{max}} Zeichen an",
+        "toolSchemaTooLong": "{{name}} bietet ein Werkzeug mit einem Eingabeschema von mehr als {{max}} Zeichen an",
+        "unknownHost": "{{name}}: Der Host der Adresse ist nicht bekannt",
+        "unreachable": "{{name}} ist nicht erreichbar",
+        "tooManyPrompts": "{{name}} bietet mehr als {{max}} Prompts an",
+        "promptArguments": "{{name}} bietet einen Prompt mit mehr als {{max}} Angaben oder einem zu langen Namen einer Angabe an",
+        "promptWithoutText": "{{name}} hat den Prompt ohne Text beantwortet",
+        "promptNameTooLong": "{{name}} bietet einen Prompt mit einem Namen von mehr als {{max}} Zeichen an",
+        "endlessPromptPages": "{{name}} sendet immer weitere Seiten mit Prompts"
+      },
+      "fileStore": {
+        "nameRequired": "Der Name ist erforderlich",
+        "nameTooLong": "Der Name darf höchstens {{max}} Zeichen haben",
+        "nameTaken": "Es gibt schon eine Dateiablage namens „{{name}}“",
+        "typeUnknown": "Der Typ ist SFTP, FTPS, S3, SharePoint oder IMAP",
+        "hostRequired": "Der Host ist erforderlich",
+        "hostInvalid": "Der Host ist nur ein Name oder eine IP-Adresse - ohne Protokoll, Port, Benutzer oder Pfad",
+        "internalNetwork": "Der Host {{host}} liegt in einem internen Netz - erlaubt sind dort nur die Hosts aus APP_FILE_STORE_INTERNAL_HOSTS",
+        "unknownHost": "Der Host {{host}} ist nicht bekannt",
+        "addressChanged": "Der Host {{host}} hat beim Verbinden eine andere Adresse genannt - bitte versuchen Sie es erneut",
+        "portInvalid": "Der Port liegt zwischen 1 und 65535",
+        "usernameRequired": "Der Benutzername ist erforderlich",
+        "usernameInvalid": "Das ist kein Benutzername",
+        "passwordRequired": "Das Passwort ist erforderlich - ein anderer Server braucht es erneut",
+        "passwordInvalid": "Das ist kein Passwort",
+        "pathInvalid": "Der Ordner ist ein absoluter Pfad wie /logs, ohne . oder ..",
+        "fingerprintInvalid": "Das ist kein Fingerabdruck (SHA256:...)",
+        "fingerprintUnconfirmed": "Der Fingerabdruck des Servers ist noch nicht bestätigt",
+        "fingerprintChanged": "Der Server zeigt einen anderen Fingerabdruck als den bestätigten",
+        "loginFailed": "Der Server hat Benutzername oder Passwort abgelehnt",
+        "folderNotFound": "Den Ordner {{path}} gibt es nicht, oder er darf nicht gelesen werden",
+        "unreachable": "Der Server {{host}} ist nicht erreichbar",
+        "tlsRefused": "Der Server {{host}} bietet kein TLS an - unverschlüsseltes FTP wird nicht verwendet",
+        "dataConnectionFailed": "Der Server hat die Datenverbindung abgelehnt",
+        "failed": "Die Prüfung ist fehlgeschlagen",
+        "inUse": "Die Dateiablage wird von den Aufgaben {{tasks}} gelesen - ändern Sie diese zuerst",
+        "notFound": "Dateiablage nicht gefunden",
+        "readFailed": "Das Lesen von {{path}} auf der Dateiablage ist fehlgeschlagen",
+        "tooManyEntries": "Der Ordner {{path}} hat mehr als {{max}} Einträge - wählen Sie einen Ordner darunter",
+        "usedBySource": "Die Dateiablage wird von den Quellen {{sources}} gelesen - ändern Sie diese zuerst",
+        "notReady": "Die Dateiablage {{store}} ist nicht bereit - prüfen Sie sie und bestätigen Sie zuerst ihren Server",
+        "folderInvalid": "Der Ordner ist ein Pfad unterhalb des Ordners der Ablage, ohne . oder ..",
+        "endpointInvalid": "Der Endpunkt ist nur die Adresse eines Servers, z. B. https://s3.example.com - ohne Benutzer, Pfad oder Abfrage",
+        "plainHttp": "Unverschlüsseltes http geht nur zu den Hosts aus APP_FILE_STORE_INTERNAL_HOSTS - bitte https für {{host}} verwenden",
+        "regionRequired": "Amazon S3 braucht die Region des Buckets, z. B. eu-central-1",
+        "regionInvalid": "Das ist keine Region, z. B. eu-central-1",
+        "bucketRequired": "Der Bucket ist erforderlich",
+        "bucketInvalid": "Der Name eines Buckets hat 3 bis 63 Kleinbuchstaben, Ziffern, Punkte und Bindestriche",
+        "accessKeyRequired": "Die Access Key ID ist erforderlich",
+        "accessKeyInvalid": "Das ist keine Access Key ID",
+        "accessKeyRefused": "Der Speicher hat den Zugriffsschlüssel oder sein Secret abgelehnt, oder der Schlüssel darf den Bucket nicht lesen",
+        "bucketNotFound": "Den Bucket {{bucket}} gibt es nicht",
+        "tlsFailed": "Die TLS-Verbindung zu {{host}} ist fehlgeschlagen - wird seinem Zertifikat vertraut?",
+        "noFingerprint": "Diese Ablage hat keinen Fingerabdruck zu bestätigen",
+        "directoryIdRequired": "Die Verzeichnis-ID ist erforderlich",
+        "directoryIdInvalid": "Die Verzeichnis-ID ist eine GUID wie 0f1e2d3c-4b5a-6978-8796-a5b4c3d2e1f0",
+        "clientIdRequired": "Die Client-ID ist erforderlich",
+        "clientIdInvalid": "Die Client-ID ist eine GUID wie 0f1e2d3c-4b5a-6978-8796-a5b4c3d2e1f0",
+        "siteUrlRequired": "Die Adresse der Site ist erforderlich",
+        "siteUrlInvalid": "Die Adresse der Site lautet z. B. https://firma.sharepoint.com/sites/projekte - die eines OneDrive z. B. https://firma-my.sharepoint.com/personal/name_firma_de",
+        "libraryInvalid": "Das ist kein Name einer Bibliothek",
+        "directoryNotFound": "Entra ID kennt dieses Verzeichnis nicht - bitte die Verzeichnis-ID prüfen",
+        "clientRefused": "Microsoft hat die App oder ihren geheimen Schlüssel abgelehnt - bitte Client-ID und Schlüssel prüfen",
+        "secretExpired": "Der geheime Schlüssel der App ist abgelaufen - bitte in Entra ID einen neuen anlegen und hier eintragen",
+        "siteNotFound": "Die Site {{site}} gibt es nicht",
+        "accessDenied": "Die App darf {{site}} nicht lesen - bitte ihr Leserechte auf diese Site geben (Sites.Selected)",
+        "libraryNotFound": "Die Site hat keine Bibliothek {{library}}",
+        "throttled": "Microsoft drosselt die Anfragen - bitte später erneut versuchen",
+        "fileLocked": "Die Datei {{path}} ist irgendwo geöffnet und gesperrt - der nächste Lauf versucht es wieder",
+        "writeFailed": "Das Schreiben von {{path}} in die Dateiablage ist fehlgeschlagen",
+        "plainImap": "Unverschlüsseltes IMAP geht nur zu den Hosts, die die Installation als intern nennt - nutzen Sie SSL oder STARTTLS",
+        "securityUnknown": "Die Verschlüsselung ist SSL, STARTTLS oder NONE",
+        "mailboxInvalid": "Das ist kein Postfach-Ordner",
+        "daysInvalid": "Die Tage liegen zwischen 1 und {{max}}",
+        "mailboxReadOnly": "Ein Postfach wird nur gelesen - Aufgaben schreiben in eine andere Dateiablage",
+        "notWritable": "Ein Postfach wird nur gelesen - eine Aufgabe schreibt in eine andere Dateiablage"
+      },
+      "media": {
+        "convertTimeout": "Die Umwandlung ({{kind}}) dauert zu lange",
+        "interrupted": "Die Umwandlung ({{kind}}) wurde unterbrochen - bitte versuchen Sie es erneut",
+        "notSupported": "Audio wird auf diesem Server nicht unterstützt",
+        "tooLong": "Die Aufnahme ({{kind}}) ist zu lang für die KI-Modelle (höchstens etwa {{minutes}} Minuten)",
+        "unreadable": "Die Datei ({{kind}}) konnte nicht gelesen werden"
+      },
+      "model": {
+        "alreadyInCatalog": "Dieses Modell ist bereits im Katalog",
+        "anthropicNoEmbedding": "Anthropic bietet keine Embedding-Modelle an",
+        "bedrockAddressInvalid": "Eine Bedrock-Adresse nennt ihre Region: https://bedrock-runtime.<region>.amazonaws.com",
+        "bedrockKeyInvalid": "Ein Bedrock-Schlüssel ist ein IAM-Zugriffsschlüssel: seine ID, ein Doppelpunkt, sein Secret",
+        "bedrockKeyRequired": "Ein Bedrock-Modell braucht seinen Zugriffsschlüssel",
+        "bedrockOnlyChat": "Von Bedrock lassen sich nur Chat-Modelle nutzen",
+        "contextLengthOnlyOllama": "Nur ein Ollama-Chatmodell hat eine Kontextlänge",
+        "contextLengthOutOfRange": "Die Kontextlänge muss zwischen {{min}} und {{max}} liegen",
+        "dimensionOnlyEmbedding": "Nur ein Embedding-Modell hat eine Dimension",
+        "dimensionOutOfRange": "Ein Embedding-Modell braucht eine Dimension zwischen 1 und {{max}}",
+        "embeddingInUseChange": "Mandanten betten ihre Dokumente mit diesem Modell ein - nur Name, Preise, Server und Aktiv-Status können geändert werden",
+        "embeddingInUseDelete": "Mandanten betten ihre Dokumente mit diesem Modell ein - deaktivieren Sie es stattdessen",
+        "embeddingInUseRemove": "Die Dokumente des Mandanten sind mit diesem Modell eingebettet - es kann erst entfernt werden, wenn der Mandant ein anderes gewählt hat",
+        "filesOnlyChat": "Nur ein Chatmodell liest Dateien oder transkribiert",
+        "idsRequired": "Die Liste der Modell-IDs ist erforderlich",
+        "imageOnlyGemini": "Vorerst können nur die Bildmodelle von Gemini verwendet werden",
+        "namesRequired": "Modellname und Anzeigename sind erforderlich",
+        "outputTokensOnlyChat": "Nur ein Chatmodell hat ein Limit für Ausgabe-Token",
+        "outputTokensOutOfRange": "Die Ausgabe-Token müssen zwischen {{min}} und {{max}} liegen",
+        "pricesInvalid": "Preise sind erforderlich und dürfen nicht negativ sein",
+        "providerAndKindRequired": "Anbieter und Art sind erforderlich",
+        "serverOnlyOwn": "Nur ein Modell auf einem eigenen Server hat eine Serveradresse und einen Key - die Keys der Anbieter werden unter API-Keys verwaltet",
+        "tierIncomplete": "Eine Preisstufe braucht ihre Grenze und beide Preise, Input und Output",
+        "tierThresholdInvalid": "Die Grenze ist eine Zahl an Tokens über 0",
+        "transcribeNeedsAudio": "Nur ein Modell, das Audio liest, kann transkribieren",
+        "unknown": "Unbekanntes Modell",
+        "unknownOrUnavailable": "Unbekanntes oder nicht verfügbares Modell ({{kind}})",
+        "webSearchOnlyTavily": "Die Websuche kommt nur von Tavily, und Tavily bietet nichts anderes an",
+        "rerankOnlyTei": "Ein Reranker läuft auf einem TEI-Server, und ein TEI-Server bietet nur den Reranker an"
+      },
+      "modelServer": {
+        "addressForm": "Die Serveradresse muss die Form https://host[:port][/pfad] haben, ohne Benutzer, Query oder Fragment",
+        "addressInvalid": "Die Serveradresse ist keine gültige URL",
+        "addressRequired": "Die Serveradresse ist erforderlich (höchstens {{max}} Zeichen)",
+        "httpsRequired": "Die Serveradresse muss mit https:// beginnen",
+        "plainHttpNotAllowed": "Der Server muss über HTTPS erreicht werden - einfaches HTTP nur zu den Hosts aus APP_AI_PLAIN_HTTP_HOSTS",
+        "plainHttpRefused": "Der Server von {{model}} darf nicht über einfaches HTTP erreicht werden - wenden Sie sich an den Admin"
+      },
+      "pdf": {
+        "unreadable": "Das PDF konnte nicht gelesen werden"
+      },
+      "provider": {
+        "certificateUntrusted": "{{name}}: Dem Zertifikat des Servers wird nicht vertraut - wenden Sie sich an den Admin",
+        "contextTooLong": "Der Chat ist zu lang für {{name}} - bitte beginnen Sie einen neuen",
+        "dimensionMismatch": "{{name}} liefert Vektoren der Länge {{dimension}}, laut Modellkatalog sind es {{expected}}",
+        "failed": "{{name}} ist fehlgeschlagen - bitte versuchen Sie es erneut",
+        "keyRefused": "{{name}} hat den API-Key abgelehnt - prüfen Sie ihn unter API-Keys",
+        "keyRefusedOwnServer": "{{name}} hat den API-Key abgelehnt - wenden Sie sich an den Admin",
+        "modelUnknown": "{{name}} kennt das Modell {{model}} nicht",
+        "rateLimited": "{{name}} hat die Anfrage abgelehnt: Ratenlimit oder Kontingent erreicht",
+        "stalled": "{{name}} hat aufgehört zu antworten - bitte versuchen Sie es erneut",
+        "unreachable": "{{name}} ist nicht erreichbar - bitte versuchen Sie es später erneut"
+      },
+      "providerKey": {
+        "missing": "Kein API-Key für {{provider}} - ein Mandanten-Admin hinterlegt ihn unter API-Keys",
+        "ownServerInCatalog": "Ein Modell auf einem eigenen Server hat seinen Key im Modellkatalog",
+        "unknownProvider": "Unbekannter Anbieter"
+      },
+      "sandbox": {
+        "addressInvalid": "Ungültige Sandbox-Adresse: {{address}}",
+        "addressTaken": "Die Sandbox-Adresse {{address}} gehört bereits zum Mandanten \"{{tenant}}\" - jeder Mandant braucht eigene Instanzen",
+        "addressesEmpty": "Die Sandbox-Adressen sind leer",
+        "addressesNeedToken": "Sandbox-Adressen brauchen einen Token",
+        "tokenInvalid": "Der Sandbox-Token muss {{min}} bis {{max}} Zeichen haben und darf keine Leerzeichen enthalten",
+        "tokenNeedsAddresses": "Ein Sandbox-Token braucht Adressen"
+      },
+      "sentFile": {
+        "duplicateName": "Zwei Dateien heißen \"{{name}}\" - jede Datei braucht einen eigenen Namen",
+        "empty": "Die Datei \"{{name}}\" hat keinen Inhalt",
+        "nameLength": "Jede Datei braucht einen Namen mit 1 bis {{max}} Zeichen",
+        "tooMany": "Mit einer Frage dürfen höchstens {{max}} Dateien gesendet werden",
+        "tooMuchText": "Die Dateien dürfen zusammen höchstens {{max}} Zeichen Text enthalten - senden Sie die relevanten Teile"
+      },
+      "template": {
+        "nameRequired": "Der Name ist erforderlich",
+        "nameTooLong": "Der Name darf höchstens {{max}} Zeichen haben",
+        "unknown": "Unbekannte Vorlage"
+      },
+      "tenant": {
+        "databaseNotCreated": "Die Datenbank des Mandanten konnte nicht angelegt werden - bitte versuchen Sie es erneut.",
+        "nameRequired": "Der Name ist erforderlich",
+        "nameTaken": "Ein Mandant mit dem Namen \"{{name}}\" existiert bereits",
+        "notFound": "Mandant nicht gefunden"
+      },
+      "group": {
+        "levelRequired": "Eine Stufe ist READ oder WRITE",
+        "nameRequired": "Der Name ist erforderlich",
+        "nameTaken": "Der Mandant hat bereits eine Gruppe mit diesem Namen",
+        "nameTooLong": "Der Name darf höchstens {{max}} Zeichen haben",
+        "notFound": "Gruppe nicht gefunden",
+        "unknown": "Unbekannte Gruppe",
+        "unknownConnection": "Unbekannte angebundene Software",
+        "unknownUser": "Unbekannter Benutzer",
+        "wamGroupTooLong": "Die WAM-Gruppe darf höchstens {{max}} Zeichen haben",
+        "membersFromIdm": "Eine Gruppe mit WAM-Gruppe nimmt ihre Mitglieder aus dem IDM - bitte keine zuordnen",
+        "wamGroupByAdmin": "Nur der Administrator setzt die WAM-Gruppe einer Gruppe - sie gibt jeder Person dieser IDM-Gruppe einen Benutzer hier"
+      },
+      "tool": {
+        "argumentMissing": "das Argument {{name}} fehlt",
+        "argumentNotNumber": "das Argument {{name}} muss eine Zahl sein",
+        "argumentNotNumberList": "das Argument {{name}} muss eine Liste von Zahlen sein",
+        "argumentNotTextList": "das Argument {{name}} muss eine Liste von Texten sein",
+        "argumentsInvalid": "die Argumente sind kein gültiges JSON",
+        "argumentsNoObject": "die Argumente sind kein JSON-Objekt",
+        "fileUnknown": "es gibt keine Datei \"{{name}}\" - lesbare Dateien: {{files}}",
+        "linesOutOfRange": "\"{{file}}\" hat die Zeilen 1 bis {{lines}} - from_line muss darin liegen und to_line darf nicht davor liegen",
+        "questionRequired": "Die Frage ist erforderlich"
+      },
+      "usage": {
+        "monthInvalid": "Der Monat muss die Form 2026-10 haben"
+      },
+      "user": {
+        "cannotDeleteSelf": "Sie können sich nicht selbst löschen",
+        "cannotDemoteSelf": "Sie können sich nicht selbst deaktivieren oder sich die eigenen Admin-Rechte entziehen",
+        "languageInvalid": "Die Sprache muss ein Sprachkürzel wie \"en\" oder \"de\" sein",
+        "nameRequired": "Der Name ist erforderlich",
+        "notFound": "Benutzer nicht gefunden",
+        "passwordRequired": "Das Passwort ist erforderlich",
+        "passwordTooShort": "Das Passwort muss mindestens {{min}} Zeichen haben",
+        "usernameInvalid": "Der Benutzername muss 3 bis 100 Zeichen haben: Buchstaben, Ziffern, . _ - @",
+        "usernameTaken": "Der Benutzername \"{{username}}\" ist bereits vergeben",
+        "wamNoPassword": "Benutzer melden sich über den WAM-Proxy an - sie haben kein Passwort",
+        "wamUsersByAdmin": "Benutzer melden sich über den WAM-Proxy an - neue kommen über ihre Zugangsanfrage, und nur der Admin legt Benutzer an oder ändert einen Benutzernamen",
+        "sourceUserRequired": "Wählen Sie den Benutzer, der hinzugefügt werden soll",
+        "noGroup": "Sie sind keiner Gruppe dieser Firma zugeordnet - bitten Sie deren Administrator, Sie einer zuzuordnen"
+      },
+      "wam": {
+        "noUser": "Der WAM-Proxy hat keinen Benutzer gesendet (Header {{header}})",
+        "notEnabled": "Die Anmeldung über einen WAM-Proxy ist nicht aktiviert",
+        "waitingForApproval": "Ihr Zugang wartet auf Freigabe",
+        "tenantNotFound": "Sie haben in dieser Firma keinen Benutzer"
+      },
+      "mcpPrompt": {
+        "notFound": "Prompt nicht gefunden",
+        "argumentRequired": "Die Angabe „{{name}}“ ist erforderlich",
+        "argumentTooLong": "Eine Angabe darf höchstens {{max}} Zeichen haben"
+      },
+      "docSite": {
+        "noIndex": "Das ZIP hat oben keine index.html",
+        "notFound": "Website nicht gefunden",
+        "tooLarge": "Das ZIP darf höchstens {{maxMb}} MB groß sein"
+      },
+      "task": {
+        "anchor": "Anker und Aliase (&, *) sind in einer Aufgabe nicht erlaubt",
+        "cancelled": "Der Lauf wurde abgebrochen",
+        "checkNameTaken": "Zwei Prüfpunkte heißen „{{name}}“",
+        "checksRequired": "Ein Agent-Schritt hat mindestens einen Prüfpunkt",
+        "conditionCountUnknown": "Der Schritt {{step}} zählt {{counts}}, nicht {{count}}",
+        "conditionInvalid": "Keine Bedingung: {{condition}} - schreiben Sie sie wie verify.errors > 0, verbunden mit && und ||",
+        "conditionStepUnknown": "Die Bedingung nennt einen Schritt, der an dieser Stelle noch nicht gelaufen ist: {{step}}",
+        "cronInvalid": "Kein Cron-Ausdruck mit sechs Feldern (Sekunde Minute Stunde Tag Monat Wochentag), oder ein Termin, der nie kommt: {{cron}}",
+        "duplicateField": "Das Feld {{field}} steht zweimal da",
+        "documentPatternInvalid": "Ein Muster ist ein Dateiname mit * und ?, ohne Ordner und Datumsangaben: {{pattern}}",
+        "emailInvalid": "Keine E-Mail-Adresse: {{email}}",
+        "empty": "Die Aufgabe ist leer",
+        "everyInvalid": "every ist eine Zeit von 15m bis 7d, etwa 30m, 5h oder 1d: {{every}}",
+        "fieldNameInvalid": "Der Name eines Felds besteht aus Kleinbuchstaben, Ziffern und _ und beginnt mit einem Buchstaben - nicht source oder unclear: {{name}}",
+        "fieldNameTaken": "Zwei Felder heißen {{name}}",
+        "fieldRequired": "Das Feld {{field}} ist erforderlich",
+        "fieldsRequired": "Ein extract-Schritt hat mindestens ein Feld",
+        "fieldTypeUnknown": "Unbekannter Feldtyp {{type}} - text, date, amount, percent, number oder choice",
+        "firstRunUnknown": "firstRun ist start oder end: {{firstRun}}",
+        "firstRunWithoutOnlyNew": "firstRun: end braucht onlyNew: true - ein Schritt, der seine Dateien jedes Mal ganz liest, hat keinen ersten Lauf",
+        "folderInvalid": "Der Ordner ist ein Pfad unterhalb des Ordners der Dateiablage, ohne .. oder \\: {{folder}}",
+        "inactive": "Die Aufgabe ist ausgeschaltet",
+        "inputNotTaken": "Ein read_files- oder read_documents-Schritt nimmt keinen input",
+        "inputOne": "Ein extract-Schritt nimmt die Dokumente eines Schritts, ein write_file-Schritt die Zeilen eines Schritts",
+        "inputUnknown": "input nennt einen Schritt vor diesem: {{input}}",
+        "inputWrongType": "Der input {{input}} muss ein {{expected}}-Schritt sein",
+        "invalid": "Die Aufgabe ist nicht gültig: {{message}}",
+        "mailNotConfigured": "Es ist kein Mailserver eingerichtet - eine Aufgabe könnte nicht melden, was sie findet",
+        "maskInvalid": "Eine Maske hat after oder regex - eines von beiden, nicht leer",
+        "maskRegexEmpty": "Der reguläre Ausdruck passt auf einen leeren Text - er würde überall *** einsetzen: {{regex}}",
+        "maskRegexInvalid": "Der reguläre Ausdruck ist ungültig: {{problem}}",
+        "maskTooSlow": "Die Maske {{regex}} brauchte für eine Zeile länger als {{millis}} ms - bitte vereinfachen Sie sie",
+        "maxRoundsOnlyBack": "maxRounds gehört zu einer Kante zurück",
+        "maxRoundsRequired": "Eine Kante zurück zu {{to}} braucht maxRounds (1 bis {{max}}) - eine Schleife läuft nie unbegrenzt",
+        "modelNoKey": "Für {{model}} gibt es keinen API-Key",
+        "modelUnknown": "Der Mandant darf kein Chat-Modell „{{model}}“ nutzen",
+        "nameTaken": "Es gibt schon eine Aufgabe namens „{{name}}“",
+        "notAllowed": "Aufgaben sind für diesen Mandanten nicht freigeschaltet - das entscheidet der Administrator",
+        "notFound": "Die Aufgabe wurde gelöscht",
+        "numberInvalid": "Das Feld {{field}} ist eine ganze Zahl von {{min}} bis {{max}}",
+        "patternInvalid": "Das Muster ist ein Dateiname mit * und ? und Datumsangaben wie {yyyy-MM-dd}, ohne Ordner: {{pattern}}",
+        "resultInvalid": "{{model}} hat kein gültiges Ergebnis geliefert: {{problem}}",
+        "runEnded": "Der Lauf ist schon beendet",
+        "runOpen": "Der Lauf ist noch offen - warten Sie sein Ende ab",
+        "running": "Ein Lauf der Aufgabe ist noch offen",
+        "scheduleInvalid": "Ein Zeitplan hat every oder cron - eines von beiden",
+        "scheduleTooOften": "Eine Aufgabe läuft höchstens alle 15 Minuten: {{cron}}",
+        "severityUnknown": "Die Schwere ist error, warning oder report: {{severity}}",
+        "stepFailed": "Der Schritt ist fehlgeschlagen",
+        "stepIdInvalid": "Die id eines Schritts besteht aus Kleinbuchstaben, Ziffern und _ und beginnt mit einem Buchstaben: {{id}}",
+        "stepIdTaken": "Zwei Schritte haben die id {{id}}",
+        "stepTypeUnknown": "Unbekannter Schritttyp {{type}} - read_files, read_documents, extract, write_file, call_tool, call_agent, agent, verify, prompt oder send_mail",
+        "stepsRequired": "Eine Aufgabe hat mindestens einen Schritt",
+        "storeNotReady": "Die Dateiablage {{store}} ist noch nicht bereit - prüfen Sie sie zuerst auf der Seite Dateiablagen",
+        "storeUnknown": "Der Mandant hat keine Dateiablage „{{store}}“",
+        "syntax": "Kein gültiges YAML: {{problem}}",
+        "targetUnknown": "to nennt einen Schritt der Aufgabe: {{to}}",
+        "textTooLong": "Das Feld {{field}} darf höchstens {{max}} Zeichen haben",
+        "tooLarge": "Die Aufgabe darf höchstens {{max}} Zeichen haben",
+        "tooMany": "Höchstens {{max}} in {{field}}",
+        "triggerTypeUnknown": "Unbekannter Auslöser {{type}} - schedule",
+        "tooFewLines": "Der Schritt {{step}} hat {{lines}} neue Zeilen gelesen, mindestens {{min}} erwartet - seine Dateien sind nicht wie erwartet gewachsen",
+        "unknownField": "Unbekanntes Feld {{field}}",
+        "valuesInvalid": "Die values eines choice-Felds sind 2 bis {{max}} verschiedene Wörter aus Kleinbuchstaben, Ziffern, _ und -",
+        "valuesNotTaken": "Nur ein choice-Feld hat values",
+        "verifyOfInvalid": "of nennt einen Agent-Schritt vor diesem: {{of}}",
+        "wrongType": "Dieser Wert hat hier den falschen Typ",
+        "choiceInvalid": "{{model}} hat keine von {{choices}} gewählt",
+        "choicesInvalid": "choices sind 2 bis {{max}} verschiedene Wörter aus Kleinbuchstaben, Ziffern, _ und -",
+        "conditionChoiceUnknown": "Der Schritt {{step}} wählt {{choices}}, nicht {{choice}}",
+        "draftDescriptionRequired": "Beschreiben Sie, was die Aufgabe tun soll",
+        "draftDescriptionTooLong": "Die Beschreibung darf höchstens {{max}} Zeichen haben",
+        "fileInvalid": "Die Datei ist ein Pfad unterhalb des Ordners der Ablage und endet auf .csv, ohne .. - etwa Export/{yyyy}/zeilen.csv: {{file}}",
+        "filePlaceholderInvalid": "Ein Platzhalter der Datei ist {yyyy}, {MM}, {dd}, {<name>:yyyy} eines Datumsfelds oder {<name>} eines choice-Felds - nicht {{placeholder}}",
+        "modeUnknown": "mode ist append oder replace: {{mode}}",
+        "separatorInvalid": "separator ist ; oder ,",
+        "decimalInvalid": "decimal ist , oder .",
+        "dialectInvalid": "Mit , als Trennzeichen ist das Dezimalzeichen .",
+        "dateFormatInvalid": "dateFormat schreibt ein Datum mit y, M und d, etwa dd.MM.yyyy: {{dateFormat}}",
+        "storeNotWritable": "Aufgaben dürfen nicht in die Dateiablage {{store}} schreiben - ein Mandanten-Admin erlaubt es an der Ablage",
+        "fileTaken": "Die Aufgabe {{task}} schreibt die Datei {{file}} schon - geben Sie dieser eine eigene Datei",
+        "tooManyFiles": "Die Zeilen dieses Laufs gingen in {{count}} Dateien - höchstens {{max}}",
+        "fileTooLarge": "Die Datei {{file}} ist größer als {{max}} MB - nennen Sie eine neue Datei, etwa eine je Jahr mit {yyyy}",
+        "fileHeaderChanged": "Die Datei {{file}} hat andere Spalten ({{columns}}), als der Schritt schreibt - nennen Sie für die geänderten Felder eine neue Datei",
+        "fileNotUtf8": "Die Datei {{file}} ist nicht UTF-8 - von einem anderen Programm neu gespeichert? Speichern Sie sie als CSV UTF-8 oder nennen Sie eine neue Datei",
+        "toolUnknown": "Die angebundene Software {{connection}} bietet kein eingeschaltetes Werkzeug {{tool}}",
+        "toolArgumentsInvalid": "Das Werkzeug {{tool}} nimmt die Argumente des Schritts nicht: {{problem}}",
+        "eachUnknown": "each ist row oder all: {{each}}",
+        "toolUnavailable": "Das Werkzeug {{tool}} wird nicht mehr angeboten oder ist ausgeschaltet - ein Mandanten-Admin prüft die angebundene Software",
+        "sourceFormRequired": "Ein call_tool-Schritt ohne input liefert Zeilen (fields) oder Dokumente (file) - eines von beiden",
+        "keyUnknown": "key nennt eines der Felder: {{key}}",
+        "toolChanges": "Das Werkzeug {{tool}} ändert etwas - ein call_tool-Schritt ohne input ruft nur lesende Werkzeuge",
+        "lastRunInvalid": "Kein Datumsformat: {{format}}",
+        "inputWrongForm": "Der call_tool-Schritt {{input}} liefert nicht, was dieser Schritt nimmt",
+        "fieldNotTaken": "{{field}} gehört nicht zu diesem Schritt",
+        "toolFailed": "Das Werkzeug {{tool}} hat mit einem Fehler geantwortet",
+        "toolAnswerInvalid": "Das Werkzeug {{tool}} hat kein JSON-Array von Objekten geliefert",
+        "toolAnswerTooLong": "Das Werkzeug {{tool}} hat mit mehr Text geantwortet, als ein Aufruf fassen kann - lassen Sie es weniger auf einmal auflisten",
+        "toolAnswerTooLarge": "Das Werkzeug {{tool}} hat mehr als {{max}} aufgelistet - lassen Sie den Rest mit dem nächsten Lauf kommen",
+        "agentUnknown": "Der Mandant hat keinen A2A-Agenten {{agent}}",
+        "a2aNotAllowed": "Der Mandant darf keine A2A-Agenten verwenden - das erlaubt der Administrator",
+        "skillUnknown": "Der Agent {{agent}} hat keine Fähigkeit {{skill}}",
+        "agentUnavailable": "Der A2A-Agent der Aufgabe ist weg, oder der Mandant darf keine A2A-Agenten mehr verwenden",
+        "areaUnknown": "Der Mandant hat keinen Wissensbereich {{area}}",
+        "softwareUnknown": "Der Mandant hat keine angebundene Software {{software}}",
+        "templateUnknown": "Der Mandant hat keine Chat-Vorlage {{template}}",
+        "assistantGone": "Ein Wissensbereich, eine angebundene Software oder eine Chat-Vorlage des Schritts wurde gelöscht - prüfen Sie die Aufgabe erneut",
+        "documentNotYet": "Das Dokument {{name}} kann noch nicht gelesen werden (kein Bildmodell oder kein Key dafür) - der nächste Lauf holt es erneut",
+        "linkFailedForNow": "Die Datei zu {{name}} konnte gerade nicht heruntergeladen werden - der nächste Lauf holt sie erneut",
+        "agentAsksBack": "Der Agent {{agent}} fragt zurück - eine Aufgabe hat niemanden, der antwortet",
+        "modelRequiredWithoutAgent": "Ein Modell ist nötig - nur ein Mandant, dessen A2A-Agent den Chat beantwortet, lässt es weg"
+      },
+      "answer": {
+        "stopped": "Die Antwort wurde angehalten"
+      },
+      "mcpKey": {
+        "nameRequired": "Geben Sie dem MCP-Key einen Namen",
+        "unknownConnection": "Diese angebundene Software gibt es nicht (mehr)",
+        "unknownTask": "Diese Aufgabe gibt es nicht (mehr)",
+        "descriptionTooLong": "Die Beschreibung darf höchstens {{max}} Zeichen haben",
+        "noDoor": "Der Schlüssel muss /mcp, /a2a oder beides öffnen"
+      },
+      "source": {
+        "nameRequired": "Der Name ist erforderlich",
+        "nameTooLong": "Der Name darf höchstens {{max}} Zeichen haben",
+        "nameTaken": "Es gibt bereits eine Quelle namens „{{name}}“",
+        "storeNotFound": "Unbekannte Dateiablage",
+        "storeNotReady": "Die Dateiablage {{store}} ist nicht bereit - prüfen Sie sie und bestätigen Sie zuerst ihren Server",
+        "folderInvalid": "Der Ordner ist ein Pfad unterhalb des Ordners der Ablage, etwa Projekte/2025 - ohne . oder ..",
+        "patternInvalid": "Das Muster ist ein Dateiname mit * und ?, etwa *.pdf",
+        "scheduleUnknown": "Unbekannter Zeitplan",
+        "running": "Die Quelle läuft gerade - warten Sie ihr Ende ab oder brechen Sie sie ab",
+        "pathTooLong": "Der Pfad ist länger als 500 Zeichen",
+        "tooManyFiles": "Der Ordner enthält mehr als 20 000 Dateien oder liegt tiefer als 20 Ebenen - nur ein Teil wurde aufgelistet, nichts wurde gelöscht",
+        "cancelled": "Abgebrochen - der Rest wird mit dem nächsten Lauf gelesen",
+        "failed": "Der Lauf ist fehlgeschlagen"
+      },
+      "a2a": {
+        "taskTimeout": "{{name}} hat seine Aufgabe {{task}} nicht rechtzeitig beendet",
+        "interrupted": "Der Aufruf wurde abgebrochen",
+        "notAllowed": "Der Chat antwortet über einen A2A-Agenten, den der Administrator nicht mehr erlaubt",
+        "agentFailed": "Der Agent {{name}} konnte nicht antworten: {{error}}",
+        "timeout": "{{name}} hat nicht innerhalb von {{minutes}} Minuten geantwortet"
+      },
+      "oauth": {
+        "metadataUnreadable": "{{name}}: Die Beschreibung des Anmeldeservers konnte nicht gelesen werden",
+        "noAuthorizationCode": "{{name}}: Der Anmeldeserver bietet keine Anmeldung im Browser (Authorization Code)",
+        "pkceUnsupported": "{{name}}: Der Anmeldeserver unterstützt kein PKCE mit S256",
+        "registrationNeeded": "{{name}}: Der Anmeldeserver braucht eine Client-ID - registrieren Sie die Installation im Portal des Servers und tragen Sie sie in der Verbindung ein",
+        "registrationRefused": "{{name}}: Der Anmeldeserver hat die Registrierung der Installation abgelehnt",
+        "stateUnknown": "Diese Anmeldung ist nicht mehr gültig - starten Sie sie erneut",
+        "stateExpired": "Die Anmeldung hat zu lange gedauert - starten Sie sie erneut",
+        "issuerMismatch": "{{name}}: Die Antwort der Anmeldung kam von einem anderen Server - die Anmeldung wurde abgelehnt",
+        "denied": "{{name}}: Die Anmeldung wurde beim Server abgelehnt",
+        "exchangeFailed": "{{name}}: Der Anmeldeserver hat kein Token ausgegeben",
+        "refreshFailed": "{{name}}: Die Anmeldung konnte nicht erneuert werden - der Anmeldeserver hat nicht wie erwartet geantwortet",
+        "signInNeeded": "{{name}} braucht eine Anmeldung - melden Sie sich auf der Seite Software an",
+        "notAvailable": "{{name}}: Der Server verlangt keine Anmeldung",
+        "returnUrlForeign": "Die Seite für die Rückkehr nach der Anmeldung muss auf der Adresse dieser Installation liegen",
+        "unreachable": "{{name}}: Der Anmeldeserver ist nicht erreichbar",
+        "timeout": "{{name}}: Der Anmeldeserver hat nicht rechtzeitig geantwortet"
+      }
+    },
+    "accessRequest": {
+      "loadAccessRequests": "Zugangsanfragen konnten nicht geladen werden",
+      "assignAccessRequest": "Zugang konnte nicht freigegeben werden",
+      "rejectAccessRequest": "Anfrage konnte nicht abgelehnt werden"
+    },
+    "account": {
+      "loadAccount": "Konto konnte nicht geladen werden",
+      "changePassword": "Passwort konnte nicht geändert werden"
+    },
+    "aiModel": {
+      "loadModels": "KI-Modelle konnten nicht geladen werden",
+      "createModel": "KI-Modell konnte nicht erstellt werden",
+      "updateModel": "KI-Modell konnte nicht aktualisiert werden",
+      "deleteModel": "KI-Modell konnte nicht gelöscht werden"
+    },
+    "applicationLog": {
+      "loadEntries": "Das Anwendungslog konnte nicht geladen werden",
+      "sendDailyReport": "Der Tagesbericht konnte nicht verschickt werden"
+    },
+    "assistant": {
+      "loadAssistant": "Assistent konnte nicht geladen werden",
+      "saveSettings": "Einstellungen konnten nicht gespeichert werden",
+      "createTemplate": "Vorlage konnte nicht erstellt werden",
+      "updateTemplate": "Vorlage konnte nicht gespeichert werden",
+      "deleteTemplate": "Vorlage konnte nicht gelöscht werden"
+    },
+    "auth": {
+      "login": "Login fehlgeschlagen",
+      "wamSignIn": "Anmeldung über den WAM-Proxy fehlgeschlagen",
+      "noArea": "Für diesen Benutzer gibt es keinen Zugang zur Anwendung",
+      "wrongCredentials": "Benutzername oder Passwort falsch",
+      "wamNoUser": "Der WAM-Proxy hat keinen gültigen Benutzer übermittelt - bitte die Anwendung über ihn aufrufen",
+      "wrongCredentialsNeutral": "Benutzername oder Passwort falsch. Gibt es Ihren Benutzernamen in mehreren Firmen, melden Sie sich bitte auf der Anmeldeseite Ihrer Firma an.",
+      "switchTenant": "Der Wechsel zur anderen Firma ist fehlgeschlagen"
+    },
+    "branding": {
+      "loadInstallationBranding": "Aussehen der Installation konnte nicht geladen werden",
+      "loadTenantBranding": "Aussehen der Firma konnte nicht geladen werden",
+      "loadAdminBranding": "Branding konnte nicht geladen werden",
+      "saveAdminBranding": "Branding konnte nicht gespeichert werden",
+      "uploadAdminLogo": "Logo konnte nicht gespeichert werden",
+      "deleteAdminLogo": "Logo konnte nicht entfernt werden",
+      "loadLoginBranding": "Das Aussehen der Anmeldeseite konnte nicht geladen werden",
+      "loadOwnLoginKey": "Der Link der Anmeldeseite konnte nicht geladen werden",
+      "renewAdminLoginKey": "Es konnte kein neuer Link erzeugt werden"
+    },
+    "chat": {
+      "loadConversations": "Chats konnten nicht geladen werden",
+      "loadTemplates": "Vorlagen konnten nicht geladen werden",
+      "loadMessages": "Nachrichten konnten nicht geladen werden",
+      "deleteConversation": "Chat konnte nicht gelöscht werden",
+      "loadFiles": "Dateien konnten nicht geladen werden",
+      "uploadFiles": "Dateien konnten nicht angehängt werden",
+      "deleteFile": "Datei konnte nicht entfernt werden",
+      "downloadFile": "Datei konnte nicht geladen werden",
+      "sendMessage": "Die Frage konnte nicht beantwortet werden",
+      "runAction": "Die Aktion konnte nicht ausgeführt werden",
+      "cancelAction": "Die Aktion konnte nicht abgebrochen werden",
+      "connectionLost": "Die Verbindung wurde vor dem Ende der Antwort getrennt - sie wird womöglich noch gespeichert: Öffnen Sie den Chat gleich noch einmal, bevor Sie erneut fragen",
+      "loadSoftwarePrompts": "Die Prompts der angebundenen Software konnten nicht geladen werden",
+      "fillSoftwarePrompt": "Der Prompt konnte nicht ausgefüllt werden",
+      "loadSoftware": "Die Themen konnten nicht geladen werden"
+    },
+    "document": {
+      "loadDocuments": "Dokumente konnten nicht geladen werden",
+      "importArchive": "Import fehlgeschlagen",
+      "uploadDocument": "Hochladen fehlgeschlagen",
+      "retryDocument": "Dokument konnte nicht erneut verarbeitet werden",
+      "moveDocument": "Dokument konnte nicht verschoben werden",
+      "deleteUploads": "Dokumente konnten nicht gelöscht werden",
+      "deleteDocument": "Dokument konnte nicht gelöscht werden",
+      "embedAllAgain": "Dokumente konnten nicht neu eingebettet werden"
+    },
+    "knowledgeArea": {
+      "loadAreas": "Bereiche konnten nicht geladen werden",
+      "createArea": "Bereich konnte nicht angelegt werden",
+      "renameArea": "Bereich konnte nicht umbenannt werden",
+      "deleteArea": "Bereich konnte nicht gelöscht werden"
+    },
+    "docSite": {
+      "loadSites": "Websites konnten nicht geladen werden",
+      "uploadSite": "Website konnte nicht hochgeladen werden",
+      "deleteSite": "Website konnte nicht entfernt werden",
+      "loadHandbook": "Das Handbuch konnte nicht geladen werden",
+      "openSite": "Die Website konnte nicht geöffnet werden"
+    },
+    "mcpConnection": {
+      "loadConnections": "Angebundene Software konnte nicht geladen werden",
+      "createConnection": "Verbindung konnte nicht angelegt werden",
+      "updateConnection": "Verbindung konnte nicht gespeichert werden",
+      "deleteConnection": "Verbindung konnte nicht entfernt werden",
+      "reloadTools": "Werkzeuge konnten nicht neu geladen werden",
+      "updateTool": "Werkzeug konnte nicht gespeichert werden",
+      "loadAccess": "Zugriffe konnten nicht geladen werden",
+      "updatePrompt": "Prompt konnte nicht gespeichert werden",
+      "setPassThrough": "Weitergabe an MCP-Clients konnte nicht geschaltet werden",
+      "check": "Der Agent konnte nicht geprüft werden",
+      "signIn": "Die Anmeldung konnte nicht gestartet werden",
+      "completeSignIn": "Die Anmeldung konnte nicht abgeschlossen werden",
+      "removeSignIn": "Die Anmeldung konnte nicht entfernt werden"
+    },
+    "fileStore": {
+      "loadStores": "Dateiablagen konnten nicht geladen werden",
+      "createStore": "Dateiablage konnte nicht hinzugefügt werden",
+      "updateStore": "Dateiablage konnte nicht gespeichert werden",
+      "deleteStore": "Dateiablage konnte nicht entfernt werden",
+      "checkStore": "Dateiablage konnte nicht geprüft werden",
+      "confirmFingerprint": "Fingerabdruck konnte nicht bestätigt werden",
+      "browseFolders": "Die Ordner konnten nicht aufgelistet werden"
+    },
+    "knowledgeSource": {
+      "loadSources": "Quellen konnten nicht geladen werden",
+      "createSource": "Quelle konnte nicht hinzugefügt werden",
+      "updateSource": "Quelle konnte nicht gespeichert werden",
+      "deleteSource": "Quelle konnte nicht entfernt werden",
+      "runSource": "Quelle konnte nicht gestartet werden",
+      "cancelSource": "Quelle konnte nicht abgebrochen werden",
+      "loadFiles": "Die Dateien der Quelle konnten nicht geladen werden"
+    },
+    "mcpKey": {
+      "loadMcpKeys": "MCP-Keys konnten nicht geladen werden",
+      "createMcpKey": "MCP-Key konnte nicht angelegt werden",
+      "updateMcpKey": "MCP-Key konnte nicht gespeichert werden",
+      "renewMcpKey": "MCP-Key konnte nicht neu erzeugt werden",
+      "deleteMcpKey": "MCP-Key konnte nicht entfernt werden"
+    },
+    "providerKey": {
+      "loadKeys": "API-Keys konnten nicht geladen werden",
+      "setKey": "API-Key konnte nicht gespeichert werden",
+      "removeKey": "API-Key konnte nicht entfernt werden"
+    },
+    "tenantAi": {
+      "loadModels": "KI-Modelle konnten nicht geladen werden",
+      "loadSettings": "KI-Einstellungen konnten nicht geladen werden",
+      "setEmbeddingModel": "Embedding-Modell konnte nicht geändert werden",
+      "setSearchLanguage": "Suchsprache konnte nicht geändert werden",
+      "setRerankingModel": "Reranker konnte nicht gespeichert werden"
+    },
+    "tenantModel": {
+      "loadTenantModels": "KI-Modelle des Mandanten konnten nicht geladen werden",
+      "assignTenantModels": "KI-Modelle konnten nicht gespeichert werden"
+    },
+    "tenantUser": {
+      "loadUsers": "Benutzer konnten nicht geladen werden",
+      "createUser": "Benutzer konnte nicht erstellt werden",
+      "updateUser": "Benutzer konnte nicht aktualisiert werden",
+      "deleteUser": "Benutzer konnte nicht gelöscht werden",
+      "addFromTenant": "Der Benutzer konnte nicht hinzugefügt werden"
+    },
+    "group": {
+      "load": "Gruppen konnten nicht geladen werden",
+      "create": "Gruppe konnte nicht angelegt werden",
+      "update": "Gruppe konnte nicht aktualisiert werden",
+      "delete": "Gruppe konnte nicht gelöscht werden"
+    },
+    "tenant": {
+      "loadTenants": "Mandanten konnten nicht geladen werden",
+      "createTenant": "Mandant konnte nicht erstellt werden",
+      "updateTenant": "Mandant konnte nicht aktualisiert werden",
+      "checkSandbox": "Sandbox konnte nicht geprüft werden",
+      "deleteTenant": "Mandant konnte nicht gelöscht werden",
+      "setEmbeddingModel": "Embedding-Modell konnte nicht gespeichert werden",
+      "loadApiKeys": "API-Keys konnten nicht geladen werden",
+      "createApiKey": "API-Key konnte nicht erstellt werden",
+      "revokeApiKey": "API-Key konnte nicht widerrufen werden",
+      "setSearchLanguage": "Suchsprache konnte nicht gespeichert werden",
+      "setRerankingModel": "Reranker konnte nicht geändert werden",
+      "updateApiKey": "Der API-Key konnte nicht gespeichert werden"
+    },
+    "usage": {
+      "loadUsage": "Verbrauch konnte nicht geladen werden"
+    },
+    "version": {
+      "loadVersion": "Version konnte nicht geladen werden"
+    },
+    "task": {
+      "cancel": "Der Lauf konnte nicht abgebrochen werden",
+      "delete": "Die Aufgabe konnte nicht gelöscht werden",
+      "deleteRuns": "Die Läufe konnten nicht gelöscht werden",
+      "load": "Die Aufgaben konnten nicht geladen werden",
+      "loadOne": "Die Aufgabe konnte nicht geladen werden",
+      "loadRun": "Der Lauf konnte nicht geladen werden",
+      "loadRuns": "Die Läufe konnten nicht geladen werden",
+      "save": "Die Aufgabe konnte nicht gespeichert werden",
+      "start": "Die Aufgabe konnte nicht gestartet werden",
+      "validate": "Die Aufgabe konnte nicht geprüft werden",
+      "draft": "Der Entwurf konnte nicht geschrieben werden",
+      "draftModels": "Die Modelle konnten nicht geladen werden",
+      "reference": "Die Referenz konnte nicht geladen werden"
+    }
+  },
+  "chat": {
+    "groups": {
+      "today": "Heute",
+      "yesterday": "Gestern",
+      "lastSevenDays": "Letzte 7 Tage",
+      "older": "Älter"
+    },
+    "list": {
+      "label": "Chats",
+      "newChat": "Neuer Chat",
+      "search": "Chats durchsuchen",
+      "delete": "Chat löschen",
+      "noMatch": "Kein Chat zu dieser Suche.",
+      "empty": "Noch keine Chats."
+    },
+    "splitter": {
+      "label": "Breite der Chatliste",
+      "tooltip": "Ziehen zum Verschieben, Doppelklick setzt zurück"
+    },
+    "welcome": {
+      "greeting": "Guten Tag"
+    },
+    "answer": {
+      "copy": "Antwort kopieren",
+      "copyCode": "Code kopieren",
+      "typing": "Die Antwort wird erstellt"
+    },
+    "files": {
+      "hint": "Die KI kennt diese Dateien und liest sie, wenn sie für eine Frage gebraucht werden.",
+      "toggle": "Dateien dieses Chats ({{count}})"
+    },
+    "noModel": {
+      "tenantAdmin": "Kein Modell nutzbar - bitte unter API-Keys einen Key hinterlegen.",
+      "user": "Kein Modell nutzbar - bitte an den Administrator Ihrer Firma wenden."
+    },
+    "composer": {
+      "label": "Ihre Frage",
+      "placeholder": "Frage stellen … Enter sendet, Umschalt+Enter für eine neue Zeile",
+      "placeholderPhone": "Frage stellen …",
+      "placeholderTemplate": "Enter startet die Vorlage „{{name}}“ – oder dazu eine Frage stellen",
+      "attach": "Dateien anhängen",
+      "model": "Modell",
+      "provider": "({{provider}})",
+      "providerNoKey": "({{provider}} – kein API-Key)",
+      "template": "Vorlage",
+      "templatePlaceholder": "Vorlage: Standard",
+      "templateDefault": "Standard",
+      "send": "Senden",
+      "stop": "Stopp",
+      "stopHint": "Stopp - die Antwort wird trotzdem gespeichert",
+      "disclaimer": "Antworten können Fehler enthalten. Prüfen Sie wichtige Angaben in der Quelle."
+    },
+    "action": {
+      "title": "{{software}} - Änderung",
+      "hint": "Erst nach „Ausführen“ geht diese Änderung an {{software}}.",
+      "run": "Ausführen",
+      "cancel": "Abbrechen",
+      "outcome": {
+        "run": "Ausgeführt",
+        "cancelled": "Abgebrochen - nicht ausgeführt",
+        "expired": "Verfallen - nicht ausgeführt. Bitte erneut fragen."
+      }
+    },
+    "file": {
+      "download": "{{name}} herunterladen",
+      "expired": "Nach der Aufbewahrungszeit gelöscht",
+      "expiredLabel": "abgelaufen",
+      "generated": "Vom Modell erstellt",
+      "remove": "Aus dem Gespräch entfernen"
+    },
+    "image": {
+      "showLarge": "{{name}} groß anzeigen"
+    },
+    "sequence": {
+      "loading": "Bild wird geladen …",
+      "previous": "Vorheriges Bild",
+      "next": "Nächstes Bild",
+      "showLarge": "Bildfolge groß anzeigen",
+      "play": "Abspielen",
+      "pause": "Anhalten",
+      "slider": "Bild wählen",
+      "position": "Bild {{index}} von {{count}}",
+      "speed": "{{count}}/s",
+      "speedHint": "Tempo - Bilder pro Sekunde"
+    },
+    "thinking": {
+      "live": "Denkt nach …",
+      "show": "Gedankengang anzeigen"
+    },
+    "tools": {
+      "summaryOne": "1 Arbeitsschritt",
+      "summaryMany": "{{count}} Arbeitsschritte",
+      "similaritySearch": "Firmenwissen durchsuchen",
+      "readDocument": "Dokument lesen",
+      "readFile": "Datei lesen",
+      "searchFile": "Datei durchsuchen",
+      "readFileLines": "Zeilen einer Datei lesen",
+      "createFile": "Datei erstellen",
+      "createImage": "Bild erstellen",
+      "runPython": "Python ausführen",
+      "runShell": "Shell-Befehl ausführen",
+      "viewImages": "Bilder ansehen",
+      "handOutFile": "Datei ausgeben",
+      "webSearch": "Im Web suchen",
+      "software": "{{software}}: {{tool}}",
+      "other": "{{name}}"
+    },
+    "upload": {
+      "tooMany": "Höchstens {{max}} Dateien auf einmal",
+      "tooLarge": "Die Dateien sind zusammen {{size}} groß - höchstens {{max}} auf einmal"
+    },
+    "confirm": {
+      "removeFile": "Datei \"{{name}}\" aus dem Gespräch entfernen?",
+      "deleteChat": "Chat \"{{title}}\" wirklich löschen?"
+    },
+    "snack": {
+      "error": "FEHLER: {{error}}",
+      "stoppedAnswerFailed": "Die angehaltene Antwort konnte nicht fertiggestellt werden, nichts davon wurde gespeichert: {{error}}",
+      "deleteFailed": "FEHLER beim Löschen: {{error}}",
+      "deleted": "Chat gelöscht",
+      "attached": {
+        "one": "{{count}} Datei angehängt",
+        "other": "{{count}} Dateien angehängt"
+      },
+      "answerCopied": "Antwort kopiert",
+      "codeCopied": "Code kopiert",
+      "copyAnswerFailed": "Kopieren nicht möglich - bitte den Text markieren und kopieren.",
+      "copyCodeFailed": "Kopieren nicht möglich - bitte den Code markieren und kopieren."
+    },
+    "prompts": {
+      "button": "Prompts der angebundenen Software",
+      "from": "Aus {{software}}",
+      "required": "Diese Angabe ist erforderlich",
+      "noArguments": "Dieser Prompt braucht keine Angaben.",
+      "note": "Die Software macht daraus einen Text - er kommt in Ihr Eingabefeld, wo Sie ihn prüfen und abschicken.",
+      "take": "Ins Eingabefeld"
+    },
+    "software": {
+      "label": "Themen",
+      "allOff": "Alle Themen sind abgewählt - die Antwort kommt nur aus dem eigenen Wissen dieses Chats.",
+      "toggle": "{{name}} für dieses Gespräch an- oder abwählen",
+      "count": "Themen {{on}}/{{total}}"
+    },
+    "agent": {
+      "waiting": "wartet auf Ihre Antwort",
+      "allOff": "Alle Fähigkeiten sind abgewählt - der Agent antwortet ohne sie.",
+      "welcome": "Die Antworten kommen vom Agenten des Unternehmens."
+    }
+  },
+  "documents": {
+    "page": {
+      "title": "Firmenwissen",
+      "subtitle": "Das Firmenwissen finden alle Benutzer im Chat, ohne die Liste zu sehen - die Dokumente eines Bereichs nur die Gruppen und Keys, denen er zugeordnet ist."
+    },
+    "embeddingModel": {
+      "title": "Embedding-Modell",
+      "pageHint": "Damit werden die Dokumente für die Suche im Chat aufbereitet.",
+      "tenantHint": "Gilt für alle Dokumente des Mandanten.",
+      "label": "Modell",
+      "noKey": "– kein API-Key",
+      "saving": "Wird gespeichert …",
+      "chooseFirst": "Bitte zuerst ein Embedding-Modell wählen - erst dann können Dokumente hochgeladen werden.",
+      "noneAssigned": "Dem Mandanten ist kein Embedding-Modell zugewiesen - bitte zuerst unter „Modelle“ eines zuweisen.",
+      "saved": "Embedding-Modell gespeichert",
+      "saveFailed": "FEHLER beim Speichern des Modells: {{error}}",
+      "changeMessage": "Alle Dokumente werden mit dem neuen Modell neu eingebettet. Das verursacht erneut Kosten.",
+      "changeMessageTenant": "Alle Dokumente des Mandanten - auch die eigenen der Benutzer - werden mit dem neuen Modell neu eingebettet. Das verursacht erneut Kosten.",
+      "change": "Modell wechseln"
+    },
+    "searchLanguage": {
+      "title": "Suchsprache",
+      "hint": "Die Sprache der Dokumente: Die Suche findet dann auch andere Formen eines Wortes („Wartungen“ zu „Wartung“). Ein Wechsel baut die Suche neu auf; nichts wird neu eingebettet.",
+      "label": "Sprache der Dokumente",
+      "saving": "Wird gespeichert …",
+      "saved": "Suchsprache gespeichert - die Suche wird im Hintergrund neu aufgebaut",
+      "saveFailed": "Fehler beim Speichern der Suchsprache: {{error}}"
+    },
+    "reranker": {
+      "title": "Reranker",
+      "hint": "Sortiert die Treffer der Suche danach, wie gut jede Stelle die Frage beantwortet - oft steht die richtige Stelle dann vorne. Jede Suche dauert etwas länger; nichts wird neu eingebettet. Aus: die eigene Reihenfolge der Suche.",
+      "label": "Reranker der Suche",
+      "off": "Aus",
+      "saving": "Wird gespeichert …",
+      "saved": "Reranker gespeichert",
+      "saveFailed": "Fehler beim Speichern des Rerankers: {{error}}"
+    },
+    "status": {
+      "pending": "Wartet",
+      "processing": "Wird verarbeitet",
+      "ready": "Bereit",
+      "failed": "Fehlgeschlagen"
+    },
+    "origin": {
+      "upload": "hochgeladen",
+      "api": "angebundene Software",
+      "source": "Dateiablage",
+      "sourceNamed": "Dateiablage: {{name}}"
+    },
+    "importOutcome": {
+      "created": "neu",
+      "replaced": "ersetzt",
+      "unchanged": "unverändert",
+      "duplicate": "doppelt",
+      "skipped": "übersprungen"
+    },
+    "fileTypeNone": "DATEI",
+    "panel": {
+      "searchPlaceholder": "Dokument oder Ordner suchen",
+      "searchLabel": "Dokumente durchsuchen",
+      "area": "Bereich",
+      "filter": {
+        "all": "Alle",
+        "ready": "Bereit",
+        "open": "In Arbeit",
+        "failed": "Fehler"
+      },
+      "refresh": "Aktualisieren",
+      "importZip": "ZIP importieren",
+      "importTooltip": "ZIP mit Ordnern, bis {{max}} - erneut importiert werden geänderte Dateien ersetzt, fehlende bleiben",
+      "importTooltipInto": "Nach {{area}}: ZIP mit Ordnern, bis {{max}} - erneut importiert werden geänderte Dateien ersetzt, fehlende bleiben",
+      "upload": "Dokumente hochladen",
+      "uploadTooltip": "bis {{max}} pro Datei",
+      "uploadTooltipInto": "Nach {{area}}: bis {{max}} pro Datei",
+      "summary": {
+        "documents": "Dokumente",
+        "chunks": "Abschnitte eingebettet",
+        "open": "in Arbeit",
+        "uploading": {
+          "one": "1 Datei wird hochgeladen …",
+          "other": "{{count}} Dateien werden hochgeladen …"
+        },
+        "importing": "ZIP wird importiert …"
+      },
+      "empty": {
+        "title": "Noch keine Dokumente",
+        "titleIn": "Noch keine Dokumente in „{{area}}“",
+        "text": "Handbücher, Preislisten, Verträge: was hier liegt, findet der Assistent im Chat. Einzelne Dateien oder ein ZIP mit Ordnern.",
+        "textArea": "Was hier liegt, finden nur die Mitglieder der Gruppen und die API-Keys dieses Bereichs - und die Mandanten-Admins."
+      },
+      "column": {
+        "document": "Dokument",
+        "status": "Status",
+        "origin": "Herkunft",
+        "area": "Bereich",
+        "chunks": "Abschnitte",
+        "size": "Größe",
+        "added": "Hinzugefügt"
+      },
+      "externalId": "Schlüssel der Software: {{id}}",
+      "noMatch": "Keine Dokumente zu dieser Suche.",
+      "perPage": "Pro Seite",
+      "perPageLabel": "Dokumente pro Seite",
+      "previousPage": "Vorherige Seite",
+      "nextPage": "Nächste Seite",
+      "uploadInto": "Hochladen nach",
+      "manageAreas": "Bereiche verwalten",
+      "deleteUploadsChooseArea": "Hochgeladene löschen (erst Bereich wählen)",
+      "deleteUploadsIn": "Alle hochgeladenen in „{{area}}“ löschen",
+      "retry": "Erneut verarbeiten",
+      "move": "Bereich ändern",
+      "embedAllAgain": "Alle Dokumente neu einbetten",
+      "waiting": {
+        "one": "1 Dokument wartet auf das Einbetten. Die Dokumente werden nacheinander eingebettet - ein neues Upload wartet dahinter.",
+        "other": "{{count}} Dokumente warten auf das Einbetten. Die Dokumente werden nacheinander eingebettet - ein neues Upload wartet dahinter."
+      }
+    },
+    "confirm": {
+      "deleteUploadsTitle": "Alle hochgeladenen in „{{area}}“ löschen?",
+      "deleteUploadsMessage": {
+        "one": "1 hochgeladenes Dokument wird gelöscht - der Chat kann danach nicht mehr daraus antworten.\nDokumente der angebundenen Software bleiben erhalten.\nDanach das ZIP neu importieren: alle Dateien werden wieder verarbeitet.",
+        "other": "{{count}} hochgeladene Dokumente werden gelöscht - der Chat kann danach nicht mehr daraus antworten.\nDokumente der angebundenen Software bleiben erhalten.\nDanach das ZIP neu importieren: alle Dateien werden wieder verarbeitet."
+      },
+      "deleteUploadsConfirm": "Alle löschen",
+      "deleteMessage": "Dokument \"{{path}}\" wirklich löschen?\nDer Chat kann danach nicht mehr daraus antworten.",
+      "deleteFromSource": "Dokument „{{path}}“ wirklich löschen?\nDer Chat kann dann nicht mehr daraus antworten. Es kommt zurück, wenn sich seine Datei in der Dateiablage ändert - dauerhaft weglassen: Ordner oder Dateinamen der Quelle ändern.",
+      "embedAllAgainTitle": "Alle Dokumente neu einbetten?",
+      "embedAllAgainMessage": "Alle {{count}} Dokumente werden mit dem aktuellen Modell neu eingebettet - erst dann profitieren früher eingebettete Dokumente von Verbesserungen der Suche. Dabei entstehen Kosten wie bei einem erneuten Hochladen, und jedes Dokument ist im Chat erst wieder auffindbar, wenn es fertig ist.",
+      "embedAllAgainConfirm": "Neu einbetten"
+    },
+    "snack": {
+      "uploadFailed": "FEHLER beim Hochladen von \"{{name}}\": {{error}}",
+      "importFailed": "FEHLER beim Import von \"{{name}}\": {{error}}",
+      "retried": "Dokument wird erneut verarbeitet",
+      "deleted": "Dokument gelöscht",
+      "moved": "Dokument liegt jetzt in „{{area}}“",
+      "uploadsDeleted": {
+        "one": "1 hochgeladenes Dokument aus „{{area}}“ gelöscht",
+        "other": "{{count}} hochgeladene Dokumente aus „{{area}}“ gelöscht"
+      },
+      "moveFailed": "FEHLER beim Verschieben: {{error}}",
+      "deleteFailed": "FEHLER beim Löschen: {{error}}",
+      "failed": "FEHLER: {{error}}",
+      "tooLarge": "Zu groß (max. {{max}}), nicht hochgeladen: {{files}}",
+      "archiveTooLarge": "Das ZIP ist zu groß (max. {{max}})",
+      "embeddingAgain": {
+        "one": "1 Dokument wird neu eingebettet",
+        "other": "{{count}} Dokumente werden neu eingebettet"
+      }
+    },
+    "importDialog": {
+      "title": "Import – {{name}}",
+      "hint": "Neue und geänderte Dateien werden jetzt im Hintergrund verarbeitet. Dateien, die im ZIP fehlen, bleiben erhalten.",
+      "sameContentAs": "gleicher Inhalt wie {{path}}"
+    },
+    "moveDialog": {
+      "area": "Bereich",
+      "hint": "Nur die Gruppen und Keys des Bereichs finden es - die Mandanten-Admins alle."
+    }
+  },
+  "searchLanguages": {
+    "SIMPLE": "Keine Sprache (Wörter wie geschrieben)",
+    "ARABIC": "Arabisch",
+    "ARMENIAN": "Armenisch",
+    "BASQUE": "Baskisch",
+    "CATALAN": "Katalanisch",
+    "DANISH": "Dänisch",
+    "DUTCH": "Niederländisch",
+    "ENGLISH": "Englisch",
+    "ESTONIAN": "Estnisch",
+    "FINNISH": "Finnisch",
+    "FRENCH": "Französisch",
+    "GERMAN": "Deutsch",
+    "GREEK": "Griechisch",
+    "HINDI": "Hindi",
+    "HUNGARIAN": "Ungarisch",
+    "INDONESIAN": "Indonesisch",
+    "IRISH": "Irisch",
+    "ITALIAN": "Italienisch",
+    "LITHUANIAN": "Litauisch",
+    "NEPALI": "Nepali",
+    "NORWEGIAN": "Norwegisch",
+    "PORTUGUESE": "Portugiesisch",
+    "ROMANIAN": "Rumänisch",
+    "RUSSIAN": "Russisch",
+    "SERBIAN": "Serbisch",
+    "SPANISH": "Spanisch",
+    "SWEDISH": "Schwedisch",
+    "TAMIL": "Tamil",
+    "TURKISH": "Türkisch",
+    "YIDDISH": "Jiddisch"
+  },
+  "knowledgeAreas": {
+    "companyKnowledge": "Firmenwissen",
+    "companyKnowledgeForAll": "Firmenwissen (alle finden es)",
+    "onlyCompanyKnowledge": "nur Firmenwissen",
+    "all": "Alle Bereiche",
+    "unknown": "Unbekannter Bereich",
+    "name": "{{name}}",
+    "dialog": {
+      "title": "Bereiche",
+      "hint": "Dokumente ohne Bereich sind Firmenwissen - alle finden es. Die Dokumente eines Bereichs finden nur die Mitglieder der Gruppen und die API-Keys, denen er zugeordnet ist, und die Mandanten-Admins.",
+      "newArea": "Neuer Bereich",
+      "newAreaPlaceholder": "z. B. Vertrieb",
+      "empty": "Noch keine Bereiche - alles ist Firmenwissen.",
+      "rename": "Umbenennen",
+      "confirmDelete": "Bereich \"{{name}}\" wirklich löschen?\nEr muss leer sein - Dokumente darin vorher löschen oder in einen anderen Bereich verschieben."
+    },
+    "snack": {
+      "created": "Bereich „{{name}}“ angelegt",
+      "deleted": "Bereich gelöscht"
+    }
+  },
+  "handbook": {
+    "title": "Handbuch",
+    "subtitle": "Anleitungen und Regeln der Firma zum Lesen neben dem Chat",
+    "company": "Firmenhandbuch",
+    "general": "Allgemein",
+    "companyForAll": "Firmenhandbuch (alle lesen es)",
+    "choose": "Website wählen",
+    "manage": "Websites verwalten",
+    "hideManage": "Verwaltung ausblenden",
+    "sizeKb": "{{value}} KB",
+    "sizeMb": "{{value}} MB",
+    "confirmRemove": "Die Website „{{name}}“ entfernen? Ihre Leser sehen sie dann nicht mehr.",
+    "failed": {
+      "title": "Das Handbuch konnte nicht geladen werden",
+      "text": "Die Verbindung zum Server ist fehlgeschlagen. Bitte versuchen Sie es gleich noch einmal.",
+      "siteText": "Diese Website konnte nicht geöffnet werden. Bitte versuchen Sie es gleich noch einmal.",
+      "tryAgain": "Erneut versuchen"
+    },
+    "empty": {
+      "title": "Noch kein Handbuch",
+      "text": "Ihre Firma hat für Sie noch kein Handbuch bereitgestellt.",
+      "textAdmin": "Laden Sie unter „Websites verwalten“ eine statische Website als ZIP hoch - für alle oder für einen Wissensbereich."
+    },
+    "panel": {
+      "title": "Handbuch-Websites",
+      "subtitle": "Eine statische Website für alle und je eine pro Wissensbereich - zum Lesen neben dem Chat, der Assistent kennt sie nicht",
+      "upload": "ZIP hochladen",
+      "view": "Ansehen",
+      "replace": "Durch ein neues ZIP ersetzen",
+      "remove": "Entfernen",
+      "files": "{{count}} Dateien",
+      "column": {
+        "scope": "Für",
+        "files": "Dateien",
+        "uploaded": "Hochgeladen"
+      },
+      "empty": {
+        "title": "Noch keine Website",
+        "text": "Laden Sie ein ZIP mit einer statischen Website (index.html ganz oben) für alle oder einen Wissensbereich hoch."
+      }
+    },
+    "upload": {
+      "title": "Website hochladen",
+      "hint": "Ein ZIP mit einer statischen Website: index.html ganz oben (oder im einen Ordner des ZIP), CSS, JavaScript, Bilder, Schriften - höchstens 2000 Dateien. Es ersetzt die Website des gewählten Bereichs.",
+      "limit": "Das ZIP darf höchstens {{maxMb}} MB groß sein.",
+      "scope": "Für",
+      "scopeHint": "Leser: alle, oder die Benutzer des Wissensbereichs und die Mandanten-Admins",
+      "choose": "ZIP wählen",
+      "noFile": "Keine Datei gewählt",
+      "notZip": "Bitte wählen Sie eine ZIP-Datei",
+      "tooLarge": "Das ZIP ist zu groß - es darf höchstens {{maxMb}} MB haben",
+      "submit": "Hochladen",
+      "uploading": "Wird hochgeladen …"
+    },
+    "snack": {
+      "uploaded": "Website hochgeladen",
+      "uploadedSkipped": "Website hochgeladen - {{count}} Dateien ausgelassen (Typ nicht erlaubt oder nicht lesbar), z. B. {{paths}}",
+      "removed": "Website entfernt",
+      "uploadError": "Hochladen fehlgeschlagen: {{error}}",
+      "removeError": "Entfernen fehlgeschlagen: {{error}}"
+    }
+  },
+  "accessRequests": {
+    "title": "Zugangsanfragen",
+    "subtitle": "Personen, die sich über den WAM-Proxy angemeldet haben und noch keinem Mandanten zugeordnet sind.",
+    "open": "Offene Anfragen",
+    "refresh": "Aktualisieren",
+    "empty": {
+      "title": "Keine offenen Zugangsanfragen",
+      "text": "Meldet sich jemand über den WAM-Proxy an, der noch keinem Mandanten gehört, erscheint er hier."
+    },
+    "column": {
+      "person": "Person",
+      "requested": "Angefragt"
+    },
+    "assignTooltip": "Mandant zuordnen",
+    "reject": "Ablehnen",
+    "confirmReject": "Anfrage von \"{{name}}\" ablehnen?\nMeldet sich die Person erneut an, erscheint sie wieder hier.",
+    "snack": {
+      "assigned": "Zugang zugeordnet",
+      "rejected": "Anfrage abgelehnt",
+      "error": "FEHLER: {{error}}"
+    },
+    "assign": {
+      "title": "Zugang für {{name}}",
+      "username": "Benutzername: {{username}}",
+      "tenant": "Mandant",
+      "tenantRequired": "Mandant ist erforderlich",
+      "language": "Sprache",
+      "active": "Sofort freigeben (sonst gibt der Mandanten-Admin frei)",
+      "admin": "Mandanten-Admin (z.B. der erste Benutzer eines Mandanten)",
+      "submit": "Zuordnen"
+    }
+  },
+  "account": {
+    "title": "Konto",
+    "subtitleWam": "Mit diesem Konto sind Sie angemeldet.",
+    "subtitle": "Ihre Anmeldung und Ihr Passwort.",
+    "signedInAs": "Angemeldet als",
+    "username": "Benutzername",
+    "tenant": "Mandant",
+    "changePassword": "Passwort ändern",
+    "currentPassword": "Aktuelles Passwort",
+    "currentPasswordRequired": "Aktuelles Passwort ist erforderlich",
+    "newPassword": "Neues Passwort",
+    "newPasswordRequired": "Neues Passwort ist erforderlich",
+    "minLength": "Mindestens {{min}} Zeichen",
+    "repeatPassword": "Neues Passwort wiederholen",
+    "repeatPasswordRequired": "Bitte das neue Passwort wiederholen",
+    "passwordMismatch": "Die Passwörter stimmen nicht überein",
+    "snack": {
+      "passwordChanged": "Passwort geändert",
+      "error": "FEHLER: {{error}}"
+    },
+    "connect": {
+      "title": "Claude oder Copilot verbinden",
+      "text": "Fragen Sie {{brand}} direkt bei der Arbeit - in Claude Code, claude.ai, Cowork oder GitHub Copilot (VS Code). Die Antworten kommen aus dem Wissen Ihrer Firma.",
+      "keyUser": "Dafür brauchen Sie einen MCP-Key - ein Administrator erstellt ihn für Sie oder Ihr Team; jeder Key öffnet sein eigenes Wissen und seine eigene Software. Setzen Sie ihn statt {{placeholder}} ein.",
+      "keyAdmin": "Den MCP-Key erzeugen Sie auf der Seite „API-Keys“ - dort steht der Befehl gleich mit dem Key. Ihre Kollegen setzen ihn statt {{placeholder}} ein.",
+      "claudeCode": "Claude Code - im Terminal ausführen:",
+      "copilot": "GitHub Copilot - im Projekt speichern als",
+      "example": "Danach fragen Sie zum Beispiel: „Frag {{brand}}, wie wir Fehler protokollieren.“",
+      "summary": "Befehl und Einstellungen zum Kopieren"
+    }
+  },
+  "apiKeys": {
+    "title": "Keys der angebundenen Software",
+    "subtitle": "Damit greift Ihre Software auf die API zu: Chat und Firmenwissen hochladen.",
+    "hint": {
+      "before": "Die angebundene Software authentifiziert sich mit",
+      "after": ". Ohne „Verlauf speichern“ beantwortet der Assistent jede Frage für sich, speichert nichts außer dem Verbrauch und liest mitgeschickte Textdateien (z.B. Logdateien)."
+    },
+    "newKey": "Neuer API-Key – jetzt kopieren, er wird nur dieses eine Mal angezeigt:",
+    "copyTooltip": "In die Zwischenablage kopieren",
+    "empty": {
+      "title": "Noch keine API-Keys",
+      "text": "Legen Sie oben einen Key an - damit meldet sich Ihre Software an der API an."
+    },
+    "column": {
+      "name": "Bezeichnung",
+      "key": "Key",
+      "lastUsed": "Zuletzt benutzt"
+    },
+    "never": "nie",
+    "revoke": "Widerrufen",
+    "confirmRevoke": "API-Key \"{{name}}\" wirklich widerrufen?\nDie angebundene Software kann sich damit sofort nicht mehr anmelden. Die Chats, die sie damit begonnen hat, werden mit ihren Dateien mitgelöscht.",
+    "snack": {
+      "revoked": "API-Key widerrufen",
+      "error": "FEHLER: {{error}}",
+      "copied": "API-Key kopiert",
+      "copyFailed": "Kopieren fehlgeschlagen - bitte manuell markieren"
+    },
+    "add": "API-Key anlegen"
+  },
+  "mcpKey": {
+    "title": "Claude und Copilot (MCP)",
+    "subtitle": "Keys, mit denen Claude Code, claude.ai, Cowork und GitHub Copilot den Assistenten Ihrer Firma fragen.",
+    "remove": "Entfernen",
+    "regenerate": "Neu erzeugen",
+    "generate": "Key anlegen",
+    "hint": "Mit einem MCP-Key fragen Claude Code, claude.ai, Claude Desktop, Cowork, GitHub Copilot oder andere MCP-Clients den Assistenten Ihrer Firma oder durchsuchen und lesen die Dokumente der Firma selbst - das Firmenwissen und die Bereiche des Keys, nie eine Liste der Dokumente. Legen Sie einen Key pro Zweck oder Personenkreis an und geben Sie ihn gezielt weiter. Die Fragen beantwortet das Standardmodell aus den Assistent-Einstellungen.",
+    "created": {
+      "title": "Neuer MCP-Key „{{name}}“ - nur jetzt sichtbar",
+      "claudeCode": "In Claude Code einrichten"
+    },
+    "copyKey": "Key kopieren",
+    "copyCommand": "Befehl kopieren",
+    "copyConfig": "Konfiguration kopieren",
+    "done": "Erledigt",
+    "neverUsed": "noch nie",
+    "copilot": "GitHub Copilot (VS Code):",
+    "vscodeHint": "VS Code fragt beim ersten Start nach dem MCP-Key und speichert ihn verschlüsselt.",
+    "copied": {
+      "key": "MCP-Key kopiert",
+      "command": "Befehl kopiert",
+      "config": "Konfiguration kopiert",
+      "url": "Adresse kopiert",
+      "value": "Wert kopiert"
+    },
+    "snack": {
+      "copyFailed": "Kopieren fehlgeschlagen",
+      "removed": "MCP-Key entfernt",
+      "error": "FEHLER: {{error}}"
+    },
+    "confirmRegenerate": "MCP-Key „{{name}}“ neu erzeugen?\nDer bisherige Key funktioniert dann sofort nicht mehr - Claude Code muss neu eingerichtet, ein Connector in claude.ai oder Cowork entfernt und neu hinzugefügt werden. Bereiche und Websuche bleiben.",
+    "confirmRemove": "MCP-Key „{{name}}“ wirklich entfernen?\nClaude Code, claude.ai und Cowork können ihn dann nicht mehr nutzen.",
+    "copyUrl": "Adresse kopieren",
+    "copyValue": "Wert kopieren",
+    "connector": {
+      "title": "claude.ai, Claude Desktop und Cowork - benutzerdefinierter Connector:",
+      "where": "In Claude unter Einstellungen → Connectors → Benutzerdefinierten Connector hinzufügen eintragen:",
+      "name": "Name",
+      "url": "URL des Remote-MCP-Servers",
+      "authentication": "Authentifizierung",
+      "noSignIn": "Keine Anmeldung",
+      "header": "Request-Header",
+      "value": "Wert",
+      "hint": "Tragen Sie den Wert genau so ein - mit „Bearer“ und dem Leerzeichen danach: Claude sendet ihn, wie er eingegeben ist. Ein Request-Header lässt sich später nicht ändern: Bei einem neuen Key den Connector entfernen und neu hinzufügen."
+    },
+    "column": {
+      "name": "Name",
+      "key": "Key",
+      "lastUsed": "Zuletzt genutzt"
+    },
+    "empty": {
+      "title": "Noch kein MCP-Key",
+      "text": "Legen Sie einen Key an - damit fragt Claude oder Copilot den Assistenten Ihrer Firma."
+    },
+    "softwareAnswersOnly": "{{name}} (nur Antworten)",
+    "a2a": {
+      "address": "A2A-Adresse",
+      "card": "Agent-Card"
+    },
+    "door": {
+      "mcp": "MCP",
+      "a2a": "A2A"
+    }
+  },
+  "providerKeys": {
+    "dialog": {
+      "setTitle": "API-Key setzen – {{provider}}",
+      "replaceTitle": "API-Key ersetzen – {{provider}}",
+      "apiKey": "API-Key",
+      "hint": "Wird verschlüsselt gespeichert und danach nur noch gekürzt angezeigt.",
+      "required": "API-Key ist erforderlich",
+      "blank": "API-Key darf nicht nur aus Leerzeichen bestehen"
+    },
+    "global": {
+      "title": "Globale API-Keys",
+      "subtitle": "Diese Keys nutzen Mandanten, denen globale API-Keys erlaubt sind, wenn sie keinen eigenen Key hinterlegt haben. Ihr Verbrauch wird abgerechnet.",
+      "panelTitle": "Keys je Provider"
+    },
+    "tenant": {
+      "title": "API-Keys der KI-Anbieter",
+      "subtitle": "Die Keys der Firma bei den KI-Anbietern - alle Benutzer und die angebundene Software nutzen sie. Der Verbrauch damit wird direkt vom Anbieter berechnet."
+    },
+    "column": {
+      "provider": "Provider",
+      "key": "Key",
+      "updated": "Geändert"
+    },
+    "notSet": "nicht hinterlegt",
+    "setKey": "Key setzen",
+    "replaceKey": "Key ersetzen",
+    "remove": "Entfernen",
+    "fallback": {
+      "global": "Ohne eigenen Key wird – falls vorhanden – der globale Key genutzt und abgerechnet.",
+      "none": "Ohne eigenen Key ist dieser Provider nicht nutzbar."
+    },
+    "snack": {
+      "saved": "API-Key gespeichert",
+      "removed": "API-Key entfernt",
+      "saveError": "FEHLER beim Speichern: {{error}}",
+      "removeError": "FEHLER beim Entfernen: {{error}}"
+    },
+    "confirmRemove": {
+      "global": "Mandanten ohne eigenen Key können diesen Provider dann nicht mehr nutzen.",
+      "tenant": "Ohne Key kann dieser Provider nur noch über einen erlaubten globalen Key genutzt werden.",
+      "message": "API-Key für {{provider}} wirklich entfernen?\n{{consequence}}"
+    }
+  },
+  "tenantKeys": {
+    "title": "API-Keys",
+    "subtitle": "Die Keys Ihrer Firma bei den KI-Anbietern, für die angebundene Software und für Claude Code."
+  },
+  "users": {
+    "page": {
+      "title": "Benutzer",
+      "subtitle": "Die Mitarbeiter Ihrer Firma, die sich bei {{name}} anmelden. Mandanten-Admins verwalten zusätzlich Benutzer, API-Keys und Firmenwissen."
+    },
+    "list": {
+      "searchPlaceholder": "Benutzer suchen",
+      "searchLabel": "Benutzer durchsuchen",
+      "create": "Neuer Benutzer",
+      "wamNote": "Die Anmeldung läuft über den WAM-Proxy: Neue Benutzer melden sich dort an und erscheinen nach der Zuweisung durch den Administrator hier als „Wartet auf Freigabe“. Benutzer anlegen und Benutzernamen ändern kann nur der Administrator.",
+      "empty": {
+        "title": "Noch keine Benutzer",
+        "text": "Jeder Mitarbeiter bekommt einen eigenen Zugang zum Chat - Mandanten-Admins verwalten zusätzlich die Einstellungen."
+      },
+      "column": {
+        "user": "Benutzer",
+        "role": "Rolle",
+        "groups": "Gruppen",
+        "language": "Sprache",
+        "status": "Status",
+        "lastLogin": "Letzte Anmeldung"
+      },
+      "roleAdmin": "Mandanten-Admin",
+      "roleUser": "Benutzer",
+      "never": "nie",
+      "noMatch": "Keine Benutzer zu dieser Suche.",
+      "fromTenant": "Benutzer aus anderem Mandanten"
+    },
+    "status": {
+      "active": "Aktiv",
+      "waiting": "Wartet auf Freigabe",
+      "inactive": "Inaktiv",
+      "fromIdm": "Aus dem IDM"
+    },
+    "confirmDelete": "Benutzer \"{{username}}\" wirklich löschen?\nEr kann sich danach nicht mehr anmelden, und seine Chats und Dateien werden mitgelöscht. Nur sperren: Benutzer deaktivieren.",
+    "snack": {
+      "created": "Benutzer erstellt",
+      "updated": "Benutzer aktualisiert",
+      "deleted": "Benutzer gelöscht",
+      "createError": "FEHLER beim Erstellen: {{error}}",
+      "updateError": "FEHLER beim Aktualisieren: {{error}}",
+      "deleteError": "FEHLER beim Löschen: {{error}}"
+    },
+    "dialog": {
+      "createTitle": "Neuer Benutzer",
+      "editTitle": "Benutzer bearbeiten",
+      "username": "Benutzername",
+      "usernameFixedHint": "Die Anmeldung am WAM-Proxy - nur der Administrator ändert ihn.",
+      "usernameHint": "3-100 Zeichen: Buchstaben, Ziffern und . _ - @ (keine Umlaute)",
+      "usernameRequired": "Benutzername ist erforderlich",
+      "usernameInvalid": "3-100 Zeichen: nur Buchstaben, Ziffern und . _ - @",
+      "nameRequired": "Name ist erforderlich",
+      "nameBlank": "Name darf nicht nur aus Leerzeichen bestehen",
+      "wamHint": "Die Anmeldung läuft über den WAM-Proxy - Benutzer haben kein Passwort.",
+      "password": "Passwort",
+      "minLength": "Mindestens {{min}} Zeichen",
+      "passwordHintEdit": "Mindestens {{min}} Zeichen - leer lassen = unverändert",
+      "passwordRequired": "Passwort ist erforderlich",
+      "language": "Sprache",
+      "languageHint": "Die Sprache der Oberfläche - der Benutzer kann sie später ändern.",
+      "active": "Aktiv (Anmeldung erlaubt)",
+      "admin": "Mandanten-Admin (verwaltet Benutzer, API-Keys, Firmenwissen und sieht den Verbrauch)",
+      "groups": "Gruppen",
+      "groupsHint": "Was er nutzen darf: die Wissensbereiche und die Software dieser Gruppen. Ohne Gruppe kommt der Benutzer nicht hinein (Mandanten-Admins ausgenommen) - eine Gruppe ohne Rechte gibt den Chat und das Firmenwissen.",
+      "groupsHintAdmin": "Als Mandanten-Admin findet er im Chat alle Bereiche; die Software kommt aus den Gruppen.",
+      "noGroups": "Hier stehen keine Gruppen zur Auswahl - ohne Gruppe kommt der Benutzer nicht hinein (Mandanten-Admins ausgenommen). Legen Sie eine auf der Seite „Benutzer“ an.",
+      "wamGroups": "Zuletzt vom WAM-Proxy gesendete IDM-Gruppen",
+      "wamGroupsNone": "keine - seither nicht angemeldet, oder der Proxy sendet keine"
+    },
+    "fromTenant": {
+      "title": "Benutzer aus anderem Mandanten hinzufügen",
+      "hint": "Dieselbe Person bekommt auch hier einen Benutzer - mit demselben Benutzernamen, Namen und derselben Sprache, ohne Passwort. Sie wechselt im Benutzermenü zwischen den Mandanten.",
+      "passwordHint": "Ohne WAM-Proxy braucht die Person hier ein eigenes Passwort, um in diesen Mandanten zu wechseln - setzen Sie es danach beim Bearbeiten des Benutzers.",
+      "tenant": "Mandant",
+      "user": "Benutzer",
+      "active": "Sofort freigegeben",
+      "admin": "Mandanten-Admin",
+      "submit": "Hinzufügen"
+    }
+  },
+  "groups": {
+    "title": "Gruppen",
+    "subtitle": "Was ein Benutzer im Chat nutzen darf, kommt aus seinen Gruppen: Wissensbereiche, Websuche und die Stufe je angebundener Software.",
+    "create": "Neue Gruppe",
+    "empty": {
+      "title": "Noch keine Gruppen",
+      "text": "Ein Benutzer kommt nur über eine Gruppe hinein (Mandanten-Admins ausgenommen) - eine Gruppe ohne Rechte gibt den Chat und das Firmenwissen, weitere Rechte Wissensbereiche und angebundene Software."
+    },
+    "column": {
+      "name": "Gruppe",
+      "members": "Mitglieder",
+      "areas": "Bereiche",
+      "software": "Software"
+    },
+    "wamGroupOf": "WAM-Gruppe: {{wamGroup}}",
+    "wamGroupUnchecked": "WAM-Gruppe: {{wamGroup}} - wird nicht geprüft, zählt für niemanden",
+    "names": "{{names}}",
+    "noGroup": "keine Gruppe",
+    "noMembers": "keine Mitglieder",
+    "noAreas": "nur Firmenwissen",
+    "confirmDelete": "Gruppe \"{{name}}\" wirklich löschen?\nIhre Mitglieder verlieren die Bereiche und die Software, die sie ihnen gab - und wer in keiner anderen Gruppe ist, kann sich nicht mehr anmelden.",
+    "snack": {
+      "created": "Gruppe erstellt",
+      "updated": "Gruppe aktualisiert",
+      "deleted": "Gruppe gelöscht",
+      "createError": "FEHLER beim Erstellen: {{error}}",
+      "updateError": "FEHLER beim Aktualisieren: {{error}}",
+      "deleteError": "FEHLER beim Löschen: {{error}}"
+    },
+    "dialog": {
+      "createTitle": "Neue Gruppe",
+      "editTitle": "Gruppe bearbeiten",
+      "nameRequired": "Name ist erforderlich",
+      "members": "Mitglieder",
+      "memberSearch": "Benutzer suchen",
+      "noMemberMatch": "Kein Benutzer passt zu dieser Suche.",
+      "areas": "Wissensbereiche",
+      "areasHint": "Neben dem Firmenwissen finden die Mitglieder diese Bereiche im Chat.",
+      "wamGroup": "WAM-Gruppe",
+      "wamGroupHint": "Die IDM-Gruppe genau so, wie der WAM-Proxy sie sendet, z. B. AI-Vertrieb. Die Gruppe nimmt ihre Mitglieder dann allein aus dem IDM: Mitglied ist, wen der Proxy darin meldet, sonst niemand - leer: die hier zugeordneten Mitglieder.",
+      "webSearch": "Websuche im Chat",
+      "webSearchHint": "Fragen der Mitglieder dürfen im Web suchen, wo die Dokumente der Firma nicht antworten - die Dokumente kommen immer zuerst, nach außen geht nur die Suchanfrage. Braucht die Websuche für die Firma und einen Tavily-Key.",
+      "softwareHint": "Sobald auf der Seite „Software“ eine angebundene Software verbunden ist, legen Sie hier fest, was die Mitglieder davon nutzen dürfen.",
+      "software": "Software",
+      "softwareLevelsHint": "Was die Mitglieder im Chat von jeder angebundenen Software nutzen dürfen. „Lesen und ändern“ gibt ihnen auch ändernde Werkzeuge - der Chat fragt vor jedem Aufruf nach.",
+      "levelFor": "Stufe für {{name}}",
+      "membersFromIdm": "Mitglieder aus dem IDM",
+      "membersFromIdmHint": "Die Mitglieder kommen aus der IDM-Gruppe - Personen dort hinzufügen oder herausnehmen. Wer dort gemeldet ist, bekommt bei der nächsten Anmeldung einen Benutzer hier.",
+      "membersReplaced": "Die zugeordneten Mitglieder werden beim Speichern durch die IDM-Gruppe ersetzt.",
+      "wamGroupByAdmin": "Nur der Administrator setzt die WAM-Gruppe: Sie gibt jeder Person dieser IDM-Gruppe einen Benutzer in diesem Mandanten."
+    },
+    "webSearchTag": "Websuche",
+    "noSoftware": "keine",
+    "noGroupNoAccess": "keine Gruppe - kein Zugang"
+  },
+  "assistant": {
+    "page": {
+      "title": "Assistent",
+      "subtitle": "Wie der Chat antwortet: die Grundanweisung für jede Frage, die Grundeinstellungen und die Vorlagen, die Ihre Benutzer im Chat auswählen."
+    },
+    "answerSource": {
+      "documentsOnly": "Nur aus den Dokumenten",
+      "documentsFirst": "Dokumente zuerst, Allgemeinwissen gekennzeichnet"
+    },
+    "creativity": {
+      "low": "Niedrig (sachlich)",
+      "medium": "Mittel",
+      "high": "Hoch (frei formuliert)"
+    },
+    "reasoning": {
+      "off": "Aus",
+      "low": "Niedrig",
+      "medium": "Mittel",
+      "high": "Hoch (gründlich, langsamer)"
+    },
+    "form": {
+      "answerSource": "Antwortquelle",
+      "creativity": "Kreativität",
+      "reasoning": "Nachdenken",
+      "searchResults": "Suchtreffer",
+      "maxLength": "Höchstens {{max}} Zeichen",
+      "range": "{{min}} bis {{max}}"
+    },
+    "settings": {
+      "title": "Grundeinstellungen",
+      "intro": "Gelten für jede Frage, solange keine Vorlage etwas anderes sagt.",
+      "instructions": "Grundanweisung",
+      "instructionsHint": "Geht bei jeder Frage mit, z.B. wer das Unternehmen ist und wie geantwortet werden soll ({{length}}/{{max}})",
+      "creativityHint": "Nur bei Modellen, die eine Temperatur annehmen",
+      "reasoningHint": "Nur bei Modellen, die Nachdenken steuern lassen",
+      "searchResultsHint": "Abschnitte pro Suche ({{min}}-{{max}})",
+      "defaultModel": "Standardmodell für Claude Code",
+      "defaultModelHint": "Antwortet Fragen über den MCP-Key, die kein Modell wählen",
+      "none": "Keines",
+      "imageModel": "Bildmodell",
+      "imageModelAuto": "Automatisch ({{model}})",
+      "imageModelHintChosen": "Erstellt und bearbeitet im Chat Bilder",
+      "imageModelHintAuto": "Ohne Auswahl: {{model}} - erstellt und bearbeitet im Chat Bilder",
+      "imageModelHintNone": "Ohne Auswahl erstellt der Chat keine Bilder"
+    },
+    "templates": {
+      "title": "Vorlagen",
+      "intro": "Die Benutzer wählen eine Vorlage im Chat neben dem Modell.",
+      "add": "Neue Vorlage",
+      "hint": "Die Anweisung einer Vorlage kommt zur Grundanweisung hinzu, ihre Einstellungen ersetzen die Grundeinstellungen.",
+      "emptyTitle": "Noch keine Vorlagen",
+      "emptyText": "Im Chat gelten dann die Grundeinstellungen. Die Anweisung einer Vorlage kommt zur Grundanweisung hinzu, ihre Einstellungen ersetzen die Grundeinstellungen.",
+      "confirmDelete": "Vorlage \"{{name}}\" wirklich löschen?\nGespräche damit gehen mit den Grundeinstellungen weiter.",
+      "summary": {
+        "default": "Einstellungen wie Standard",
+        "creativity": "Kreativität: {{value}}",
+        "reasoning": "Nachdenken: {{value}}",
+        "searchResults": "Suchtreffer: {{count}}"
+      }
+    },
+    "templateDialog": {
+      "titleCreate": "Neue Vorlage",
+      "titleEdit": "Vorlage bearbeiten",
+      "namePlaceholder": "z.B. Nachschlagen",
+      "nameHint": "So wählen die Benutzer sie im Chat aus",
+      "instructions": "Anweisung",
+      "instructionsHint": "Kommt zur Grundanweisung hinzu, z.B. \"Antworte als Tabelle mit Schritt, Verantwortlichem und Termin.\" ({{length}}/{{max}})",
+      "standard": "Standard",
+      "searchResultsHint": "{{min}}-{{max}}, leer = Standard"
+    },
+    "snack": {
+      "settingsSaved": "Einstellungen gespeichert",
+      "templateCreated": "Vorlage erstellt",
+      "templateSaved": "Vorlage gespeichert",
+      "templateDeleted": "Vorlage gelöscht",
+      "error": "FEHLER: {{error}}",
+      "deleteError": "FEHLER beim Löschen: {{error}}"
+    }
+  },
+  "software": {
+    "page": {
+      "title": "Angebundene Software",
+      "subtitle": "Werkzeuge Ihrer Software, die der Assistent im Chat nutzen darf."
+    },
+    "protocol": {
+      "label": "Protokoll",
+      "mcp": "MCP (Software)",
+      "a2a": "A2A-Agent"
+    },
+    "skills": "Fähigkeiten des Agenten",
+    "skillsHint": "Aus der Karte des Agenten - mit „Karte neu lesen“ erneut gelesen. Der Assistent fragt den Agenten über ein Werkzeug; die Stufe der Gruppen entscheidet, wer darf.",
+    "noSkills": "Die Karte des Agenten nennt keine Fähigkeiten.",
+    "skillCount": "{{count}} Fähigkeiten",
+    "answersChat": "Beantwortet den Chat",
+    "answersChatHint": "Jede Frage im Chat des Mandanten geht an diesen Agenten - eigenes Modell, Vorlagen und Software werden nicht verwendet. Höchstens ein Agent.",
+    "answersChatTag": "beantwortet den Chat",
+    "check": "Prüfen",
+    "checkOk": "{{name}} hat mit {{skills}} Fähigkeiten in {{millis}} ms geantwortet.",
+    "a2aBaseUrl": "Adresse des Agenten (JSON-RPC)",
+    "a2aBaseUrlPlaceholder": "https://agent.example.com/a2a",
+    "a2aBaseUrlHint": "HTTPS-Adresse der JSON-RPC-Schnittstelle des Agenten - seine Karte wird vom selben Host gelesen",
+    "a2aApiKey": "Key des Agenten",
+    "a2aApiKeyOptional": "Optional - als Bearer-Token gesendet, wenn der Agent einen verlangt; ein Agent, der sich mit OAuth anmeldet, braucht keinen: speichern, dann Anmelden",
+    "cardLoaded": "Karte gelesen:",
+    "reload": "Karte neu lesen",
+    "snack": {
+      "created": {
+        "one": "Angebunden - 1 Fähigkeit gelesen",
+        "other": "Angebunden - {{count}} Fähigkeiten gelesen"
+      },
+      "createdUnreadable": "Angebunden, aber die Karte des Agenten ist nicht lesbar: {{error}}",
+      "reloaded": {
+        "one": "1 Fähigkeit gelesen",
+        "other": "{{count}} Fähigkeiten gelesen"
+      },
+      "reloadedUnreadable": "Die Karte des Agenten ist nicht lesbar: {{error}}"
+    }
+  },
+  "mcpConnections": {
+    "level": {
+      "read": "Nur lesen",
+      "write": "Lesen und ändern"
+    },
+    "panel": {
+      "title": "Verbindungen",
+      "intro": "Jede Software mit ihrem MCP-Server, ihren Werkzeugen und wer sie nutzen darf.",
+      "connect": "Software anbinden",
+      "emptyTitle": "Noch keine Software angebunden",
+      "emptyText": "Binden Sie den MCP-Server Ihrer Software an und wählen Sie dann, welche Werkzeuge der Assistent damit lesen oder ändern darf.",
+      "note": "Der Assistent nutzt im Chat die Werkzeuge Ihrer Software (z. B. Rechnungen oder Aufträge nachschlagen). Jedes Werkzeug ist aus, bis Sie es einschalten, und ein Benutzer braucht die Freigabe einer seiner Gruppen. Ändernde Werkzeuge bekommen nur Mitglieder einer Gruppe mit „Lesen und ändern“ - und der Chat fragt vor jedem Aufruf nach. Ein API-Key der angebundenen Software und ein MCP-Key (Claude Code, Cowork) nutzen eine Software nur, wenn Sie sie ihnen auf der Seite „API-Keys“ geben - beide nur lesend.",
+      "toolsUnreadable": "Werkzeuge nicht lesbar",
+      "toolsEnabled": "{{enabled}} von {{total}} Werkzeugen an",
+      "key": "Key:",
+      "keyNone": "keiner",
+      "toolsLoaded": "Werkzeuge gelesen:",
+      "toolsLoadedNever": "noch nie",
+      "reload": "Werkzeuge neu laden",
+      "promptsUnreadable": "Prompts nicht lesbar: {{error}}"
+    },
+    "tools": {
+      "title": "Werkzeuge",
+      "none": "Die Software bietet keine Werkzeuge an.",
+      "on": "An",
+      "tool": "Werkzeug",
+      "changes": "Ändert etwas",
+      "changesTooltip": "Von der Software gemeldet - korrigierbar",
+      "inChat": "Im Chat"
+    },
+    "toolState": {
+      "gone": "Von der Software nicht mehr angeboten",
+      "off": "Aus",
+      "onWithConfirmation": "An - mit Rückfrage, nur bei „Lesen und ändern“",
+      "on": "An - im Chat nutzbar"
+    },
+    "access": {
+      "title": "Zugriff",
+      "passThrough": "Direkt an MCP-Clients (Claude Code, Cowork)",
+      "passThroughText": "Aus: Ein MCP-Key mit dieser Software bekommt nur die Antworten des Assistenten - die Rohdaten der Software bleiben hier. An: Claude ruft ihre lesenden Werkzeuge selbst auf und sieht die Ergebnisse, ihre Prompts und Anweisungen kommen mit. Welche MCP-Keys diese Software nutzen dürfen, stellen Sie am Key ein (Seite „API-Keys“).",
+      "none": "Kein Zugriff",
+      "noGroups": "Der Mandant hat noch keine Gruppen - legen Sie sie auf der Seite „Benutzer“ an.",
+      "groupText": "Ihre Mitglieder",
+      "groupsHint": "Die Stufe einer Gruppe stellen Sie im Dialog der Gruppe ein (Seite „Benutzer“) - hier sehen Sie, wer diese Software wie nutzen darf."
+    },
+    "confirmDelete": "„{{name}}“ wirklich entfernen?\nDer Chat kann ihre Werkzeuge dann nicht mehr nutzen.",
+    "snack": {
+      "created": {
+        "one": "Angebunden - 1 Werkzeug gelesen, aus",
+        "other": "Angebunden - {{count}} Werkzeuge gelesen, alle aus"
+      },
+      "createdUnreadable": "Angebunden, aber die Werkzeuge sind nicht lesbar: {{error}}",
+      "reloaded": {
+        "one": "1 Werkzeug gelesen",
+        "other": "{{count}} Werkzeuge gelesen"
+      },
+      "reloadedUnreadable": "Werkzeuge nicht lesbar: {{error}}",
+      "deleted": "Verbindung entfernt",
+      "error": "FEHLER: {{error}}"
+    },
+    "dialog": {
+      "titleEdit": "Verbindung bearbeiten",
+      "nameHint": "So heißt die Software im Chat, z. B. „Buchhaltung“",
+      "nameRequired": "Name ist erforderlich",
+      "nameBlank": "Name darf nicht nur aus Leerzeichen bestehen",
+      "baseUrl": "Adresse des MCP-Servers",
+      "baseUrlPlaceholder": "https://software.example.com/mcp",
+      "baseUrlHint": "HTTPS-Adresse, die die Software für MCP angibt",
+      "baseUrlRequired": "Adresse ist erforderlich",
+      "apiKey": "API-Key der Software",
+      "apiKeyStored": "Gespeichert: {{hint}} - leer lassen = unverändert",
+      "apiKeyOptional": "Optional - ein Server, der sich mit OAuth anmeldet, braucht keinen: speichern, dann Anmelden",
+      "removeApiKey": "Gespeicherten Key entfernen",
+      "connect": "Anbinden"
+    },
+    "prompts": {
+      "title": "Prompts",
+      "text": "Fertige Anfragen der Software. Eingeschaltet wählen Nutzer mit Zugriff sie im Chat, füllen die Angaben aus und bekommen den Text in ihr Eingabefeld - sie prüfen ihn und schicken ihn selbst ab.",
+      "prompt": "Prompt",
+      "arguments": "Angaben (* Pflicht)",
+      "noArguments": "keine"
+    },
+    "instructions": {
+      "title": "Anweisungen der Software",
+      "hint": "Was die Software über ihre Werkzeuge sagt - unser Assistent liest es, wo die Software angeboten wird; MCP-Clients bekommen es mit einem Key, an den die Software direkt geht.",
+      "cut": "Auf {{max}} Zeichen gekürzt."
+    },
+    "signIn": {
+      "signedIn": "Angemeldet",
+      "pending": "Anmeldung läuft",
+      "needed": "Anmeldung nötig",
+      "through": "Anmeldung: {{issuer}}",
+      "scopes": "- Rechte: {{scopes}}",
+      "signIn": "Anmelden",
+      "again": "Erneut anmelden",
+      "remove": "Anmeldung entfernen",
+      "confirmRemove": "Die Anmeldung von \"{{name}}\" entfernen?\nIhre Aufrufe gehen dann ohne Token, bis sich jemand erneut anmeldet oder einen Key einträgt.",
+      "done": "{{name}}: angemeldet - {{count}} Werkzeuge gelesen",
+      "keyReplaces": "Die Verbindung meldet sich über {{issuer}} an - ein eingegebener Key entfernt die Anmeldung",
+      "useKey": "Statt der Anmeldung einen Key verwenden",
+      "byHand": "Der Server registriert keinen Client selbst: Registrieren Sie diese Installation im Portal des Servers mit dieser Weiterleitungsadresse und tragen Sie dann die Client-ID ein, die er Ihnen gibt.",
+      "copyRedirect": "Weiterleitungsadresse kopieren",
+      "redirectCopied": "Weiterleitungsadresse kopiert",
+      "clientId": "Client-ID",
+      "clientSecret": "Client-Secret",
+      "clientSecretHint": "Nur, wenn das Portal eines ausgibt"
+    }
+  },
+  "fileStores": {
+    "type": {
+      "SFTP": "SFTP",
+      "FTPS": "FTPS (FTP mit TLS)",
+      "S3": "S3 (Amazon S3 oder kompatibel)",
+      "SHAREPOINT": "SharePoint / OneDrive",
+      "IMAP": "Postfach (IMAP)"
+    },
+    "status": {
+      "unchecked": "Nicht geprüft",
+      "ok": "Verbunden",
+      "unconfirmed": "Fingerabdruck bestätigen",
+      "changed": "Fingerabdruck geändert",
+      "failed": "Prüfung fehlgeschlagen"
+    },
+    "panel": {
+      "taskWrite": "Aufgaben schreiben",
+      "title": "Dateiablagen",
+      "intro": "SFTP- und FTPS-Server mit Benutzer und Ordner, S3-Buckets mit Zugriffsschlüssel, SharePoint- und OneDrive-Bibliotheken über eine App-Registrierung.",
+      "add": "Dateiablage hinzufügen",
+      "emptyTitle": "Noch keine Dateiablage",
+      "emptyText": "Fügen Sie einen SFTP- oder FTPS-Server, einen S3-Bucket oder eine SharePoint-Bibliothek hinzu - z. B. den Ort, an den Ihre Software ihre Logdateien schreibt. Die Prüfung eines Servers zeigt seinen Fingerabdruck, den Sie bestätigen, bevor das Passwort gesendet wird.",
+      "note": "Prüfen Sie eine Ablage nach dem Hinzufügen: Ein SFTP- oder FTPS-Server zeigt zuerst seinen Fingerabdruck. Erst wenn Sie ihn bestätigt haben, geht das Passwort an den Server. Zeigt der Server später einen anderen Fingerabdruck, wird nichts gesendet, bis Sie den neuen bestätigen. S3 und SharePoint weisen sich über HTTPS aus - ihre Prüfung liest den Ordner sofort.",
+      "server": "Server",
+      "user": "Benutzer",
+      "folder": "Ordner",
+      "fingerprint": "Fingerabdruck",
+      "fingerprintNone": "nicht bestätigt",
+      "checked": "Letzte Prüfung",
+      "checkedNever": "nie",
+      "entries": "Im Ordner",
+      "entriesNone": "Der Ordner ist leer.",
+      "check": "Prüfen",
+      "bucket": "Bucket",
+      "accessKey": "Zugriffsschlüssel",
+      "site": "Site",
+      "app": "App (Client-ID)"
+    },
+    "dialog": {
+      "titleEdit": "Dateiablage bearbeiten",
+      "nameHint": "So heißt die Ablage, z. B. „Logdateien“",
+      "nameRequired": "Name ist erforderlich",
+      "nameBlank": "Name darf nicht nur aus Leerzeichen bestehen",
+      "type": "Typ",
+      "typeHint": {
+        "SFTP": "Dateiübertragung über SSH (Port 22)",
+        "FTPS": "FTP mit TLS (AUTH TLS, Port 21) - unverschlüsseltes FTP wird nicht unterstützt",
+        "S3": "Ein Bucket von Amazon S3 oder einem kompatiblen Speicher (z. B. Ceph, Garage, Hetzner, Cloudflare R2), nur lesend",
+        "SHAREPOINT": "Eine Dokumentbibliothek einer SharePoint-Site oder ein OneDrive, gelesen von einer App-Registrierung Ihrer Entra ID - nur lesend",
+        "IMAP": "Ein Postfach-Ordner: Jede Mail der letzten Tage ist ein Ordner, ihre Anhänge und ihr Text die Dateien - nur lesend, nichts wird als gelesen markiert"
+      },
+      "host": "Host",
+      "hostPlaceholder": "sftp.example.com",
+      "hostHint": "Name oder IP-Adresse - ohne Protokoll, Port oder Pfad",
+      "hostRequired": "Host ist erforderlich",
+      "port": "Port",
+      "portInvalid": "Port zwischen 1 und 65535",
+      "username": "Benutzername",
+      "usernameRequired": "Benutzername ist erforderlich",
+      "password": "Passwort",
+      "passwordHint": "Geht erst an den Server, wenn Sie seinen Fingerabdruck bestätigt haben",
+      "passwordAgain": "Anderer Server - bitte das Passwort erneut eingeben",
+      "passwordStored": "Gespeichert - leer lassen = unverändert",
+      "passwordRequired": "Passwort ist erforderlich",
+      "basePath": "Ordner",
+      "basePathHint": "Der Ordner, für den die Ablage steht, z. B. /logs - leer: /",
+      "endpoint": "Endpunkt",
+      "endpointPlaceholder": "https://s3.example.com",
+      "endpointHint": "Die Adresse eines kompatiblen Speichers - leer: Amazon S3. http nur zu den internen Hosts der Installation",
+      "region": "Region",
+      "regionRequired": "Amazon S3 braucht die Region",
+      "bucket": "Bucket",
+      "bucketRequired": "Bucket ist erforderlich",
+      "accessKeyId": "Access Key ID",
+      "accessKeyIdHint": "Ein Schlüssel, der den Bucket nur auflisten und lesen darf (s3:ListBucket, s3:GetObject)",
+      "accessKeyIdRequired": "Access Key ID ist erforderlich",
+      "secretKey": "Secret Access Key",
+      "secretKeyHint": "Wird nie an den Speicher gesendet - die Anfragen werden damit signiert",
+      "basePathHintS3": "Ein Ordner im Bucket, z. B. /logs - leer: der ganze Bucket",
+      "siteUrl": "Adresse der Site",
+      "siteUrlPlaceholder": "https://firma.sharepoint.com/sites/projekte",
+      "siteUrlHint": "Die Adresse eines OneDrive: https://firma-my.sharepoint.com/personal/name_firma_de",
+      "siteUrlRequired": "Adresse der Site ist erforderlich",
+      "library": "Bibliothek",
+      "libraryHint": "Der Name der Dokumentbibliothek, z. B. Dokumente - leer: die Standardbibliothek der Site",
+      "directoryId": "Verzeichnis-ID (Mandanten-ID)",
+      "directoryIdHint": "Aus der Übersicht der App-Registrierung in Entra ID",
+      "directoryIdRequired": "Verzeichnis-ID ist erforderlich",
+      "clientId": "Anwendungs-ID (Client-ID)",
+      "clientIdHint": "Eine App mit Sites.Selected, die nur diese Site lesen darf",
+      "clientIdRequired": "Client-ID ist erforderlich",
+      "clientSecret": "Geheimer Clientschlüssel",
+      "clientSecretHint": "Geht nur an die Anmeldung von Microsoft - ein Schlüssel läuft spätestens nach zwei Jahren ab",
+      "basePathHintSharePoint": "Ein Ordner in der Bibliothek, z. B. /Logs - leer: die ganze Bibliothek",
+      "secretKeyAgain": "Anderer Bucket oder Schlüssel - bitte den Secret Access Key erneut eingeben",
+      "clientSecretAgain": "Andere App - bitte ihren geheimen Clientschlüssel erneut eingeben",
+      "taskWrite": "Aufgaben dürfen hier schreiben",
+      "taskWriteHint": "Eine geplante Aufgabe darf dann eine Datei in diese Ablage schreiben - eine CSV mit Zeilen aus Dokumenten. Sie löscht oder verschiebt nie eine Datei. Das Konto braucht Schreibrechte auf den Ordner.",
+      "mailHostPlaceholder": "imap.example.com",
+      "security": "Verbindung",
+      "securityOption": {
+        "SSL": "IMAPS (Port 993)",
+        "STARTTLS": "STARTTLS (Port 143)",
+        "NONE": "Unverschlüsselt - nur interne Hosts"
+      },
+      "mailbox": "Postfach-Ordner",
+      "mailboxHint": "Wie der Server ihn nennt, etwa INBOX oder INBOX/Belege - leer: INBOX",
+      "days": "Tage",
+      "daysHint": "Mails der letzten Tage",
+      "daysInvalid": "1 bis 3650 Tage",
+      "mailboxReadOnly": "Ein Postfach wird nur gelesen: Nichts darin wird gelöscht, verschoben oder als gelesen markiert, und Aufgaben schreiben nie hinein."
+    },
+    "confirmFingerprint": {
+      "title": "Fingerabdruck des Servers bestätigen",
+      "message": "{{host}} zeigt diesen Fingerabdruck:\n\n{{fingerprint}}\n\nVergleichen Sie ihn mit dem, den Ihnen Ihr Server-Administrator nennt. Erst nach Ihrer Bestätigung wird das Passwort an diesen Server gesendet.",
+      "accept": "Bestätigen und verbinden"
+    },
+    "changedFingerprint": {
+      "title": "Der Fingerabdruck des Servers hat sich geändert",
+      "message": "{{host}} zeigt einen anderen Fingerabdruck als den bestätigten:\n\njetzt: {{fingerprint}}\nbestätigt: {{confirmed}}\n\nDas passiert, wenn der Server neu eingerichtet wurde - oder wenn sich jemand als der Server ausgibt. Es wurde nichts gesendet. Bestätigen Sie den neuen Fingerabdruck nur, wenn Ihr Server-Administrator die Änderung bestätigt.",
+      "accept": "Neuen Fingerabdruck bestätigen"
+    },
+    "confirmDelete": "„{{name}}“ wirklich entfernen?",
+    "snack": {
+      "created": "Dateiablage hinzugefügt - prüfen Sie sie jetzt",
+      "deleted": "Dateiablage entfernt",
+      "ok": "Verbunden - der Ordner wurde gelesen",
+      "failed": "Prüfung fehlgeschlagen: {{error}}",
+      "error": "Fehler: {{error}}"
+    },
+    "page": {
+      "title": "Dateiablagen",
+      "subtitle": "Server, Buckets und Bibliotheken, von denen der Assistent Dateien liest und auf die er Dateien schreibt - z. B. Logdateien auf einer SFTP-Freigabe, in einem S3-Bucket oder in SharePoint."
+    }
+  },
+  "knowledgeSources": {
+    "panel": {
+      "title": "Quellen",
+      "intro": "Ordner Ihrer Dateiablagen, im Firmenwissen aktuell gehalten.",
+      "add": "Quelle hinzufügen",
+      "emptyTitle": "Noch keine Quelle",
+      "emptyText": "Eine Quelle liest einen Ordner einer Dateiablage mit seinen Unterordnern ins Firmenwissen und hält ihn aktuell: geänderte Dateien werden neu eingebettet, gelöschte entfernt.",
+      "emptyNoStore": "Eine Quelle liest einen Ordner einer Dateiablage ins Firmenwissen. Legen Sie zuerst eine Dateiablage an (Seite „Dateiablagen“) und bestätigen Sie ihren Server.",
+      "paused": "pausiert",
+      "run": "Jetzt synchronisieren",
+      "cancel": "Abbrechen",
+      "files": "Nicht gelesene Dateien",
+      "from": "Aus",
+      "into": "Nach",
+      "schedule": "Zeitplan",
+      "next": "nächster Lauf",
+      "lastRun": "Letzter Lauf",
+      "numbers": "{{added}} neu, {{changed}} geändert, {{deleted}} gelöscht, {{refused}} abgelehnt",
+      "skipped": "{{count}} übersprungen (Dateityp)",
+      "open": "Offen",
+      "openFiles": "{{count}} Dateien ({{size}}) noch nicht gelesen",
+      "error": "Fehler"
+    },
+    "status": {
+      "new": "Noch nicht aufgelistet",
+      "running": "Läuft",
+      "ok": "Aktuell",
+      "cancelled": "Abgebrochen",
+      "incomplete": "Unvollständig aufgelistet",
+      "failed": "Fehler",
+      "failedSince": "Fehler seit"
+    },
+    "schedule": {
+      "MANUAL": "Nur von Hand",
+      "HOURLY": "Stündlich",
+      "EVERY_3_HOURS": "Alle 3 Stunden",
+      "EVERY_6_HOURS": "Alle 6 Stunden",
+      "EVERY_12_HOURS": "Alle 12 Stunden",
+      "DAILY": "Täglich (nachts)"
+    },
+    "dialog": {
+      "titleEdit": "Quelle bearbeiten",
+      "nameHint": "Wie die Quelle heißt, z. B. „Projekte“",
+      "nameRequired": "Name ist erforderlich",
+      "nameBlank": "Name darf nicht nur aus Leerzeichen bestehen",
+      "store": "Dateiablage",
+      "storeNotReady": "Server noch nicht bestätigt",
+      "storeHint": "Nur Ablagen, deren Server Sie bestätigt haben",
+      "folder": "Ordner",
+      "folderPlaceholder": "Projekte/2025",
+      "folderHint": "Unterhalb des Ordners der Ablage, mit Unterordnern - leer: der Ordner der Ablage",
+      "area": "Nach",
+      "areaHint": "Wohin neue Dokumente kommen - von Hand verschobene bleiben, wo sie sind",
+      "pattern": "Dateinamen",
+      "patternHint": "z. B. *.pdf - leer: jede Datei eines Typs, der gelesen wird",
+      "schedule": "Zeitplan",
+      "scheduleHint": "Ein geplanter Lauf liest höchstens 100 Dateien (250 MB), den Rest der nächste",
+      "active": "Nach Zeitplan ausführen",
+      "otherFiles": "Andere Ablage oder anderer Ordner: Die Dokumente der Quelle werden gelöscht und der neue Ordner neu eingelesen. Wenn Sie sie behalten möchten, entfernen Sie die Quelle mit „Dokumente behalten“ und legen eine neue an.",
+      "chooseFolder": "Ordner wählen",
+      "overlap": "Die Quelle „{{name}}“ liest diesen Ordner, einen darüber oder darunter aus derselben Dateiablage - ihre Dateien stünden doppelt im Firmenwissen. Speichern geht; geben Sie jeder Quelle einen eigenen Ordner oder Dateinamen, die sie trennen."
+    },
+    "folderPicker": {
+      "title": "Ordner wählen",
+      "path": "Pfad",
+      "empty": "Dieser Ordner hat keine Unterordner - übernehmen Sie ihn oder gehen Sie zurück.",
+      "truncated": "Nur die ersten 500 Ordner werden gezeigt.",
+      "take": "Diesen Ordner übernehmen"
+    },
+    "remove": {
+      "title": "„{{name}}“ entfernen?",
+      "message": "Was soll mit den Dokumenten dieser Quelle geschehen?\n\nLöschen: Sie werden mit der Quelle gelöscht - der Chat antwortet nicht mehr daraus.\nBehalten: Sie bleiben als hochgeladene Dokumente im Firmenwissen, werden aber nicht mehr aktualisiert.",
+      "keep": "Dokumente behalten",
+      "delete": "Mit Dokumenten löschen"
+    },
+    "files": {
+      "title": "Nicht gelesene Dateien von „{{name}}“",
+      "intro": "Diese Dateien haben kein Dokument. Eine abgelehnte Datei wird erneut gelesen, wenn sie sich ändert.",
+      "none": "Jede Datei der Quelle hat ihr Dokument.",
+      "failed": "Die Dateien konnten nicht geladen werden - bitte schließen Sie den Dialog und versuchen Sie es erneut.",
+      "deletedByHand": "Das Dokument wurde von Hand gelöscht - es kommt zurück, wenn sich die Datei ändert",
+      "typeNotSupported": "Ein Dateityp, der nicht gelesen wird",
+      "unreadable": "Die Dateiablage konnte die Datei nicht lesen - sie wird bei jedem Lauf erneut versucht"
+    },
+    "run": {
+      "title": "„{{name}}“ jetzt synchronisieren?",
+      "message": "{{count}} Dateien ({{size}}) werden jetzt ins Firmenwissen eingelesen - alle auf einmal, ohne die Grenze eines geplanten Laufs. Gescannte Seiten und Bilder liest das Bildmodell, das kostet.",
+      "messageNothingOpen": "Der Ordner wird erneut aufgelistet; neue und geänderte Dateien werden ins Firmenwissen eingelesen."
+    },
+    "snack": {
+      "created": "Quelle hinzugefügt - ihr Ordner wird aufgelistet",
+      "deleted": "Quelle entfernt",
+      "started": "Synchronisierung läuft im Hintergrund",
+      "error": "Fehler: {{error}}"
+    }
+  },
+  "models": {
+    "provider": {
+      "ANTHROPIC": "Anthropic",
+      "OPENAI": "OpenAI",
+      "GEMINI": "Google Gemini",
+      "OLLAMA": "Ollama",
+      "OPENAI_COMPATIBLE": "OpenAI-kompatibel",
+      "BEDROCK": "Amazon Bedrock",
+      "TAVILY": "Tavily (Websuche)",
+      "TEI": "TEI-Server (Reranker)"
+    },
+    "kind": {
+      "CHAT": "Chat",
+      "EMBEDDING": "Embedding",
+      "IMAGE": "Bild",
+      "WEB_SEARCH": "Websuche",
+      "RERANK": "Reranker"
+    },
+    "keySource": {
+      "OWN": "eigener Key",
+      "GLOBAL": "globaler Key"
+    },
+    "list": {
+      "title": "KI-Modelle",
+      "subtitle": "Chat- und Embedding-Modelle, die Mandanten auswählen können.",
+      "create": "Neues Modell",
+      "catalog": "Modellkatalog",
+      "pricesNote": "Preise in € pro 1 Mio. Tokens",
+      "refresh": "Aktualisieren",
+      "emptyTitle": "Noch keine KI-Modelle",
+      "emptyText": "Erst ein Modell im Katalog kann einem Mandanten freigegeben werden - für den Chat oder zum Einbetten der Dokumente.",
+      "columnProvider": "Provider",
+      "columnKind": "Art",
+      "columnDimension": "Dimension",
+      "columnReads": "Liest direkt",
+      "readsPdf": "Liest PDF direkt",
+      "readsAudio": "Liest Audio direkt",
+      "transcribes": "Transkribiert hochgeladene Audiodateien",
+      "columnPrices": "Input / Output",
+      "perThousandSearches": "pro 1.000 Suchen",
+      "columnStatus": "Status",
+      "confirmDelete": "KI-Modell \"{{name}}\" wirklich löschen?\nEin Modell, das nicht mehr angeboten werden soll, lässt sich auch deaktivieren."
+    },
+    "snack": {
+      "created": "KI-Modell erstellt",
+      "updated": "KI-Modell aktualisiert",
+      "deleted": "KI-Modell gelöscht",
+      "createFailed": "FEHLER beim Erstellen: {{error}}",
+      "updateFailed": "FEHLER beim Aktualisieren: {{error}}",
+      "deleteFailed": "FEHLER beim Löschen: {{error}}"
+    },
+    "dialog": {
+      "editTitle": "KI-Modell bearbeiten",
+      "createTitle": "Neues KI-Modell",
+      "provider": "Anbieter",
+      "kind": "Art",
+      "anthropicEmbedding": "Anthropic bietet keine Embedding-Modelle an.",
+      "bedrockOnlyChat": "Von Bedrock lassen sich nur Chat-Modelle nutzen - das Firmenwissen behält sein eigenes Embedding-Modell.",
+      "imageNotGemini": "Bildmodelle gibt es vorerst nur von Google Gemini.",
+      "imageHint": "Erstellt im Chat Bilder - neue oder aus hochgeladenen Bildern (z.B. gemini-2.5-flash-image). Es chattet nicht selbst.",
+      "webSearchTavily": "Die Websuche kommt nur von Tavily, und Tavily bietet nichts anderes an.",
+      "rerankTei": "Ein Reranker läuft auf einem TEI-Server, und ein TEI-Server bietet nur den Reranker an.",
+      "webSearchHint": "Die Websuche des Chats über Tavily - kein Modell. Weisen Sie sie einem Mandanten wie ein Modell zu; dessen Mandanten-Admins schalten sie für Gruppen, API-Keys und den MCP-Server ein. Der Key gehört unter API-Keys zu Tavily.",
+      "rerankHint": "Sortiert die Treffer der Wissenssuche danach, wie gut jeder die Frage beantwortet (ein Cross-Encoder, z.B. bge-reranker-v2-m3). Er läuft auf einem Server mit der /rerank-API von Hugging Face Text Embeddings Inference; ein Server dient allen Mandanten. Weisen Sie ihn einem Mandanten wie ein Modell zu - der Mandant wählt ihn unter Firmenwissen.",
+      "displayName": "Anzeigename",
+      "displayNameRequired": "Anzeigename ist erforderlich",
+      "displayNameBlank": "Anzeigename darf nicht nur aus Leerzeichen bestehen",
+      "modelName": "Modell-ID",
+      "modelNamePlaceholder": "z.B. gpt-5-mini",
+      "modelNameHint": "Der Name des Modells beim Provider",
+      "modelNameRequired": "Modell-ID ist erforderlich",
+      "modelNameBlank": "Modell-ID darf nicht nur aus Leerzeichen bestehen",
+      "baseUrl": "Server-Adresse",
+      "baseUrlPlaceholderOllama": "z.B. https://ollama.firma.example",
+      "baseUrlPlaceholderTei": "z.B. http://alpdesk-ai-reranker",
+      "baseUrlPlaceholderCompatible": "z.B. https://api.mistral.ai/v1",
+      "baseUrlPlaceholderBedrock": "z.B. https://bedrock-runtime.eu-central-1.amazonaws.com",
+      "bedrockAddress": "Bitte die Adresse einer Bedrock-Region angeben: https://bedrock-runtime.<region>.amazonaws.com",
+      "bedrockKeyHint": "Der Zugriffsschlüssel eines IAM-Benutzers: ACCESS_KEY_ID:SECRET_ACCESS_KEY",
+      "bedrockKey": "Bitte den Zugriffsschlüssel als ID, Doppelpunkt und Secret angeben.",
+      "baseUrlHint": "Nur HTTPS - unverschlüsseltes HTTP nur zu Hosts, die der Server freigibt",
+      "baseUrlRequired": "Ein Modell auf einem eigenen Server braucht dessen Adresse.",
+      "baseUrlInvalid": "Bitte als https://host[:port][/pfad] angeben - ohne Benutzer, Parameter oder #.",
+      "apiKey": "API-Key des Servers",
+      "apiKeyStored": "Gespeichert: {{hint}} - leer lassen = unverändert. Ein anderer Host verwirft ihn.",
+      "apiKeyOptional": "Optional - nur wenn der Server einen verlangt",
+      "removeApiKey": "Gespeicherten Key entfernen",
+      "contextLength": "Kontextlänge",
+      "contextLengthHint": "Leer = 32768. Was nicht hineinpasst, schneidet Ollama ohne Meldung ab.",
+      "contextLengthRange": "Die Kontextlänge muss eine ganze Zahl von {{min}} bis {{max}} sein.",
+      "dimension": "Dimension",
+      "dimensionHint": "Länge der Vektoren (1-{{max}}), wird beim Anbieter so angefragt - z. B. 1536 auch für Modelle, die mehr liefern können",
+      "dimensionRequired": "Ein Embedding-Modell braucht seine Dimension.",
+      "dimensionRange": "Die Dimension muss eine ganze Zahl von 1 bis {{max}} sein.",
+      "readsDirectly": "Liest direkt",
+      "pdf": "PDF",
+      "audio": "Audio",
+      "imagesHint": "Bilder liest jedes Chat-Modell.",
+      "transcribes": "Transkribiert hochgeladene Audiodateien (nur ein Modell)",
+      "readsScans": "Liest Bilder und Scans für das Firmenwissen (nur ein Modell)",
+      "takesTemperature": "Nimmt eine Temperatur (Kreativität)",
+      "takesTemperatureHint": "Aus für Reasoning-Modelle, die keine Temperatur annehmen (z.B. GPT-5, o3).",
+      "steersReasoning": "Nachdenken lässt sich steuern",
+      "steersReasoningHint": "An für Modelle mit einstellbarem Nachdenken (z.B. GPT-5, Gemini 2.5, Claude, Qwen3). \"Aus\" schickt bei Gemini das Budget 0 - Gemini 2.5 Pro kann das nicht.",
+      "callsTools": "Kann Werkzeuge nutzen",
+      "callsToolsHint": "Aus (für kleine lokale Modelle): Die Anwendung durchsucht die Dokumente und liest die Dateien vorab und gibt sie mit der Frage mit - Dateien erstellen kann das Modell dann nicht.",
+      "maxOutputTokens": "Max. Ausgabe-Tokens",
+      "maxOutputTokensHint": "Leer = 16384. Gilt für Nachdenken und Antwort zusammen - ein Modell, das von sich aus nachdenkt (z. B. Qwen), braucht genug für beides. Bei steuerbarem Nachdenken kommt das Denk-Budget dazu.",
+      "maxOutputTokensRange": "Die Ausgabe-Tokens müssen eine ganze Zahl von {{min}} bis {{max}} sein.",
+      "tokensSuffix": "Tokens",
+      "inputPrice": "Preis Input",
+      "outputPrice": "Preis Output",
+      "euroSuffix": "€",
+      "perMillion": "pro 1 Mio. Tokens",
+      "perThousandSearches": "pro 1.000 Suchen",
+      "webSearchPrice": "Preis",
+      "notNegative": "Darf nicht negativ sein",
+      "tiersAndCache": "Preisstufe und Cache (optional)",
+      "tiersAndCacheHint": "Manche Modelle berechnen eine Anfrage mit langem Prompt zu höheren Preisen und einen gecachten Token zu einem eigenen Preis - siehe die Preisliste des Anbieters. Leer: ein Preis, ein gecachter Token wie ein Eingabe-Token.",
+      "tierThreshold": "Höhere Preise ab",
+      "tierThresholdHint": "Prompt-Länge einer Anfrage, gecachte Tokens mitgezählt",
+      "tierInputPrice": "Input-Preis darüber",
+      "tierOutputPrice": "Output-Preis darüber",
+      "cacheReadPrice": "Cache lesen",
+      "cacheWritePrice": "Cache schreiben",
+      "tierCacheReadPrice": "Cache lesen darüber",
+      "tierCacheWritePrice": "Cache schreiben darüber",
+      "tierIncomplete": "Eine Preisstufe braucht ihre Grenze und beide Preise, Input und Output.",
+      "tierThresholdRange": "Die Grenze ist eine ganze Zahl an Tokens über 0.",
+      "active": "Aktiv (für Mandanten auswählbar)"
+    }
+  },
+  "tenantDetail": {
+    "overview": {
+      "codeExecution": {
+        "off": "nicht erlaubt",
+        "one": "erlaubt ({{count}} Instanz)",
+        "other": "erlaubt ({{count}} Instanzen)"
+      },
+      "sandboxStatus": {
+        "reachable": "erreichbar",
+        "busy": "belegt",
+        "tokenRefused": "Token abgelehnt",
+        "unreachable": "nicht erreichbar",
+        "unusable": "Neustart nötig (Grund im Log)"
+      },
+      "calls": "Aufrufe {{month}}",
+      "callsNote": "Chat, Einbetten, Bilder, Audio",
+      "tokens": "Tokens",
+      "tokensNote": "Eingabe und Ausgabe",
+      "cost": "Kosten",
+      "amount": "{{amount}} €",
+      "costNote": "mit eigenen und globalen Keys",
+      "billable": "Abzurechnen",
+      "billableNote": "über die globalen Keys",
+      "masterData": "Stammdaten",
+      "status": "Status",
+      "contact": "Kontakt",
+      "globalKeys": "Globale Keys",
+      "globalKeysAllowed": "erlaubt - wird abgerechnet",
+      "globalKeysNotAllowed": "nicht erlaubt",
+      "codeExecutionLabel": "Code-Ausführung",
+      "checkSandbox": "Sandbox prüfen",
+      "sandboxVideo": "Video",
+      "sandboxExtras": "Eigene Programme",
+      "sandboxExtrasDiffer": "Die Instanzen haben unterschiedliche eigene Programme (ihr README unterscheidet sich, oder einige haben keins) - der Assistent erfährt von keinem, bis sie übereinstimmen.",
+      "database": "Datenbank",
+      "created": "Angelegt",
+      "notes": "Notizen"
+    },
+    "tabs": {
+      "overview": "Übersicht",
+      "users": "Benutzer",
+      "models": "Modelle",
+      "knowledge": "Firmenwissen",
+      "handbook": "Handbuch",
+      "assistant": "Assistent",
+      "keys": "Keys",
+      "software": "Software",
+      "fileStores": "Dateiablagen",
+      "branding": "Branding",
+      "tasks": "Aufgaben"
+    },
+    "allTenants": "Alle Mandanten",
+    "delete": "Mandant löschen",
+    "usersNote": "Mitarbeiter des Mandanten, die sich bei {{installation}} anmelden.",
+    "notFoundTitle": "Mandant nicht gefunden",
+    "notFoundText": "Es gibt keinen Mandanten mit dieser Nummer - vielleicht wurde er gelöscht.",
+    "snack": {
+      "modelsSaved": "KI-Modelle gespeichert",
+      "modelsFailed": "FEHLER beim Speichern der KI-Modelle: {{error}}",
+      "brandingSaved": "Branding gespeichert",
+      "brandingFailed": "FEHLER beim Speichern des Brandings: {{error}}"
+    },
+    "models": {
+      "title": "Freigegebene Modelle",
+      "manage": "Verwalten",
+      "assign": "Modelle zuweisen",
+      "embedsDocuments": "bettet die Dokumente ein",
+      "emptyTitle": "Noch keine Modelle freigegeben",
+      "emptyText": "Der Mandant sieht und nutzt nur die Modelle, die Sie ihm zuweisen - mit eigenem oder globalem API-Key."
+    }
+  },
+  "tenants": {
+    "list": {
+      "title": "Mandanten",
+      "subtitle": "Kunden von {{installation}} und ihre Einstellungen. Eine Zeile öffnet den Mandanten.",
+      "create": "Neuer Mandant",
+      "searchPlaceholder": "Mandant suchen",
+      "searchLabel": "Mandanten durchsuchen",
+      "refresh": "Aktualisieren",
+      "emptyTitle": "Noch keine Mandanten",
+      "emptyText": "Ein Mandant ist ein Kunde: eine Firma mit eigener Datenbank, eigenen Benutzern und eigenem Firmenwissen.",
+      "columnTenant": "Mandant",
+      "columnStatus": "Status",
+      "columnContact": "Kontakt",
+      "columnGlobalKeys": "Globale Keys",
+      "allowed": "erlaubt",
+      "noMatch": "Kein Mandant zu dieser Suche.",
+      "open": "Öffnen",
+      "confirmDelete": "Mandant \"{{name}}\" wirklich löschen?\nGelöscht werden auch seine Benutzer, API-Keys, Dokumente, Chats und sein Verbrauch - rechnen Sie ihn vorher ab. Nur sperren: Mandant deaktivieren."
+    },
+    "snack": {
+      "created": "Mandant erstellt",
+      "updated": "Mandant aktualisiert",
+      "deleted": "Mandant gelöscht",
+      "createFailed": "FEHLER beim Erstellen: {{error}}",
+      "updateFailed": "FEHLER beim Aktualisieren: {{error}}",
+      "deleteFailed": "FEHLER beim Löschen: {{error}}"
+    },
+    "dialog": {
+      "editTitle": "Mandant bearbeiten",
+      "createTitle": "Neuer Mandant",
+      "nameRequired": "Name ist erforderlich",
+      "nameBlank": "Name darf nicht nur aus Leerzeichen bestehen",
+      "contactEmail": "Kontakt-E-Mail",
+      "emailInvalid": "Keine gültige E-Mail-Adresse",
+      "notes": "Notizen",
+      "active": "Aktiv (API-Zugriff erlaubt)",
+      "globalKeysAllowed": "Globale API-Keys erlauben (Verbrauch wird abgerechnet)",
+      "codeExecution": "Code-Ausführung (Python und Shell)",
+      "codeExecutionNote": "Nur mit einer eigenen Sandbox des Mandanten, die auf dem Server gestartet wird. Ohne Adressen keine Code-Ausführung.",
+      "sandboxUrls": "Sandbox-Adressen",
+      "sandboxUrlsPlaceholder": "http://alpdesk-ai-sandbox-musterfirma:8080",
+      "sandboxUrlsHint": "Eine je Zeile oder durch Komma getrennt; leer: keine Code-Ausführung",
+      "sandboxToken": "Sandbox-Token",
+      "tokenStored": "gespeichert: {{hint}}",
+      "tokenHint": "{{min}} bis {{max}} Zeichen",
+      "tokenHintStored": "{{min}} bis {{max}} Zeichen; leer lassen: unverändert",
+      "tokenInvalid": "{{min}} bis {{max}} Zeichen, ohne Leerzeichen",
+      "tokenMissing": "Die Adressen brauchen ein Token.",
+      "addressesMissing": "Das Token braucht Adressen.",
+      "database": "Datenbank: {{name}}",
+      "searchLanguageHint": "Die Sprache der Dokumente des Mandanten - später unter „Firmenwissen“ änderbar.",
+      "tasksAllowed": "Darf Aufgaben anlegen",
+      "a2aAllowed": "Darf A2A-Agenten anbinden",
+      "a2aAllowedHint": "Fragen der Benutzer verlassen dann die Installation zu den Agenten, die seine Administratoren anbinden."
+    },
+    "modelsDialog": {
+      "title": "KI-Modelle – {{name}}",
+      "intro": "Der Mandant sieht und nutzt nur die ausgewählten Modelle – mit eigenem oder globalem API-Key.",
+      "inactiveSuffix": " · inaktiv",
+      "embeddingLocked": "Die Dokumente des Mandanten sind mit diesem Modell eingebettet – es bleibt zugewiesen, bis der Mandant ein anderes wählt.",
+      "empty": "Noch keine KI-Modelle im Katalog."
+    }
+  },
+  "branding": {
+    "dialog": {
+      "title": "Branding – {{name}}",
+      "intro": "So sehen die Benutzer des Mandanten die Oberfläche nach der Anmeldung. Leere Felder nehmen den Standard der Installation.",
+      "default": "Standard: {{value}}",
+      "nameTooLong": "Höchstens {{max}} Zeichen",
+      "primaryColor": "Primärfarbe",
+      "colorHint": "Als #rrggbb - Standard: {{value}}",
+      "colorInvalid": "Bitte als #rrggbb angeben, z. B. #1a4f8b",
+      "pickColor": "Farbe wählen",
+      "logo": "Logo",
+      "noLogo": "Kein eigenes Logo - es gilt das der Installation.",
+      "replaceLogo": "Logo ersetzen",
+      "uploadLogo": "Logo hochladen",
+      "logoRules": "PNG, JPEG oder WebP, höchstens {{max}}. Wird sofort gespeichert."
+    },
+    "snack": {
+      "logoSaved": "Logo gespeichert",
+      "logoRemoved": "Logo entfernt",
+      "failed": "FEHLER: {{error}}",
+      "logoTooLarge": "Das Logo ist zu groß (max. {{max}})",
+      "linkCopied": "Link kopiert",
+      "linkCopyFailed": "Der Link konnte nicht kopiert werden",
+      "linkRenewed": "Neuer Link erzeugt - der alte zeigt das Aussehen des Mandanten nicht mehr"
+    },
+    "summary": {
+      "title": "Branding",
+      "intro": "So sehen die Benutzer des Mandanten die Oberfläche - nach der Anmeldung und auf seiner Anmeldeseite.",
+      "edit": "Branding bearbeiten",
+      "defaultTag": "Standard"
+    },
+    "loginLink": {
+      "title": "Anmeldeseite",
+      "adminHint": "Zeigt vor der Anmeldung Logo, Name und Farbe des Mandanten. Geben Sie diesen Link an seine Mitarbeiter weiter.",
+      "usersIntro": "Geben Sie Ihren Mitarbeitern diesen Link: Die Anmeldung zeigt dann Ihr Logo, Ihren Namen und Ihre Farbe.",
+      "copy": "Link kopieren",
+      "renew": "Neuer Link",
+      "confirmRenew": "Einen neuen Link erzeugen? Der bisherige zeigt danach nur noch die neutrale Anmeldeseite."
+    }
+  },
+  "usage": {
+    "title": "Verbrauch",
+    "subtitle": {
+      "admin": "Beträge in € nach den Preisen der Modelle; über globale Keys abzurechnen.",
+      "tenant": "Beträge in € nach den Preisen der Modelle; über globale Keys wird abgerechnet."
+    },
+    "previousMonth": "Vormonat",
+    "nextMonth": "Folgemonat",
+    "tiles": {
+      "total": "Gesamt",
+      "totalNote": "nach den Preisen der Modelle",
+      "billableNote": "über globale Keys",
+      "ownKeys": "Eigene Keys",
+      "ownKeysNoteAdmin": "nicht abzurechnen",
+      "ownKeysNoteTenant": "direkt beim Anbieter",
+      "tenants": "Mandanten",
+      "tenantsNote": "mit Verbrauch in diesem Monat"
+    },
+    "billable": {
+      "admin": "Abzurechnen",
+      "tenant": "Wird abgerechnet"
+    },
+    "byModel": "Nach Modell",
+    "columns": {
+      "model": "Modell",
+      "key": "Key",
+      "calls": "Aufrufe",
+      "tokens": "Tokens Input / Output",
+      "amount": "Betrag"
+    },
+    "estimated": "Teilweise geschätzt - der Anbieter hat keine Token-Zahlen geliefert",
+    "sums": {
+      "total": "Gesamt: {{amount}}",
+      "billable": "{{label}}: {{amount}}"
+    },
+    "empty": {
+      "title": "Kein Verbrauch in diesem Monat",
+      "text": "Sobald Chat, Einbettung oder Dokumentenauswertung ein Modell aufrufen, erscheint hier der Verbrauch."
+    },
+    "cached": "{{read}} aus dem Cache gelesen, {{write}} in ihn geschrieben"
+  },
+  "paging": {
+    "size50": "50",
+    "size100": "100",
+    "all": "Alle",
+    "range": "{{start}}–{{end}} von {{total}}",
+    "empty": "0 von 0"
+  },
+  "applicationLog": {
+    "title": "Anwendungslog",
+    "subtitle": "Warnungen und Fehler der Anwendung seit ihrem Start – die neuesten zuerst",
+    "panelTitle": "Meldungen",
+    "filter": {
+      "all": "Warnungen und Fehler",
+      "errors": "Nur Fehler"
+    },
+    "searchPlaceholder": "Meldung, Logger oder Stacktrace",
+    "searchLabel": "Im Log suchen",
+    "refresh": "Neu laden",
+    "column": {
+      "time": "Zeitpunkt",
+      "level": "Stufe",
+      "logger": "Logger",
+      "message": "Meldung"
+    },
+    "level": {
+      "error": "Fehler",
+      "warning": "Warnung"
+    },
+    "thread": "Thread",
+    "hasStackTrace": "Mit Stacktrace",
+    "summary": "{{count}} Meldungen. Im Speicher bleiben die letzten {{capacity}} Warnungen und Fehler seit dem Start am {{started}} – ältere stehen im Container-Log des Servers.",
+    "empty": {
+      "title": "Keine Meldungen",
+      "text": "Für diese Filter gibt es keine Warnung und keinen Fehler."
+    },
+    "dailyReport": {
+      "send": "Tagesbericht jetzt senden",
+      "tooltip": "Verschickt den Tagesbericht jetzt an seine Empfänger – ein Test der Mail-Einstellungen",
+      "sent": "Tagesbericht an {{count}} Empfänger verschickt",
+      "failed": "Der Tagesbericht konnte nicht verschickt werden: {{error}}"
+    }
+  },
+  "tasks": {
+    "page": {
+      "title": "Aufgaben",
+      "subtitle": "Prüfungen von Dateien, die von selbst laufen und nur melden, was nicht stimmt"
+    },
+    "notAllowedNote": "Dieser Mandant darf noch keine Aufgaben haben - schalten Sie es in den Stammdaten ein. Aufgaben lassen sich vorbereiten, aber keine läuft.",
+    "confirmDelete": "Die Aufgabe „{{name}}“ mit allen Läufen löschen?",
+    "panel": {
+      "title": "Aufgaben",
+      "intro": "Jede liest Dateien einer Dateiablage, prüft sie und meldet per E-Mail, was sie findet",
+      "add": "Neue Aufgabe",
+      "import": "Importieren",
+      "emptyTitle": "Noch keine Aufgabe",
+      "emptyText": "Eine neue Aufgabe beginnt mit einer Vorlage - der Prüfung von Logdateien einer Dateiablage.",
+      "name": "Name",
+      "triggers": "Läuft",
+      "lastRun": "Letzter Lauf",
+      "nextRun": "Nächster Lauf",
+      "never": "noch nie",
+      "off": "aus",
+      "start": "Jetzt starten",
+      "addWithAi": "Neue Aufgabe mit KI"
+    },
+    "trigger": {
+      "every": "alle {{every}}",
+      "cron": "Zeitplan {{cron}}",
+      "manual": "von Hand"
+    },
+    "editor": {
+      "newTitle": "Neue Aufgabe",
+      "newSubtitle": "Noch nicht gespeichert - prüfen Sie sie, dann speichern",
+      "subtitle": "Gespeichert · Version {{version}}",
+      "back": "Alle Aufgaben",
+      "reference": "Format",
+      "check": "Prüfen",
+      "checking": "Wird geprüft…",
+      "start": "Jetzt starten",
+      "export": "Exportieren",
+      "duplicate": "Duplizieren",
+      "active": "Aktiv - läuft nach Zeitplan, durch die angebundene Software und MCP",
+      "text": "Text (YAML)",
+      "unsaved": "nicht gespeichert",
+      "line": "Zeile {{line}}:",
+      "valid": "Die Aufgabe ist gültig.",
+      "graph": "Schritte",
+      "noGraph": "Prüfen Sie den Text, um seine Schritte zu sehen.",
+      "leave": "Die Aufgabe hat ungespeicherte Änderungen. Ohne Speichern verlassen?",
+      "leaveConfirm": "Verlassen",
+      "draft": "Mit KI entwerfen",
+      "keys": "Starten dürfen:",
+      "noKeys": "Kein Key darf sie starten",
+      "keysHint": "Welche Keys eine Aufgabe starten dürfen, wählen Sie bei den API-Keys und MCP-Keys.",
+      "keyApi": "{{name}} (API)",
+      "keyMcp": "{{name}} (MCP)"
+    },
+    "graph": {
+      "label": "Die Schritte der Aufgabe",
+      "fixed": "liest",
+      "agent": "Modell prüft",
+      "output": "meldet",
+      "back": "zurück, mit Grenze"
+    },
+    "reference": {
+      "title": "Das Format einer Aufgabe"
+    },
+    "runs": {
+      "title": "Läufe",
+      "none": "Noch kein Lauf.",
+      "started": "Gestartet",
+      "by": "Durch",
+      "state": "Zustand",
+      "tokens": "Tokens",
+      "cost": "Kosten",
+      "atLeast": "mindestens",
+      "costNote": "Zum aktuellen Preis des Modellkatalogs - die genaue Abrechnung zeigt die Seite Verbrauch",
+      "cancel": "Abbrechen",
+      "deleteAll": "Beendete Läufe löschen",
+      "confirmDeleteAll": "Alle beendeten Läufe von „{{name}}“ mit ihren Befunden löschen?",
+      "mailFailed": "Mail fehlgeschlagen",
+      "cached": "davon {{count}} aus dem Cache"
+    },
+    "run": {
+      "title": "Lauf {{id}}",
+      "subtitle": "Mit Version {{version}} der Aufgabe",
+      "back": "Zur Aufgabe",
+      "mailFailed": "Eine Mail dieses Laufs konnte nicht verschickt werden - siehe Anwendungslog.",
+      "step": "Schritt {{step}}",
+      "pick": "Wählen Sie einen Schritt im Graphen",
+      "noStep": "Der Schritt ist in diesem Lauf nicht gelaufen.",
+      "round": "Runde {{round}}",
+      "rounds": "{{count}} Runden",
+      "read": "{{lines}} Zeilen aus {{files}} Dateien behalten.",
+      "documents": "{{files}} Dokumente gelesen.",
+      "documentsLeft": "Weitere warten - der nächste Lauf liest sie.",
+      "unreadable": "nicht gelesen",
+      "rows": "{{rows}} Zeilen, davon {{unclear}} unklar.",
+      "written": "{{rows}} Zeilen geschrieben, {{skipped}} schon vorhanden.",
+      "source": "Dokument",
+      "unclear": "Unklar",
+      "truncated": "Nicht alles wurde gelesen - eine Grenze war erreicht.",
+      "sent": "An {{count}} Empfänger verschickt.",
+      "choice": "Gewählt:",
+      "calls": "{{sent}} Aufrufe gingen durch, {{failed}} wurden abgelehnt.",
+      "callSent": "gesendet",
+      "callFailed": "abgelehnt"
+    },
+    "snack": {
+      "saved": "Aufgabe gespeichert",
+      "deleted": "Aufgabe gelöscht",
+      "started": "Lauf gestartet",
+      "error": "Nicht erledigt: {{error}}",
+      "drafted": "Entwurf in den Editor übernommen - prüfen und speichern Sie ihn",
+      "draftedWithErrors": "Entwurf in den Editor übernommen - er hat noch Fehler, siehe unten"
+    },
+    "runState": {
+      "QUEUED": "wartet",
+      "RUNNING": "läuft",
+      "DONE": "fertig",
+      "UNCLEAR": "unklar",
+      "FAILED": "fehlgeschlagen",
+      "CANCELLED": "abgebrochen"
+    },
+    "stepState": {
+      "DONE": "gelaufen",
+      "SKIPPED": "übersprungen",
+      "FAILED": "fehlgeschlagen"
+    },
+    "startedBy": {
+      "ADMIN": "Administrator",
+      "TENANT_ADMIN": "Mandanten-Admin",
+      "SCHEDULE": "Zeitplan",
+      "API": "Angebundene Software",
+      "MCP": "MCP",
+      "A2A": "A2A"
+    },
+    "checkStatus": {
+      "ok": "in Ordnung",
+      "finding": "Befund",
+      "report": "Bericht",
+      "unclear": "unklar"
+    },
+    "about": {
+      "read": "{{store}} · {{pattern}}",
+      "readNew": "{{store}} · {{pattern}} · nur Neues",
+      "agent": "{{model}} · {{count}} Prüfpunkte",
+      "verify": "prüft {{of}} gegen",
+      "mailTo": "an {{to}}",
+      "mailNotify": "an die notify-Liste",
+      "prompt": "{{model}} · freie Antwort",
+      "promptChoices": "{{model}} · wählt {{choices}}",
+      "readDocuments": "{{store}} · {{pattern}} · Dokumente",
+      "readDocumentsDeep": "{{store}} · {{pattern}} · Dokumente mit Unterordnern",
+      "extract": "{{model}} · {{fields}}",
+      "writeFile": "{{store}} · {{file}}",
+      "writeFileReplace": "{{store}} · {{file}} · neu",
+      "callTool": "{{connection}} · {{tool}}",
+      "callToolSource": "{{connection}} · {{tool}} · Quelle",
+      "callAgent": "A2A-Agent {{agent}} {{skill}}",
+      "promptAgent": "Agent des Unternehmens · freie Antwort",
+      "promptAgentChoices": "Agent des Unternehmens · wählt {{choices}}"
+    },
+    "draft": {
+      "title": "Mit KI entwerfen",
+      "introNew": "Beschreiben Sie in eigenen Worten, was die Aufgabe tun soll - welche Dateien, was zu prüfen oder zu fragen ist, wer davon erfährt. Das Modell schreibt die Aufgabe, die Prüfung korrigiert sie; gespeichert wird erst, wenn Sie speichern.",
+      "introChange": "Beschreiben Sie, was sich ändern soll. Das Modell ändert die Aufgabe im Editor und lässt den Rest; die geänderten Zeilen werden markiert, gespeichert wird erst, wenn Sie speichern.",
+      "description": "Was die Aufgabe tun soll",
+      "placeholder": "z. B. Prüfe alle 5 Stunden die Logs auf der Ablage Logdateien auf Timeouts der Schnittstelle X und schreibe bei Fehlern an it@example.com",
+      "model": "Modell",
+      "working": "Das Modell schreibt - das kann einige Minuten dauern.",
+      "write": "Entwurf schreiben"
+    }
+  },
+  "keyDialog": {
+    "name": "Name",
+    "nameRequired": "Bitte einen Namen eingeben",
+    "areas": "Bereiche",
+    "onlyCompanyKnowledge": "nur Firmenwissen",
+    "software": "Software",
+    "noSoftware": "keine Software",
+    "tasks": "Aufgaben",
+    "noTasks": "keine Aufgabe",
+    "webSearch": "Websuche",
+    "webSearchHint": "Der Assistent darf für Fragen mit diesem Key im Web suchen - erst nach den Dokumenten, höchstens dreimal pro Antwort.",
+    "keepsHistory": "Verlauf speichern",
+    "keepsHistoryHint": "An: Fragen und Antworten werden als Unterhaltungen gespeichert. Aus: Jede Frage wird für sich beantwortet, nichts außer dem Verbrauch wird gespeichert.",
+    "create": "Anlegen",
+    "api": {
+      "createTitle": "Neuer API-Key",
+      "editTitle": "API-Key „{{name}}“ bearbeiten",
+      "namePlaceholder": "z. B. ERP Produktion",
+      "areasHint": "Was die angebundene Software neben dem Firmenwissen findet und wohin sie Dokumente schicken darf.",
+      "softwareHint": "Deren lesende Werkzeuge darf der Assistent bei Fragen mit diesem Key nutzen.",
+      "tasksHint": "Diese Aufgaben darf die angebundene Software über /api/v1/tasks starten und auslesen."
+    },
+    "mcp": {
+      "createTitle": "Neuer MCP-Key",
+      "editTitle": "MCP-Key „{{name}}“ bearbeiten",
+      "namePlaceholder": "z. B. Entwicklung, Geschäftsleitung",
+      "areasHint": "Was Claude, Cowork oder Copilot mit diesem Key neben dem Firmenwissen findet.",
+      "softwareHint": "Deren lesende Werkzeuge nutzt der Assistent; ist „Direkt an MCP-Clients“ an, ruft Claude sie auch selbst auf.",
+      "tasksHint": "Diese Aufgaben darf ein MCP-Client mit diesem Key auflisten, starten und auslesen."
+    },
+    "description": "Was dieser Key weiß",
+    "descriptionHint": "Wird an jeden Client mit diesem Key gesendet (z. B. einen allgemeinen Chat) - beschreiben Sie, was das freigegebene Wissen umfasst. Höchstens 500 Zeichen. Mit A2A ist er auch die Beschreibung der Agent-Card.",
+    "descriptionTooLong": "Höchstens 500 Zeichen",
+    "doorMcp": "MCP (Claude Code, Copilot)",
+    "doorA2a": "A2A (fremde Agenten)",
+    "noDoor": "Der Schlüssel muss MCP, A2A oder beides öffnen."
+  },
+  "keyRights": {
+    "column": "Rechte",
+    "areas": "Bereiche: {{names}}",
+    "companyKnowledge": "nur Firmenwissen",
+    "software": "Software: {{names}}",
+    "tasks": "Aufgaben: {{names}}",
+    "webSearch": "Websuche",
+    "noHistory": "ohne Verlauf",
+    "edit": "Bearbeiten",
+    "actionsFor": "Aktionen für {{name}}"
+  }
+}

@@ -1,0 +1,136 @@
+version: 2
+
+# Dependabot opens its pull requests against main, the branch everything converges on - the same
+# target external contributions use. It is pinned explicitly rather than left to follow the
+# default branch, so updates keep landing on the trunk even if the default branch is ever changed.
+#
+# The updates are grouped rather than filed one package at a time. Angular and NgRx release their
+# packages in lockstep and only work when they move together, and a dozen separate pull requests
+# for one Angular release is noise nobody reads. Grouping keeps a week's worth of updates to a
+# handful of reviewable pull requests.
+#
+# These pull requests run .github/workflows/pr-checks.yml like any other, so an update that breaks
+# the Spock suite, the lint rules or the Angular build shows up as a failed check rather than as a
+# surprise after merging.
+
+updates:
+  # ---------------------------------------------------------------------------------------------
+  # GitHub Actions used by the workflows
+  # ---------------------------------------------------------------------------------------------
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    target-branch: "main"
+    schedule:
+      interval: "weekly"
+    groups:
+      github-actions:
+        patterns:
+          - "*"
+
+  # ---------------------------------------------------------------------------------------------
+  # Backend (Gradle)
+  #
+  # Most versions come from the Micronaut platform BOM, so Dependabot only sees the handful that
+  # build.gradle pins explicitly - Tika, POI, flexmark, openhtmltopdf, jsoup, Byte Buddy, Objenesis - plus the
+  # plugin versions. A Micronaut major release usually wants the BOM raised as a whole, which is a
+  # manual step; the group below at least keeps its parts in one pull request.
+  # ---------------------------------------------------------------------------------------------
+  - package-ecosystem: "gradle"
+    directory: "/Backend"
+    target-branch: "main"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    ignore:
+      # POI is pinned to the version Tika's parsers bring (Backend/build.gradle): Tika 4.2 brings 5.5.x, so a POI
+      # major would run our DOCX/XLSX writing on one POI and Tika's parsers on another. Drop this entry once a Tika
+      # release brings POI 6 - its group below then raises both.
+      - dependency-name: "org.apache.poi*"
+        update-types: ["version-update:semver-major"]
+    groups:
+      micronaut:
+        patterns:
+          - "io.micronaut*"
+      tika:
+        patterns:
+          - "org.apache.tika*"
+          - "org.apache.poi*"
+      flexmark:
+        patterns:
+          - "com.vladsch.flexmark*"
+
+  # ---------------------------------------------------------------------------------------------
+  # Sandbox (Backend/podman/sandbox/requirements.txt, requirements-server.txt and its base image)
+  #
+  # The Python libraries the chat's code may use are pinned one by one, with what they pull in -
+  # an update of numpy or pandas comes as one pull request with its dependencies. The pull
+  # request's checks build the image and run Backend/podman/sandbox/selftest.py against it.
+  # ---------------------------------------------------------------------------------------------
+  - package-ecosystem: "pip"
+    directory: "/Backend/podman/sandbox"
+    target-branch: "main"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 3
+    groups:
+      sandbox-python:
+        patterns:
+          - "*"
+
+  - package-ecosystem: "docker"
+    directory: "/Backend/podman/sandbox"
+    target-branch: "main"
+    schedule:
+      interval: "weekly"
+
+  # ---------------------------------------------------------------------------------------------
+  # Frontend (npm)
+  #
+  # A major Angular release normally needs `ng update`, which migrates code as well as versions -
+  # Dependabot cannot do that. Treat a grouped Angular major as a reminder to run `ng update`
+  # yourself, not as a pull request to merge as-is. Minor and patch updates are fine to merge once
+  # the checks pass.
+  # ---------------------------------------------------------------------------------------------
+  - package-ecosystem: "npm"
+    directory: "/Frontend"
+    target-branch: "main"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    ignore:
+      # The Angular toolchain decides which TypeScript may be used: @angular/compiler-cli 22.1.7
+      # declares a peer dependency of >=6.0 <6.1, and typescript-eslint 8.69.0 allows <6.1.0.
+      # A TypeScript major beyond that cannot build here, so Dependabot would keep proposing an
+      # update that fails the lint step every single time (it already did, with 7.0.2).
+      #
+      # Minor and patch updates within the supported range still come through - only the major
+      # is held back. Drop this entry once Angular's peer dependency names the next major.
+      - dependency-name: "typescript"
+        update-types: ["version-update:semver-major"]
+
+      # 0.4.0 imports some of its own modules without the ".js" extension (e.g. './dynamic_color'
+      # in dynamiccolor/color_spec_2025.js): the browser bundle copes, but Vitest loads the package
+      # in Node, which refuses such an import, and branding.util.spec.ts fails to load. Only this
+      # version is held back - a release that fixes the imports comes through again.
+      - dependency-name: "@material/material-color-utilities"
+        versions: ["0.4.0"]
+
+    groups:
+      angular:
+        patterns:
+          - "@angular/*"
+          - "@angular-devkit/*"
+      ngrx:
+        patterns:
+          - "@ngrx/*"
+      # Linting, formatting and the test runner - they break the build, never the app.
+      tooling:
+        patterns:
+          - "eslint"
+          - "eslint-*"
+          - "@eslint/*"
+          - "angular-eslint"
+          - "typescript-eslint"
+          - "prettier"
+          - "vitest"
+          - "jsdom"

@@ -1,0 +1,10 @@
+# The video image's libraries on top of requirements.txt (Dockerfile target "video", docs/architecture/code-execution.md
+# "Videos"): rtmlib finds a person's joints in a frame (RTMPose) on ONNX Runtime. Every one pinned, the ones asked for
+# and what they pull in, installed without their own dependencies - rtmlib asks for OpenCV with its GUI, the headless
+# build is enough (no window is ever opened). THIRD-PARTY.md names each with its license; Dependabot proposes updates.
+rtmlib==0.0.16
+onnxruntime==1.31.0
+opencv-python-headless==5.0.0.93
+flatbuffers==25.12.19
+protobuf==7.36.2
+tqdm==4.70.1

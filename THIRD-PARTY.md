@@ -1,13 +1,14 @@
 # Third-party libraries and their licenses
 
-Alpdesk AI itself is under the [MIT license](LICENSE). The released jar, the container image and the frontend bundle
+Zirmo itself is under the [MIT license](LICENSE). The released jar, the container image and the frontend bundle
 include the libraries listed below; their licenses continue to apply to their part. None of them is a strong copyleft
 license that extends to the project's own code: the copyleft ones are weak copyleft (LGPL, MPL, CDDL, EPL), used as
 unmodified libraries, or offer a permissive option.
 
 The licenses were read out of the resolved artifacts - POM metadata, `Bundle-License` in the jar manifests,
 `META-INF/LICENSE` files and source headers for the backend, the `license` field of each installed package for the
-frontend - not assumed. As of: backend `runtimeClasspath` and frontend `dependencies` of 23 October 2026, the AWS SDK and MSAL added 29 October 2026.
+frontend - not assumed. As of: backend `runtimeClasspath` and frontend `dependencies` of 23 October 2026, the AWS SDK and MSAL added 29 October 2026, Tika 4's
+libraries 6 November 2026, langchain4j's Bedrock module with the SDK's Bedrock and Netty clients 8 November 2026, Nimbus' OAuth SDK with its libraries 9 November 2026.
 
 ## Backend (Java, shipped in the jar)
 
@@ -19,22 +20,25 @@ Most of the stack. Apache-2.0 asks for the license and the NOTICE contents to be
 | Component | Role |
 |---|---|
 | `io.micronaut*:*` (core, http, data, security, serde, sql, flyway, reactor, jsonschema, mcp) | Application framework, MCP server and client |
-| `dev.langchain4j:*` (core, anthropic, open-ai, google-ai-gemini, ollama, http-client, pgvector, web-search-engine-tavily) | AI provider clients, vector store, the chat's web search |
+| `dev.langchain4j:*` (core, anthropic, open-ai, google-ai-gemini, ollama, bedrock, reactive-streaming, http-client, pgvector, web-search-engine-tavily) | AI provider clients, vector store, the chat's web search |
 | `org.apache.tika:*` (core and parser modules) | Text extraction from documents |
 | `org.apache.poi:*`, `org.apache.xmlbeans:xmlbeans` | Office formats |
-| `org.apache.pdfbox:*` (pdfbox, fontbox, pdfbox-io, xmpbox, pdfbox-tools, jempbox, jbig2-imageio), `de.rototor.pdfbox:graphics2d` | PDF reading and rendering |
+| `org.apache.pdfbox:*` (pdfbox, fontbox, pdfbox-io, xmpbox, pdfbox-tools, jbig2-imageio), `de.rototor.pdfbox:graphics2d` | PDF reading and rendering |
 | `org.apache.commons:*`, `commons-io`, `commons-codec`, `commons-logging` | Utilities |
 | `org.apache.james:apache-mime4j-*`, `org.apache.opennlp:opennlp-tools`, `org.apache.logging.log4j:log4j-api`, `log4j-to-slf4j` | Tika's parsing, Log4j bridge |
 | `org.flywaydb:flyway-core`, `flyway-database-postgresql` (Community edition) | Database migrations |
 | `org.apache.sshd:sshd-core`, `sshd-common`, `sshd-sftp` (Apache MINA SSHD) | SFTP to the tenants' file stores |
 | `commons-net:commons-net` | FTPS to the tenants' file stores |
-| `software.amazon.awssdk:*` (AWS SDK for Java 2: s3, url-connection-client and their modules), `software.amazon.eventstream:eventstream` | S3 to the tenants' file stores |
+| `software.amazon.awssdk:*` (AWS SDK for Java 2: s3, bedrockruntime, bedrock, url-connection-client, netty-nio-client and their modules), `software.amazon.eventstream:eventstream` | S3 to the tenants' file stores, Amazon Bedrock's models |
 | `io.netty:*`, `io.netty.contrib:netty-codec-multipart-core` | Network layer of the HTTP server |
 | `com.fasterxml.jackson.core:*`, `tools.jackson.*` | JSON, YAML |
 | `com.nimbusds:nimbus-jose-jwt` | JWT |
+| `com.nimbusds:oauth2-oidc-sdk`, `com.nimbusds:content-type`, `com.nimbusds:lang-tag`, `net.minidev:json-smart`, `net.minidev:accessors-smart`, `com.github.stephenc.jcip:jcip-annotations` | The OAuth messages of a connected software's sign-in (built and parsed only) |
+| `org.a2aproject.sdk:*` 1.5.0.Final (a2a-java-sdk-spec, -spec-grpc, -common, -jsonrpc-common, -server-common, -transport-jsonrpc, -client, -client-transport-spi, -client-transport-jsonrpc, -http-client) | A2A both ways (the official A2A Java SDK) |
+| `com.google.code.gson:gson` 2.15.0, `com.google.api.grpc:proto-google-common-protos` 2.71.0, `jakarta.enterprise:jakarta.enterprise.cdi-api` 4.1.0 | The A2A SDK's JSON, its protobuf types and annotations |
 | `com.zaxxer:HikariCP`, `com.zaxxer:SparseBitSet`, `io.projectreactor:reactor-core`, `io.smallrye.reactive:mutiny-zero`, `com.networknt:json-schema-validator`, `com.ethlo.time:itu`, `org.snakeyaml:snakeyaml-engine` | Runtime support |
 | `org.jspecify:jspecify`, `jakarta.inject:jakarta.inject-api`, `jakarta.validation:jakarta.validation-api`, `org.jetbrains:annotations`, `info.picocli:picocli` | Standard APIs and annotations |
-| `com.drewnoakes:metadata-extractor`, `com.epam:parso`, `com.pff:java-libpst`, `com.healthmarketscience.jackcess:jackcess`, `jackcess-encrypt`, `com.rometools:rome`, `rome-utils`, `org.gagravarr:vorbis-java-*`, `org.netpreserve:jwarc` | Dependencies of Tika's parsers |
+| `com.drewnoakes:metadata-extractor`, `com.epam:parso`, `com.pff:java-libpst`, `com.healthmarketscience.jackcess:jackcess`, `jackcess-encrypt`, `com.rometools:rome`, `rome-utils`, `org.gagravarr:vorbis-java-core`, `org.netpreserve:jwarc` | Dependencies of Tika's parsers |
 
 ### MIT and similar
 
@@ -57,9 +61,11 @@ Most of the stack. Apache-2.0 asks for the license and the NOTICE contents to be
 | Component | License | Role |
 |---|---|---|
 | `org.postgresql:postgresql` (with the shaded `com.ongres.scram`, `stringprep`) | BSD-2-Clause | PostgreSQL JDBC driver |
+| `com.google.protobuf:protobuf-java` | BSD-3-Clause | The A2A SDK's wire format (generated from the specification's protobuf) |
 | `com.vladsch.flexmark:*` | BSD-2-Clause | Markdown |
+| `org.commonmark:commonmark`, `commonmark-ext-gfm-tables`, `commonmark-ext-gfm-strikethrough` | BSD-2-Clause | Markdown for Tika's parsers |
 | `com.adobe.xmp:xmpcore`, `org.ow2.asm:asm`, `com.github.virtuald:curvesapi`, `org.tallison:jmatio`, `com.github.jai-imageio:jai-imageio-core` | BSD-3-Clause | Dependencies of Tika and POI |
-| `jakarta.xml.bind:jakarta.xml.bind-api`, `jakarta.activation:jakarta.activation-api`, `org.glassfish.jaxb:*`, `com.sun.istack:istack-commons-runtime`, `org.eclipse.angus:angus-activation` | EDL-1.0 (BSD-3-Clause) | JAXB for POI and Tika |
+| `jakarta.activation:jakarta.activation-api`, `org.eclipse.angus:angus-activation` | EDL-1.0 (BSD-3-Clause) | Jakarta Activation |
 
 ### Weak copyleft and dual licenses
 
@@ -73,14 +79,13 @@ are not used and so do not extend to the project's own code.
 | `jakarta.annotation:jakarta.annotation-api`, `jakarta.transaction:jakarta.transaction-api` | EPL-2.0 **or** GPL-2.0 with Classpath exception | EPL-2.0 | Standard APIs |
 | `jakarta.persistence:jakarta.persistence-api` | EPL-2.0 **or** EDL-1.0 | EDL-1.0 | Standard API |
 | `org.eclipse.angus:angus-mail`, `jakarta.mail:jakarta.mail-api` | EPL-2.0 **or** GPL-2.0 with Classpath exception **or** EDL-1.0 | EDL-1.0 | Sends the daily report over SMTP |
-| `com.github.albfernandez:juniversalchardet` | MPL-1.1 **or** GPL-3.0 **or** LGPL-3.0 | MPL-1.1 - source at https://github.com/albfernandez/juniversalchardet | Character set detection (Tika) |
 | `org.codelibs:jhighlight` | CDDL-1.0 **or** LGPL-2.1-or-later | CDDL-1.0 - source at https://github.com/codelibs/jhighlight | Source code highlighting (Tika) |
 
 ### Left out on purpose
 
 `com.github.junrar:junrar`, which Tika's archive parser brings, is excluded in `Backend/build.gradle`: its UnRAR
 licence is not an open-source license (the code may not be used to re-create the RAR compression algorithm), and RAR
-is not among the file types Alpdesk AI reads.
+is not among the file types Zirmo reads.
 
 ## Frontend (Angular, shipped in the browser bundle)
 
@@ -199,8 +204,8 @@ typescript-eslint (MIT).
 
 Every jar carries under `META-INF/third-party/` the project's `LICENSE`, `NOTICE` and this file, the backend's license
 report with the license files of every library (`backend/`) and the frontend's licenses (`frontend-licenses.txt`,
-written by `ng build`). The public repository of the releases
-(https://github.com/xprojects-de/alpdesk-ai) carries `LICENSE`, `NOTICE` and this file next to the compose files.
+written by `ng build`). The repository (https://github.com/xprojects-de/alpdesk-ai) carries `LICENSE`, `NOTICE` and
+this file at its root.
 
 ## Updating this list
 
