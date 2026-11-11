@@ -1,6 +1,6 @@
 ---
 name: alpdesk-mcp-a2a-review
-description: "Focused non-diff, multi-agent review of everything MCP and A2A in Zirmo, both directions: the MCP keys (several per tenant, each with its knowledge areas, connected software, tasks and web search; the two doors mcp and a2a; created, renewed, deleted by tenant admins and the admin; McpKeyTokenValidator, ROLE_MCP for /mcp and /a2a only), the tenant's MCP server at /mcp (stateless streamable HTTP, BrandedMcpServer with the tenant's brand in initialize, tools/list and prompts, ask_assistant with files for the client, search_knowledge / read_document, list_templates, the templates as prompts, list_tasks / run_task / task_run), the tenant's A2A server at /a2a on the official A2A SDK (the neutral public card and the key's extended card, SendMessage as a Message, streamed questions and the key's scheduled tasks as stored tasks owned by the key, webhooks to public HTTPS only, the retention), the proxy (the connected software passed through to MCP clients: reading tools named <connection>__<tool> within 32 characters, list and call agreeing, prompts and instructions, files, every failure a tool error so the client's session lives on - the software's address and key (or token) never leave; an A2A agent never passed through), and the clients to the tenant's software (MCP connections: addresses and internal hosts, McpClient's limits, reading tools and prompts, reload, levels per user group, the software's prompts in the chat, the API keys' software for /api/v1/chat; A2A connections: the card read into instructions and skills, one tool <connection>__ask, the key only to the address entered, the agent answering the whole chat - context, question back, stop, cancel, the asker's metadata, the loop warning, the admin's switch per tenant; a connection that signs in with OAuth - finding the server, client identity, PKCE, the callback completed only by the one who started it, the token only to the connection's host, refresh with rotation under the row lock) - plus the frontend (key dialog with the doors, key card with Claude Code command, Copilot's mcp.json, the claude.ai connector and the A2A addresses, the page Software with protocol, skills, answers-chat and the check button). Answers its key questions, builds a matrix of what each key reaches on which way and at which door, and checks every failure case (software or agent down or slow, too large, question back, key no longer decryptable, connection renamed or deleted, key renewed mid-session, a card naming another host, a webhook into the internal network). Asks which parts to review. Follows the shared review base (no hallucination, no over-optimisation, decision register, at most 10 verified findings, fix packages). Use when the user invokes /alpdesk-mcp-a2a-review or asks whether MCP keys, the MCP or A2A server, the proxy, the connected software or the A2A agents behave correctly - NOT a diff/branch/PR comparison."
+description: "Focused non-diff, multi-agent review of everything MCP and A2A in Zirmo, both directions: the MCP keys (several per tenant, each with its knowledge areas, connected software, tasks and web search; the two doors mcp and a2a; created, renewed, deleted by tenant admins and the admin; McpKeyTokenValidator, ROLE_MCP for /mcp and /a2a only), the tenant's MCP server at /mcp (stateless streamable HTTP, BrandedMcpServer with the tenant's brand in initialize, tools/list and prompts, ask_assistant with files for the client, search_knowledge / read_document, list_templates, the templates as prompts, list_tasks / run_task / task_run), the tenant's A2A server at /a2a on the official A2A SDK (the neutral public card and the key's extended card, SendMessage as a Message, streamed questions and the key's scheduled tasks as stored tasks owned by the key, webhooks to public HTTPS only, the retention), the proxy (the connected software passed through to MCP clients: reading tools named <connection>__<tool> within 32 characters, changing tools only for a key that may change in that software - a level per key and software, marked as not read-only so the client asks its user, never through ask_assistant or /a2a -, list and call agreeing, prompts and instructions, files, every failure a tool error so the client's session lives on - the software's address and key (or token) never leave; an A2A agent never passed through), and the clients to the tenant's software (MCP connections: addresses and internal hosts, McpClient's limits, reading tools and prompts, reload, levels per user group, the software's prompts in the chat, the API keys' software for /api/v1/chat; A2A connections: the card read into instructions and skills, one tool <connection>__ask, the key only to the address entered, the agent answering the whole chat - context, question back, stop, cancel, the asker's metadata, the loop warning, the admin's switch per tenant; a connection that signs in with OAuth - finding the server, client identity, PKCE, the callback completed only by the one who started it, the token only to the connection's host, refresh with rotation under the row lock) - plus the frontend (key dialog with the doors, key card with Claude Code command, Copilot's mcp.json, the claude.ai connector and the A2A addresses, the page Software with protocol, skills, answers-chat and the check button). Answers its key questions, builds a matrix of what each key reaches on which way and at which door, and checks every failure case (software or agent down or slow, too large, question back, key no longer decryptable, connection renamed or deleted, key renewed mid-session, a card naming another host, a webhook into the internal network). Asks which parts to review. Follows the shared review base (no hallucination, no over-optimisation, decision register, at most 10 verified findings, fix packages). Use when the user invokes /alpdesk-mcp-a2a-review or asks whether MCP keys, the MCP or A2A server, the proxy, the connected software or the A2A agents behave correctly - NOT a diff/branch/PR comparison."
 ---
 
 ## What this does
@@ -14,7 +14,9 @@ A read-only review of **both directions of MCP and A2A** ([mcp.md](../../../docs
   tasks, web search - and its **doors** (`mcp`, `a2a`): at a door it does not open the key is unknown (401). The MCP
   server answers with the tenant's brand, offers our tools (`ask_assistant`, `search_knowledge`, `read_document`,
   `list_templates`, the task tools), the tenant's templates as prompts and - for a connection that **passes through** -
-  the software's reading tools, prompts and instructions directly (the proxy, roadmap point 41). The A2A server answers
+  the software's reading tools, prompts and instructions directly (the proxy, roadmap point 41) - and its **changing
+  tools** where the key may change in that software (`tenant_mcp_key_connection.level` `WRITE`, "Darf ändern in",
+  roadmap point 68): marked as not read-only, the MCP client asks its user before each call. The A2A server answers
   a question like `ask_assistant` (a Message; streamed: a Task stored for the key), lists the key's templates and tasks
   as skills of its extended card, starts the key's scheduled tasks as A2A tasks and posts their events to webhooks.
 - **Out**: Zirmo is the client of the tenant's own software's MCP server or of an **A2A agent** (both a
@@ -36,7 +38,9 @@ skill adds parts, paths, key questions and its own report sections.
 
 Relation to the other reviews: how `ask_assistant`'s answer is built inside the agent loop (rounds, rules, stored
 nothing) and the **changing tool calls** waiting for the user's decision in the chat are `alpdesk-chat-review` part 2 -
-here only that the MCP key's rights reach the loop and that changing tools never reach a key; how the chat behaves when
+here only that the MCP key's rights reach the loop and that changing tools reach a key on one way only - passed
+through to its MCP client, with the level `WRITE` for that software - and never the tenant's model behind
+`ask_assistant` or `/a2a`; how the chat behaves when
 an agent answers it (`ChatService`'s agent branch, stop, logout, the stored conversation) is `alpdesk-chat-review` too -
 here the connection, the client and the agent's rights; whether an attacker gets past a key, SSRF through a connection's,
 a card's or a webhook's address and prompt injection through a software's or agent's text are `alpdesk-security-review`
@@ -132,7 +136,17 @@ official Python SDK) and `devtools/mcp-test-server/` are read, not run.
    exactly the tenant's templates and the key's tasks, and `metadata.template` / `metadata.task` resolve by the same
    names.
 5. **What leaves Zirmo, and is it bounded?** Never the software's address, never its key (or token),
-   never a changing tool, never a connection that does not pass through (answer-only: only through `ask_assistant`),
+   never a connection that does not pass through (answer-only: only through `ask_assistant`),
+   **a changing tool only by the key's level** (mcp.md "Changing tools passed through", roadmap point 68): listed and
+   callable only for a key with `WRITE` for that software (`changingConnectionIds`), only a tool turned on, only where
+   the software passes through and is no A2A agent (400 `mcpKey.changingNotUsed` / `.changingNotPassedThrough`), list
+   and call from the same list (`SoftwareMcpProxy.passed`), marked `readOnlyHint: false` (a reading one `true`) - a
+   changing tool listed as read-only would run without the client's question; `ask_assistant`, `/a2a` and the API keys
+   offer the tenant's model reading tools only, whatever the key's level; the level falls back to `READ` when the
+   software stops passing through or is taken off the key (never in force again unseen); a changing call that failed
+   after it was sent (no answer in time, without content, too large) tells the model the change may have been made;
+   every changing call leaves a log line (key id, tenant, tool, software - no arguments, no control characters of the
+   software's names),
    never an A2A agent through the proxy (`notForA2a`); files by the rules of `ask_assistant`'s (types, text as text,
    8 MB together, 5 files) - at `/a2a` as `raw` parts within the same 8 MB; a software's instructions trimmed to 2,000
    characters and after ours; the log names neither arguments, results, questions, answers nor an exception's message
@@ -238,7 +252,10 @@ changed) · the database briefly out of reach during a passed-through call · a 
 `tools/call` · a tool turned off, a connection's pass-through switched off or taken from the key between list and call ·
 two connections whose names cut to the same 32 characters · a connection deleted while a key still lists it · a reload
 while the admin changes the key or the address (read again under a lock) · a software that turns a reading tool into a
-changing one · a software's or agent's instructions over 2,000 characters or with text that tries to lift our rules · a
+changing one (gone for a key that only reads, asked about for one that may change) · a changing call the software
+answers too late, without content or too large (the model told the change may have been made, not to repeat it
+blindly) · a key's level taken back, or its software switched to answer-only, between list and call (an unknown tool) ·
+pass-through switched off and on again (the key reads only) · a tool's name with a line break in the log line · a software's or agent's instructions over 2,000 characters or with text that tries to lift our rules · a
 returned file of a type not on the list, over the limit, or with invalid base64 · a prompt whose template was deleted
 since `prompts/list` · a prompt value over 10,000 characters or missing · a key renewed or deleted while its client is
 mid-session, or its `a2a` door closed while a task of it is open · a key's areas changed between two `search_knowledge`
@@ -318,7 +335,8 @@ The prompt:
 > another tenant's - at either door; a key opens a door it was not given; a key that was renewed or deleted still
 > works; an A2A task, its artifacts or its webhooks reachable by another key; the software's address or its key (or token)
 > reaches an MCP client, an A2A agent, a webhook or the log; the connection's key sent to another host
-> than the one entered; a changing tool reachable through a key, the proxy or an agent; a call or prompt going to
+> than the one entered; a changing tool reachable through `ask_assistant`, `/a2a`, an API key or an agent, or passed
+> through to a key without the level `WRITE` for that software, or listed as read-only; a call or prompt going to
 > another tool or software than the one listed; a connection, a card or a webhook reaching an internal host it may not;
 > a tenant without the admin's switch answered by or asking an agent; the public card naming a tenant; an OAuth token,
 > refresh token, client secret or PKCE verifier reaching another host than the connection's (or the token endpoint it

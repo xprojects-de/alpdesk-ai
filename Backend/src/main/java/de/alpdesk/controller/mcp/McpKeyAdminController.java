@@ -48,7 +48,7 @@ public class McpKeyAdminController {
     @Post
     public HttpResponse<McpKeyCreatedResponse> create(@PathVariable Long tenantId, @Body McpKeyRequest request) {
         return HttpResponse.created(keys.create(tenantId, request.name(), request.description(), request.webSearch(), request.areaIds(),
-                request.connectionIds(), request.taskIds(), request.mcp(), request.a2a()));
+                request.connectionIds(), request.changingConnectionIds(), request.taskIds(), request.mcp(), request.a2a()));
     }
 
     /** Renames the key, switches its web search or changes its knowledge areas or its software. */
@@ -57,7 +57,7 @@ public class McpKeyAdminController {
     @Put("/{keyId}")
     public HttpResponse<McpKeyResponse> update(@PathVariable Long tenantId, @PathVariable Long keyId,
                                                @Body McpKeyRequest request) {
-        return keys.update(tenantId, keyId, request.name(), request.description(), request.webSearch(), request.areaIds(), request.connectionIds(), request.taskIds(),
+        return keys.update(tenantId, keyId, request.name(), request.description(), request.webSearch(), request.areaIds(), request.connectionIds(), request.changingConnectionIds(), request.taskIds(),
                         request.mcp(), request.a2a())
                 .map(HttpResponse::ok).orElseGet(HttpResponse::notFound);
     }

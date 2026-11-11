@@ -53,6 +53,11 @@ import {tenantWebSearch} from "../tenant-web-search";
  * for claude.ai and Cowork; command and Copilot configuration name the server after the tenant's brand (`muster-ai`
  * for "Muster AI"). The tenant admin's page "API-Keys" and the admin's tenant page of the same name.
  */
+/** A software whose changing tools a key's MCP client may call: an MCP server that goes directly to MCP clients. */
+function changeable(connection: McpConnection): boolean {
+    return connection.passesThrough && connection.protocol === "MCP";
+}
+
 @Component({
     selector: "app-mcp-key-panel",
     imports: [
@@ -342,6 +347,7 @@ export class McpKeyPanelComponent implements OnInit {
         keepsHistory: false,
         description: true,
         doors: true,
+        changing: this.connections().some(changeable),
     }));
 
     private readonly origin = backendOrigin(environment.apiUrl, window.location.origin);
@@ -469,6 +475,7 @@ export class McpKeyPanelComponent implements OnInit {
                     software: this.connections().map(connection => ({
                         id: connection.id,
                         label: this.softwareLabel(connection),
+                        changeable: changeable(connection),
                     })),
                     tasks: this.tasks(),
                 },

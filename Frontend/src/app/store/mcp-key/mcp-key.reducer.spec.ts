@@ -1,4 +1,4 @@
-import {McpKey} from "../../models/mcp.model";
+import {McpConnection, McpKey} from "../../models/mcp.model";
 import * as AreaActions from "../knowledge-area/knowledge-area.actions";
 import * as McpConnectionActions from "../mcp-connection/mcp-connection.actions";
 import * as TaskActions from "../task/task.actions";
@@ -14,6 +14,7 @@ describe("mcpKeyReducer", () => {
         webSearch: false,
         areaIds: [],
         connectionIds: [],
+        changingConnectionIds: [],
         taskIds: [],
         createdAt: "",
         lastUsedAt: null,
@@ -28,6 +29,7 @@ describe("mcpKeyReducer", () => {
         keyPrefix: "mcp_ijklmnop",
         areaIds: [7, 8],
         connectionIds: [3, 4],
+        changingConnectionIds: [3],
         taskIds: [7, 8],
     };
 
@@ -72,6 +74,7 @@ describe("mcpKeyReducer", () => {
         state = mcpKeyReducer(state, McpKeyActions.loadMcpKeysSuccess({scope: 1, keys: [development]}));
         const deleted = mcpKeyReducer(state, McpConnectionActions.deleteConnectionSuccess({scope: 1, connectionId: 3}));
         expect(deleted.keys[0].connectionIds).toEqual([4]);
+        expect(deleted.keys[0].changingConnectionIds).toEqual([]);
         expect(
             mcpKeyReducer(state, McpConnectionActions.deleteConnectionSuccess({scope: 2, connectionId: 3})).keys[0]
                 .connectionIds,
@@ -106,5 +109,19 @@ describe("mcpKeyReducer", () => {
         expect(mcpKeyReducer(initialState, McpKeyActions.loadMcpKeysSuccess({scope: "self", keys: [standard]}))).toBe(
             initialState,
         );
+    });
+
+    it("takes the level off every key when a software stops going to MCP clients - not when it starts to", () => {
+        let state = mcpKeyReducer(initialState, McpKeyActions.loadMcpKeys({scope: 1}));
+        state = mcpKeyReducer(state, McpKeyActions.loadMcpKeysSuccess({scope: 1, keys: [development]}));
+        const connection = {id: 3, passesThrough: false} as McpConnection;
+        const off = mcpKeyReducer(state, McpConnectionActions.setPassThroughSuccess({scope: 1, connection}));
+        expect(off.keys[0].changingConnectionIds).toEqual([]);
+        expect(off.keys[0].connectionIds).toEqual([3, 4]);
+        const on = mcpKeyReducer(
+            state,
+            McpConnectionActions.setPassThroughSuccess({scope: 1, connection: {...connection, passesThrough: true}}),
+        );
+        expect(on.keys[0].changingConnectionIds).toEqual([3]);
     });
 });

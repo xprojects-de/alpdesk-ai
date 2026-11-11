@@ -50,7 +50,7 @@ public class TenantAdminMcpKeyController {
     @Post
     public HttpResponse<McpKeyCreatedResponse> create(Authentication authentication, @Body McpKeyRequest request) {
         return HttpResponse.created(keys.create(TenantContext.tenantId(authentication), request.name(),
-                request.description(), request.webSearch(), request.areaIds(), request.connectionIds(), request.taskIds(),
+                request.description(), request.webSearch(), request.areaIds(), request.connectionIds(), request.changingConnectionIds(), request.taskIds(),
                 request.mcp(), request.a2a()));
     }
 
@@ -62,7 +62,7 @@ public class TenantAdminMcpKeyController {
                                                @Body McpKeyRequest request) {
         return keys.update(TenantContext.tenantId(authentication), keyId, request.name(), request.description(),
                 request.webSearch(),
-                request.areaIds(), request.connectionIds(), request.taskIds(), request.mcp(), request.a2a()).map(HttpResponse::ok).orElseGet(HttpResponse::notFound);
+                request.areaIds(), request.connectionIds(), request.changingConnectionIds(), request.taskIds(), request.mcp(), request.a2a()).map(HttpResponse::ok).orElseGet(HttpResponse::notFound);
     }
 
     /** A new secret for the key - the previous one stops working; shown only in this response. */

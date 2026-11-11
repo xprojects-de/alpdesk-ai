@@ -247,8 +247,9 @@ So nobody has to find it out the hard way:
   aimed at the model (prompt injection). The design limits the damage - web pages reach the model marked as unchecked
   material whose instructions are never followed, at most three web searches per answer, links other than http(s)/mailto and content
   the browser loads by itself are not rendered, changing tools of connected software run only after the user's
-  decision in the chat, the client software and the MCP key never get changing tools (they may start a scheduled task
-  a tenant admin assigned to their key, which does what its text says), addresses of connected software
+  decision in the chat, the client software and `ask_assistant` never get changing tools (they may start a scheduled
+  task a tenant admin assigned to their key, which does what its text says) and an MCP key gets them only passed
+  through to its client, which asks its user before each call (below), addresses of connected software
   must not resolve to internal addresses - also the address of a file it returns as a link, which our server fetches
   at once (every redirect checked again, at most 50 MB, our key or token only to the connection's own host and never
   to another download host) -, a file a connected software returns is offered only as a download with a
@@ -260,14 +261,18 @@ So nobody has to find it out the hard way:
   gave it - through `ask_assistant` and, where a connection is switched "Directly to MCP clients" (off by default),
   directly: the client's model then calls its reading tools and prompts itself and reads their raw results, which
   leave the installation for the client (with claude.ai or Cowork, Anthropic). The software's address and key stay in
-  the installation; its changing tools are never passed through. The software's tool descriptions, prompts and the
+  the installation. Its changing tools are passed through only to a key a tenant admin let change in that software
+  ("Darf ändern in", off by default), marked as not read-only so the client asks its user before each call. That
+  question is the only stop between a prompt injection the client read and a change in the software: a user who lets
+  the client always allow such a tool gives it up, and whoever holds the key may change what it may change - as the
+  connection's one account in the software, not as a person. Every changing call is logged (key, tool, software). The software's tool descriptions, prompts and the
   instructions it gives (at most 2,000 characters, after ours) are text of another server that the client's and our
   model read - enter only software you trust, and leave a module whose knowledge must not leave answer-only: its raw
   results and the files its tools return then stay in the installation, an MCP client gets the assistant's answer.
 - **MCP clients that act on the computer read the company's documents as text.** What `search_knowledge`,
   `read_document` and `ask_assistant` hand to an MCP client reaches an agent that may write files or run commands
-  there (Claude Code, Cowork). The MCP server offers no changing tool and marks its own as read-only (`run_task` starts a task a tenant
-  admin assigned to the key), but a document's
+  there (Claude Code, Cowork). The MCP server's own tools change nothing and are marked read-only (`run_task` starts a task a tenant
+  admin assigned to the key; a passed-through changing tool is the software's, above), but a document's
   content - uploaded, pushed by the client software or read from a file store - is unchecked text to that agent: a
   prepared document is prompt injection on the user's computer. Give MCP keys only to people who know this, and keep
   the client's own permissions tight.

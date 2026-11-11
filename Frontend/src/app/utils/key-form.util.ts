@@ -15,6 +15,11 @@ export interface KeyChoices {
     description: boolean;
     /** Only an MCP key: the doors it opens - /mcp and /a2a. */
     doors: boolean;
+    /**
+     * Only an MCP key, where a software goes directly to MCP clients: the software whose changing tools its client may
+     * call too (roadmap point 68).
+     */
+    changing: boolean;
 }
 
 /** The longest description of an MCP key - the backend's limit. */
@@ -25,6 +30,7 @@ export interface KeyFormValue {
     name: string;
     areaIds: number[];
     connectionIds: number[];
+    changingConnectionIds: number[];
     taskIds: number[];
     webSearch: boolean;
     keepsHistory: boolean;
@@ -38,6 +44,7 @@ export interface KeyRequest {
     name: string;
     areaIds?: number[];
     connectionIds?: number[];
+    changingConnectionIds?: number[];
     taskIds?: number[];
     webSearch?: boolean;
     keepsHistory?: boolean;
@@ -49,19 +56,31 @@ export interface KeyRequest {
 
 /**
  * The request of the dialog's form. A choice the dialog does not show is not sent: a key of a tenant whose tasks the
- * admin switched off keeps its tasks for when they are switched on again.
+ * admin switched off keeps its tasks for when they are switched on again. changeable: the software that goes directly
+ * to MCP clients - only those of the key's software may be changed in.
  */
-export function keyRequest(value: KeyFormValue, choices: KeyChoices): KeyRequest {
+export function keyRequest(value: KeyFormValue, choices: KeyChoices, changeable: number[] = []): KeyRequest {
     return {
         name: value.name.trim(),
         ...(choices.areas ? {areaIds: value.areaIds} : {}),
         ...(choices.software ? {connectionIds: value.connectionIds} : {}),
+        ...(choices.software && choices.changing
+            ? {changingConnectionIds: changeableOf(value.changingConnectionIds, value.connectionIds, changeable)}
+            : {}),
         ...(choices.tasks ? {taskIds: value.taskIds} : {}),
         ...(choices.webSearch ? {webSearch: value.webSearch} : {}),
         ...(choices.keepsHistory ? {keepsHistory: value.keepsHistory} : {}),
         ...(choices.description ? {description: value.description.trim()} : {}),
         ...(choices.doors ? {mcp: value.mcp, a2a: value.a2a} : {}),
     };
+}
+
+/**
+ * The software the key may change in: chosen, still among its software and going directly to MCP clients - the
+ * backend refuses any other.
+ */
+export function changeableOf(changing: number[], used: number[], changeable: number[]): number[] {
+    return changing.filter(id => used.includes(id) && changeable.includes(id));
 }
 
 /** A key must open a door - /mcp, /a2a or both: the dialog refuses to save with both off, as the backend does. */
@@ -73,6 +92,8 @@ export function noDoor(value: Pick<KeyFormValue, "mcp" | "a2a">, choices: KeyCho
 export interface KeyRights {
     areaIds: number[];
     connectionIds: number[];
+    /** Only an MCP key. */
+    changingConnectionIds?: number[];
     taskIds: number[];
     webSearch: boolean;
 }
@@ -81,6 +102,8 @@ export interface KeyRights {
 export interface KeySummary {
     areas: string[];
     software: string[];
+    /** The software it may change in too. */
+    changing: string[];
     tasks: string[];
     webSearch: boolean;
 }
@@ -93,6 +116,7 @@ export function keySummary(
     return {
         areas: choices.areas ? namesOf(key.areaIds, known.areas) : [],
         software: choices.software ? namesOf(key.connectionIds, known.software) : [],
+        changing: choices.software ? namesOf(key.changingConnectionIds ?? [], known.software) : [],
         tasks: choices.tasks ? namesOf(key.taskIds, known.tasks) : [],
         webSearch: choices.webSearch && key.webSearch,
     };

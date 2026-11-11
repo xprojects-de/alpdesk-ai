@@ -287,7 +287,11 @@ Base paths: `Backend/src/main/java/de/alpdesk/` (below `…/`), tests in
        2.0.0 -, into `initialize` and the descriptions of `search_knowledge` and `ask_assistant` of that key only), hash
        only, renew keeps the settings and ends only the old secret, delete, last use; `ask_assistant` and the knowledge tools take the areas, software and
        web search of the key the call was made with
-     - connected software passed through (`SoftwareMcpProxy`, `BrandedMcpServer`'s "__" branches): names within 32
+     - connected software passed through (`SoftwareMcpProxy`, `BrandedMcpServer`'s "__" branches): reading tools, and
+       changing ones only for a key with the level `WRITE` for that software (`changingConnectionIds`, roadmap point
+       68: marked not read-only, never through `ask_assistant` / `/a2a`, the level back to `READ` when pass-through
+       is switched off, a log line per changing call, "the change may have been made" after a call that failed once
+       sent); names within 32
        characters keeping "__", list and call agree, an unknown name a tool error (the transport's HTTP 400 ends an SDK
        client's session), calls off the event loop, files by the returned-file rules and 8 MB, instructions cut to 2,000
      - the MCP client (`McpClient`, MCP Java SDK): no redirects, the key only to its origin, timeouts, result size,
@@ -304,7 +308,8 @@ Base paths: `Backend/src/main/java/de/alpdesk/` (below `…/`), tests in
      - `McpAddresses`: SSRF protection (internal addresses, DNS resolving to internal ones, plain HTTP only to
        listed hosts) - checked on save and before every call
      - connections and tools: sync on reload (new ones off, dropped ones not offered, admin choices kept), each
-       user's level, the MCP server's opt-in (reading only, never changing tools)
+       user's level, the MCP server's opt-in (its model reading only; changing tools only passed through to a key
+       with the level for that software)
      - everything in `docs/architecture/mcp.md` implemented as written
      - the task tools (`TaskMcpTools`): only the tasks assigned to the MCP key (`tenant_mcp_key_task`), `run_task` waiting bounded
        (`app.task.mcp-wait`), the findings and the answers handed on given back - never the lines read

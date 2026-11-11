@@ -26,6 +26,10 @@ Nothing in `.env` or `/api/v1` needs a hand; the new settings have defaults.
 
 ### Added
 
+- **Changing tools of your own software for MCP clients**: an MCP key may now also call the changing tools of a
+  connected software that goes directly to MCP clients - e.g. create a ticket or file a document - where a tenant
+  admin chose it under "Darf ändern in" in the key's dialog. Off for every key; Claude Code, Cowork and Copilot ask
+  their user before each such call. The assistant behind `ask_assistant`, `/a2a` and the API keys still only read.
 - **Pre-releases**: a version can now be tried before its release - tags such as `v2.0.0-rc.1` here, with their
   images, marked pre-release. A pre-release is not meant for an installation you depend on.
 - **An app on the phone's home screen**: added to the home screen, Zirmo now opens without the browser's bars,

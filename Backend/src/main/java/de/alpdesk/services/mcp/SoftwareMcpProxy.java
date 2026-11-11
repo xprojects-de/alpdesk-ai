@@ -19,6 +19,8 @@ import io.micronaut.json.JsonMapper;
 import io.modelcontextprotocol.json.McpJsonMapper;
 import io.modelcontextprotocol.spec.McpSchema;
 import jakarta.inject.Singleton;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -33,7 +35,9 @@ import java.util.regex.Pattern;
  * The connected software passed through the tenant's MCP server to MCP clients (docs/architecture/mcp.md "Connected
  * software through to MCP clients", roadmap point 41): the reading tools of the connections an MCP key may use and that
  * pass through ("Direkt an MCP-Clients") appear in the key's tools/list, and their calls go to the software as they
- * are - the client's model calls them itself, no second model answers. Their software's instructions join the server's
+ * are - the client's model calls them itself, no second model answers. Where the key may change in a software (level
+ * WRITE, roadmap point 68) its changing tools come too, marked as not read-only: the MCP client asks its user before
+ * each call - the decision the chat asks for itself. Their software's instructions join the server's
  * in initialize, their turned-on prompts its prompts/list. {@link BrandedMcpServer} answers all of it; the SDK never
  * sees these tools and prompts.
  * <p>
@@ -52,6 +56,15 @@ public class SoftwareMcpProxy {
     static final int MAX_NAME = 32;
     private static final Pattern PLAIN_PART = Pattern.compile("[A-Za-z0-9-]+(_[A-Za-z0-9-]+)*");
     private static final McpSchema.ToolAnnotations READ_ONLY = new McpSchema.ToolAnnotations(null, true, false, null, null, null);
+    /**
+     * Not read-only and nothing more: a client takes such a tool for one that may destroy and asks before each call. The
+     * software's own destructiveHint is not kept (mcp_tool keeps readOnlyHint only).
+     */
+    private static final McpSchema.ToolAnnotations CHANGING = new McpSchema.ToolAnnotations(null, false, null, null, null, null);
+    private static final Logger LOG = LoggerFactory.getLogger(SoftwareMcpProxy.class);
+    /** How a call fails after the software got it (McpClient's codes). */
+    private static final Set<String> MAY_HAVE_RUN = Set.of("mcpServer.timeout", "mcpServer.requestFailed",
+            "mcpServer.tooLarge");
 
     private final McpConnectionRepository connections;
     private final McpToolRepository tools;
@@ -90,7 +103,10 @@ public class SoftwareMcpProxy {
 
     /** The connections the key may use that pass through, in the order of their names. */
     List<McpConnection> connectionsOf(Long tenantId, Long mcpKeyId) {
-        Set<Long> keyConnections = new HashSet<>(mcpKeys.findConnectionIds(mcpKeyId));
+        return passing(tenantId, new HashSet<>(mcpKeys.findConnectionIds(mcpKeyId)));
+    }
+
+    private List<McpConnection> passing(Long tenantId, Set<Long> keyConnections) {
         List<McpConnection> passing = new ArrayList<>();
         for (McpConnection connection : connections.findByTenantIdOrderByName(tenantId)) {
             // An A2A agent has no tools to pass - its one tool is asked through ask_assistant.
@@ -102,12 +118,20 @@ public class SoftwareMcpProxy {
         return passing;
     }
 
-    /** The reading tools turned on of the key's connections that pass through - never a changing one. */
+    /**
+     * The tools turned on of the key's connections that pass through: the reading ones, the changing ones too where the
+     * key may change in that software (WRITE).
+     */
     List<Passed> passed(Long tenantId, Long mcpKeyId) {
+        Map<Long, McpAccessLevel> levels = new HashMap<>();
+        for (McpConnectionRepository.AccessRow row : mcpKeys.findConnectionLevels(mcpKeyId)) {
+            levels.put(row.connectionId(), row.accessLevel());
+        }
         List<Passed> passed = new ArrayList<>();
-        for (McpConnection connection : connectionsOf(tenantId, mcpKeyId)) {
+        for (McpConnection connection : passing(tenantId, levels.keySet())) {
+            McpAccessLevel level = levels.get(connection.id());
             for (McpTool tool : tools.findByConnectionIdOrderByName(connection.id())) {
-                if (McpTools.usable(tool, McpAccessLevel.READ)) {
+                if (McpTools.usable(tool, level)) {
                     passed.add(new Passed(name(connection.name(), tool.name(), tool.id()), connection, tool));
                 }
             }
@@ -156,7 +180,7 @@ public class SoftwareMcpProxy {
                     .name(passed.name())
                     .description(description(passed))
                     .inputSchema(json, passed.tool().inputSchema())
-                    .annotations(READ_ONLY)
+                    .annotations(passed.tool().changes() ? CHANGING : READ_ONLY)
                     .build());
         }
         return listed;
@@ -167,7 +191,8 @@ public class SoftwareMcpProxy {
      * for the chat. Its text and its files go back as they are (files as embedded resources by the rules of
      * ask_assistant's: types from the list, text as text, at most 8 MB together); its error stays an error the client's
      * model reads, and so does a software out of reach. Empty for a name the key does not have (another key's tool, a
-     * connection no longer passing through, a tool turned off, a connection renamed - the client lists again).
+     * connection no longer passing through, a tool turned off, a changing tool the key may no longer use, a connection
+     * renamed - the client lists again). A changing call is logged - the chat keeps who decided what, this is its trace.
      */
     public Optional<McpSchema.CallToolResult> call(Long tenantId, Long mcpKeyId, String name,
                                                    Map<String, Object> arguments) {
@@ -176,17 +201,41 @@ public class SoftwareMcpProxy {
             return Optional.empty();
         }
         McpConnection connection = found.get().connection();
+        McpTool tool = found.get().tool();
+        if (tool.changes()) {
+            LOG.info("MCP key {} of tenant {} calls the changing tool {} of {}", mcpKeyId, tenantId,
+                    logged(tool.name()), logged(connection.name()));
+        }
         McpClient.CallResult result;
         try {
             result = client.callTool(connection.tenantId(), connection.name(), connection.baseUrl(),
-                    connectionService.credential(connection), found.get().tool().name(), arguments);
+                    connectionService.credential(connection), tool.name(), arguments);
         } catch (ServiceException e) {
-            return Optional.of(McpSchema.CallToolResult.builder().addTextContent(e.getMessage()).isError(true).build());
+            return Optional.of(McpSchema.CallToolResult.builder().addTextContent(failure(e, tool.changes()))
+                    .isError(true).build());
         }
         if (result.error()) {
             return Optional.of(McpSchema.CallToolResult.builder().addTextContent(result.text()).isError(true).build());
         }
         return Optional.of(AssistantMcpTools.withFiles(result.text(), delivered(result.files())));
+    }
+
+    /**
+     * What the client's model is told of a failed call. A changing call that failed after it was sent - no answer in
+     * time, an answer without content or too large - may have run at the software all the same: the model would repeat
+     * it, so it is told to look first. Not for a software out of reach, a refused key or an error the software itself
+     * answered with.
+     */
+    static String failure(ServiceException e, boolean changes) {
+        if (changes && MAY_HAVE_RUN.contains(e.code())) {
+            return e.getMessage() + " - the change may have been made; check before calling again";
+        }
+        return e.getMessage();
+    }
+
+    /** A name of the software's own in a log line: a control character in it (a line break) would forge a line. */
+    static String logged(String name) {
+        return name.replaceAll("\\p{Cntrl}", "?");
     }
 
     /**

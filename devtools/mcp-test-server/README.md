@@ -92,12 +92,14 @@ if one was set), turns the tools on and gives a user a level. A backend in a con
 The test server as a tenant's connected software switched "Direkt an MCP-Clients", reached through Zirmo's own
 MCP server: `proxy_check.py` connects with the SDK's client twice - with an MCP key given the software and with one
 not - and checks the instructions, the passed-through tools (`<connection>__<tool>`, at most 32 characters, read-only,
-never `cancel_order`), text, files, the software's errors, an unknown name as a tool error, and the prompts. On a
-backend of your own (never the dev database): enter the test server at a test tenant (its address as seen from the
-backend, the host in `APP_AI_PLAIN_HTTP_HOSTS`), read its tools, switch it on, create the two keys, then
+never `cancel_order` for a key that only reads), text, files, the software's errors, an unknown name as a tool error,
+and the prompts. With a third key that may change in the software ("Darf ändern in", `cancel_order` turned on at the
+connection) it checks the changing tool too: listed, marked as not read-only, called. On a backend of your own (never
+the dev database): enter the test server at a test tenant (its address as seen from the backend, the host in
+`APP_AI_PLAIN_HTTP_HOSTS`), read its tools, switch it on, create the keys, then
 
 ```bash
-podman run --rm -v $PWD/devtools/mcp-test-server/proxy_check.py:/app/proxy_check.py:ro,Z localhost/alpdesk-mcp-test:latest python -I /app/proxy_check.py http://host.containers.internal:29100/mcp <key with> <key without> [connection name]
+podman run --rm -v $PWD/devtools/mcp-test-server/proxy_check.py:/app/proxy_check.py:ro,Z localhost/alpdesk-mcp-test:latest python -I /app/proxy_check.py http://host.containers.internal:29100/mcp <key with> <key without> [connection name] [key that may change]
 ```
 
 ## A new scenario

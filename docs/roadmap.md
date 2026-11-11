@@ -75,7 +75,7 @@ the user agrees to - no code before that. Then the implementation with its specs
 | 65 | Kerberos for the SMB file store: the store signs in with a ticket of the company's Active Directory instead of NTLM - for companies whose policy switches NTLM off, and the server proves itself (the limit of point 64 closed) | M (about 4-6 days with a test domain) | later - when a customer's policy refuses NTLM and a test domain is at hand; after point 64; proposal first - what is known: a separate plan (kept outside the repository) |
 | 66 | Media and documents read apart from the app: defence in depth for the two places that read foreign files - ffmpeg (audio and video of the chat) runs in the app's container, Tika has no time limit. ffmpeg started without the app's environment, the app's container hardened (no capabilities, no new privileges, later a read-only root), then conversion in a process or container of its own | S for the first two steps, M-L for the separation | later; from the security review of 10 November 2026; the first two steps can go into any release; proposal first |
 | 67 | A user's own connections to software: a tenant user connects an MCP server or an A2A agent on the account page with their own address and sign-in (a token, or OAuth) - the tools are read for that user and used in that user's chat only, with the person's rights in the software; the tenant's connections stay as they are, shared and the tenant admin's; nothing of an issue tracker or a wiki in the core | M (about 3-4 days) | **plan agreed** 10 Nov 2026 for 2.1.0, the user's shape (replaces the modes on a tenant's connection agreed earlier that day): a tenant admin's switch, off by default, and any address the rules allow; not started - after 2.0.0 is released |
-| 68 | Changing tools of the connected software through to MCP clients: a company's own MCP server behind ours offers tools that change something (a ticket created in an issue tracker, a document filed on another server) and Claude Code, Cowork or Copilot call them directly - a level per MCP key and software (none, read, read and change) where the key card has a tick per software today, the tool marked as changing so the client asks its user before each call; `ask_assistant` and `/a2a` stay reading | S (about 2-3 days) | **agreed** 11 Nov 2026 (the level per key and software) - for 2.0.0, with a migration of its own (the release candidate is out) - not started, no code before the go-ahead; the "later" of point 41 |
+| 68 | Changing tools of the connected software through to MCP clients: a company's own MCP server behind ours offers tools that change something (a ticket created in an issue tracker, a document filed on another server) and Claude Code, Cowork or Copilot call them directly - a level per MCP key and software (none, read, read and change) where the key card has a tick per software today, the tool marked as changing so the client asks its user before each call; `ask_assistant` and `/a2a` stay reading | S (about 2-3 days) | **built** 11 Nov 2026 (2.0.0, migration `V18` - the release candidate is out) - [architecture/mcp.md](architecture/mcp.md) "Changing tools passed through"; the "later" of point 41 |
 
 ## Target architecture
 
@@ -3562,8 +3562,10 @@ personal connection with colleagues; personal connections for keys and tasks.
 
 ## 68 Changing tools of the connected software through to MCP clients
 
-**Agreed 11 November 2026** (the shape: a level per MCP key and software) for **2.0.0**. Not started - no code
-before the go-ahead. It is the "later" of point 41.
+**Built 11 November 2026** for **2.0.0** (agreed the same day: a level per MCP key and software) - the decisions
+in [architecture/mcp.md](architecture/mcp.md) "Changing tools passed through". It is the "later" of point 41. The API
+took `changingConnectionIds` next to `connectionIds` instead of the groups' `levels`: the key's software stays as
+the smoke test, the test stacks and the frontend send it.
 
 **A migration of its own** (decided 11 November 2026): the release candidate of 2.0.0 is out and installed, so the
 column does not go into `V17__release_2_0_0.sql` - an installation of the candidate has applied that file, and a
@@ -3596,13 +3598,16 @@ way round (the tenant admin naming the tool is the approval, mcp.md "Tools calle
   `changes`); no column for it until a client makes a difference of it.
 - **`ask_assistant` and `/a2a` stay reading** (`McpTools.forMcpKey`): there the tenant's model would decide and no
   person sees the call before it runs. The client software's API keys stay reading too.
-- **A call that timed out may have run**: the tool error of a changing call says so ("... did not answer in time - the
-  change may have been made, check before calling again"), since the client's model repeats a failed call.
+- **A call that failed after it was sent may have run** (no answer in time, an answer without content or too large):
+  the tool error of a changing call says so ("... the change may have been made; check before calling again"), since
+  the client's model repeats a failed call.
+- **A software that stops passing through takes the level off its keys** (the review of 11 November 2026: left, it
+  would be in force again unseen when the switch is turned back on).
 - **A line in the log for every changing call** - key, software, tool, never the arguments: the chat keeps who decided
   what (`PendingAction`), the proxy logs failures only.
-- **API and frontend**: the key's request names the level per software (`levels: [{connectionId, level}]` as the
-  groups', in place of `connectionIds`), the key card's dialog a choice per software in place of the tick, the key's
-  row says where it may change; both languages.
+- **API and frontend**: `changingConnectionIds` next to `connectionIds` on the key (of its software, those it may
+  change in); in the key's dialog "Darf ändern in" below the software, the key's row says where it may change; both
+  languages.
 
 **What it costs** (said plainly):
 - **A key is a shared secret**: whoever holds it changes what the key may change; no rights per person.

@@ -14,7 +14,8 @@ the switch only with the other user's password, clara in no group refused, the W
     its continuation, a skill switched off declined,
   - the eight topics, each on its way: over MCP with its tools (search, ask_assistant or both), over A2A with its skills,
   - after `setup.py full`: Wartung (A2A) and Qualitaet (MCP) each with its sandbox, software (a changing tool among
-    them), the web search and a template - Qualitaet's software passed through, never its changing tool,
+    them), the web search and a template - Qualitaet's software passed through, its changing tool only while
+    the key may change in it (given, called, taken back),
   - after `setup.py full`: the Ticketsystem (the OAuth fake) signs in through its consent page - the browser's way,
     clicked here - its tools read with the token, a revoked token renewed once, a refused renewal "sign-in needed",
     signed in again,
@@ -54,6 +55,14 @@ def check(what, condition, detail=""):
     print(("ok    " if condition else "FAIL  ") + what + ("" if condition else f" - {detail}"))
     if not condition:
         sys.exit(1)
+
+
+def mcp_result(bearer, method, params):
+    """The result of one request to the tenant's MCP server with a key ({} when it failed)."""
+    status, _, text = stack.request(stack.APP_HOST, "POST", "/mcp",
+                                    {"jsonrpc": "2.0", "id": 1, "method": method, "params": params},
+                                    bearer | {"Accept": "application/json, text/event-stream"}, raw=True)
+    return json.loads(text[text.index("{"):]).get("result", {}) if status == 200 else {}
 
 
 def users_of(admin, tenant_id):
@@ -273,6 +282,25 @@ if full:
             check(f"{name}: its MCP server passes the software's reading tools through, never cancel_order",
                   {f"{software_name}__list_invoices", f"{software_name}__pdf_report"} <= names
                   and not any(n.endswith("cancel_order") for n in names), f"{status} {sorted(names)}")
+            # A key that may change in the software ("Darf ändern in", roadmap point 68): its changing tool comes
+            # too, marked as not read-only, and is called - then the key reads only again, as the general chat needs it.
+            key_path = f"/admin/tenants/{tenant_id}/mcp-keys/{topic['mcpKeyId']}"
+            cancel = f"{software_name}__cancel_order"
+            changed = admin.app("PUT", key_path, {"changingConnectionIds": [equipped["softwareId"]]})[2]
+            changing = {tool["name"]: tool for tool in mcp_result(bearer, "tools/list", {}).get("tools", [])}
+            cancelled = mcp_result(bearer, "tools/call", {"name": cancel, "arguments": {"number": "4711"}})
+            back = admin.app("PUT", key_path, {"changingConnectionIds": []})[2]
+            reading = {tool["name"] for tool in mcp_result(bearer, "tools/list", {}).get("tools", [])}
+            check(f"{name}: a key that may change in the software gets cancel_order, marked as not read-only",
+                  changed["changingConnectionIds"] == [equipped["softwareId"]] and cancel in changing
+                  and changing[cancel]["annotations"]["readOnlyHint"] is False
+                  and changing[f"{software_name}__list_invoices"]["annotations"]["readOnlyHint"] is True,
+                  sorted(changing))
+            check(f"{name}: its client calls cancel_order itself - the software answers",
+                  not cancelled.get("isError") and "4711" in cancelled["content"][0]["text"], cancelled)
+            check(f"{name}: taken back, the key reads only again",
+                  back["changingConnectionIds"] == [] and cancel not in reading
+                  and f"{software_name}__list_invoices" in reading, sorted(reading))
         check(f"{name}: the general chat's connection reads it again with its new offer",
               general[name]["toolsError"] is None and len(general[name]["tools"]) >= 2, general[name])
     offers = {"Wartung": "It can also search the web, run Python and shell code and read the connected software "

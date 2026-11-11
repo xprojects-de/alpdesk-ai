@@ -1,5 +1,7 @@
 package de.alpdesk.services.mcp
 
+import de.alpdesk.services.common.ServiceException
+import io.micronaut.http.HttpStatus
 import spock.lang.Specification
 
 /**
@@ -31,5 +33,29 @@ class SoftwareMcpProxySpec extends Specification {
         SoftwareMcpProxy.name("Sehr lange Buchhaltungssoftware der Musterfirma", "find_invoice_by_customer_number", 1234) ==
                 "Sehr_lange_B__find_invoice__1234"
         SoftwareMcpProxy.name("ERP", "find_invoice_by_customer_number_and_date", 9) == "ERP__find_invoice_by_customer__9"
+    }
+
+    def "a changing call that failed after it was sent (#code) tells the model the change may have been made: #warns"() {
+        given:
+        def failure = SoftwareMcpProxy.failure(new ServiceException(HttpStatus.BAD_GATEWAY, code, "Tickets failed"), changes)
+
+        expect:
+        failure == (warns ? "Tickets failed - the change may have been made; check before calling again" : "Tickets failed")
+
+        where:
+        code                        | changes | warns
+        "mcpServer.timeout"         | true    | true
+        "mcpServer.requestFailed"   | true    | true
+        "mcpServer.tooLarge"        | true    | true
+        "mcpServer.timeout"         | false   | false
+        "mcpServer.unreachable"     | true    | false
+        "mcpServer.keyRefused"      | true    | false
+        "mcpServer.answeredError"   | true    | false
+    }
+
+    def "a name of the software's own is logged without control characters - a line break would forge a log line"() {
+        expect:
+        SoftwareMcpProxy.logged("create_ticket\n2026-11-11 INFO forged\tline") == "create_ticket?2026-11-11 INFO forged?line"
+        SoftwareMcpProxy.logged("create_ticket") == "create_ticket"
     }
 }

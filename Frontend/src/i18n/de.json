@@ -641,6 +641,8 @@
       "mcpKey": {
         "nameRequired": "Geben Sie dem MCP-Key einen Namen",
         "unknownConnection": "Diese angebundene Software gibt es nicht (mehr)",
+        "changingNotUsed": "Der Key kann nur in Software ändern, die er nutzen darf",
+        "changingNotPassedThrough": "{{name}} geht nicht direkt an MCP-Clients – der Key kann darin nicht ändern",
         "unknownTask": "Diese Aufgabe gibt es nicht (mehr)",
         "descriptionTooLong": "Die Beschreibung darf höchstens {{max}} Zeichen haben",
         "noDoor": "Der Schlüssel muss /mcp, /a2a oder beides öffnen"
@@ -2664,6 +2666,9 @@
     "onlyCompanyKnowledge": "nur Firmenwissen",
     "software": "Software",
     "noSoftware": "keine Software",
+    "changing": "Darf ändern in",
+    "noChanging": "nirgends – nur lesen",
+    "changingHint": "Sein Client (Claude Code, Copilot) darf auch die ändernden Werkzeuge dieser Software aufrufen – z. B. ein Ticket anlegen – und fragt seinen Benutzer vor jedem Aufruf. Nur Software, die direkt an MCP-Clients geht.",
     "tasks": "Aufgaben",
     "noTasks": "keine Aufgabe",
     "webSearch": "Websuche",
@@ -2699,6 +2704,7 @@
     "areas": "Bereiche: {{names}}",
     "companyKnowledge": "nur Firmenwissen",
     "software": "Software: {{names}}",
+    "changing": "Ändert in: {{names}}",
     "tasks": "Aufgaben: {{names}}",
     "webSearch": "Websuche",
     "noHistory": "ohne Verlauf",

@@ -1,12 +1,15 @@
 """Checks the MCP test server passed through Zirmo's MCP server (roadmap point 41) with the official SDK's client.
 
 The test server runs as a tenant's connected software ("Direkt an MCP-Clients" on); two MCP keys of the tenant: one
-given the software, one not. Run inside the test server's image (it has the SDK):
+given the software, one not - and optionally a third that may change in it ("Darf ändern in", roadmap point 68). Run
+inside the test server's image (it has the SDK):
 
     podman run --rm -v devtools/mcp-test-server/proxy_check.py:/app/proxy_check.py:ro,Z localhost/alpdesk-mcp-test:latest \
-        python -I /app/proxy_check.py http://host.containers.internal:29100/mcp <key with the software> <key without> [prefix]
+        python -I /app/proxy_check.py http://host.containers.internal:29100/mcp <key with the software> <key without> \
+        [prefix] [key that may change]
 
-prefix: the connection's name as it starts the passed-through names (default "Testserver").
+prefix: the connection's name as it starts the passed-through names (default "Testserver"). Turn on the software's
+cancel_order at the connection for the third key's checks.
 """
 import asyncio
 import base64
@@ -21,6 +24,7 @@ URL = sys.argv[1]
 WITH = sys.argv[2]
 WITHOUT = sys.argv[3]
 PREFIX = sys.argv[4] if len(sys.argv) > 4 else "Testserver"
+CHANGING = sys.argv[5] if len(sys.argv) > 5 else None
 
 failures = []
 
@@ -104,6 +108,20 @@ async def without_software(session: ClientSession, initialized: types.Initialize
     check("without: none of the software's prompts", not any(name.startswith(PREFIX + "__") for name in prompts))
 
 
+async def may_change(session: ClientSession, initialized: types.InitializeResult) -> None:
+    tools = {tool.name: tool for tool in (await session.list_tools()).tools}
+    cancel = tools.get(f"{PREFIX}__cancel_order")
+    check("changing: the changing tool is listed", cancel is not None, str(list(tools)))
+    if cancel is None:
+        return
+    check("changing: marked as not read-only - the client asks first",
+          cancel.annotations is not None and cancel.annotations.readOnlyHint is False, str(cancel.annotations))
+    check("changing: a reading tool stays read-only", tools[f"{PREFIX}__echo"].annotations.readOnlyHint is True)
+    cancelled = await session.call_tool(f"{PREFIX}__cancel_order", {"number": "4711"})
+    check("changing: the call reaches the software", not cancelled.isError and "4711" in cancelled.content[0].text,
+          str(cancelled.content))
+
+
 async def refused_prompt(session: ClientSession, initialized: types.InitializeResult) -> None:
     refused = await session.get_prompt(f"{PREFIX}__new_project", {"package_name": "Not Valid", "project_name": "shop"})
     check("prompts/get: a value the software refuses is the prompt's text saying so",
@@ -120,6 +138,8 @@ async def main() -> None:
     # Never a JSON-RPC error: Micronaut MCP's transport sends those with HTTP 400 or 500, and the SDK's client ends
     # the session on it.
     await session_for(WITH, refused_prompt)
+    if CHANGING:
+        await session_for(CHANGING, may_change)
     print("ALL OK" if not failures else f"{len(failures)} FAILED: {failures}")
     sys.exit(1 if failures else 0)
 

@@ -249,6 +249,7 @@ export class ApiKeysPanelComponent implements OnInit {
         keepsHistory: true,
         description: false,
         doors: false,
+        changing: false,
     }));
 
     constructor() {

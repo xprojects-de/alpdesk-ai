@@ -1,4 +1,4 @@
-import {noDoor, KeyChoices, keyRequest, keySummary} from "./key-form.util";
+import {changeableOf, noDoor, KeyChoices, keyRequest, keySummary} from "./key-form.util";
 
 describe("key-form.util", () => {
     const all: KeyChoices = {
@@ -9,11 +9,13 @@ describe("key-form.util", () => {
         keepsHistory: true,
         description: true,
         doors: false,
+        changing: false,
     };
     const value = {
         name: "  ERP Produktion ",
         areaIds: [2],
         connectionIds: [5],
+        changingConnectionIds: [] as number[],
         taskIds: [7, 8],
         webSearch: true,
         keepsHistory: false,
@@ -47,6 +49,7 @@ describe("key-form.util", () => {
             keepsHistory: false,
             description: false,
             doors: false,
+            changing: true,
         };
         expect(keyRequest(value, mcp)).toEqual({name: "ERP Produktion", areaIds: [2]});
     });
@@ -73,6 +76,7 @@ describe("key-form.util", () => {
         expect(keySummary(key, known, all)).toEqual({
             areas: ["Entwicklung", "Kalkulation"],
             software: ["Buchhaltung"],
+            changing: [],
             tasks: ["Rechnungsprüfung"],
             webSearch: true,
         });
@@ -87,5 +91,29 @@ describe("key-form.util", () => {
         expect(noDoor({mcp: false, a2a: false}, mcpKey)).toBe(true);
         expect(noDoor({mcp: false, a2a: true}, mcpKey)).toBe(false);
         expect(noDoor({mcp: false, a2a: false}, all)).toBe(false);
+    });
+
+    it("sends the software an MCP key may change in - only of its software and going directly to MCP clients", () => {
+        const mcpKey = {...all, keepsHistory: false, doors: true, changing: true};
+        const chosen = {...value, connectionIds: [5, 6, 9], changingConnectionIds: [5, 6, 7]};
+        expect(keyRequest(chosen, mcpKey, [5, 7, 9]).changingConnectionIds).toEqual([5]);
+        expect(keyRequest({...chosen, changingConnectionIds: []}, mcpKey, [5]).changingConnectionIds).toEqual([]);
+        expect(keyRequest(chosen, all, [5])).not.toHaveProperty("changingConnectionIds");
+        expect(keyRequest(chosen, {...mcpKey, software: false}, [5])).not.toHaveProperty("changingConnectionIds");
+        expect(changeableOf([5, 6], [5, 6], [6])).toEqual([6]);
+    });
+
+    it("names the software a key may change in", () => {
+        const known = {
+            areas: [],
+            software: [
+                {id: 5, name: "Ticketsystem"},
+                {id: 6, name: "Lager"},
+            ],
+            tasks: [],
+        };
+        const key = {areaIds: [], connectionIds: [5, 6], changingConnectionIds: [5], taskIds: [], webSearch: false};
+        expect(keySummary(key, known, all).changing).toEqual(["Ticketsystem"]);
+        expect(keySummary({...key, changingConnectionIds: undefined}, known, all).changing).toEqual([]);
     });
 });

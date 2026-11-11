@@ -126,7 +126,9 @@ leaves some out - stored with the conversation like the connections' choice, 400
 An MCP key opens `/mcp`, `/a2a` or both (`tenant_mcp_key.mcp` / `.a2a`; existing keys MCP only; 400 `mcpKey.noDoor`
 for none). `McpKeyTokenValidator` authenticates a key only at the door the path knocks at (below the context path) -
 elsewhere it is unknown (401). What a key may do is the same at both doors: areas, software (reading tools), web
-search, its tasks. At `/mcp` only: the software passed through and the templates as prompts.
+search, its tasks. At `/mcp` only: the software passed through (with its changing tools where the key may change in
+it - mcp.md "Changing tools passed through"; never at `/a2a`, whose questions the tenant's model answers) and the
+templates as prompts.
 
 ### Routes and cards
 
