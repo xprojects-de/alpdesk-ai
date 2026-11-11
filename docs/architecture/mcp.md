@@ -347,7 +347,8 @@ who gets what. `services.mcp.SoftwareMcpProxy`, answered by
 - **No `tools/list_changed`**: `/mcp` is stateless (no event stream), so a client learns of a key's changed software
   at its next `tools/list` - Claude Code at the start of a session, Cowork when it connects again.
 - **Not built, on purpose**: resources (`resources/list`, `resources/read`), a catalog of the connected software at the
-  admin, usage per call of a connected software (only the AI providers are counted), changing tools passed through, elicitation (point 30).
+  admin, usage per call of a connected software (only the AI providers are counted), changing tools passed through (agreed, not
+  built: roadmap point 68), elicitation (point 30).
 - Tests: `controller/mcp/McpProxySpec` (listing, names, calls, errors, files, a key without the software, another
   tenant, not passing through, instructions, prompts), `services/mcp/SoftwareMcpProxySpec` (the names), `McpSpec` (the key's software for `ask_assistant`, the choice
   per key), `McpConnectionSpec` (the switch); the smoke test (a passed-through tool called through the AOT jar, its

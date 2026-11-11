@@ -12,7 +12,8 @@ and its follow-up, a conversation another key never sees), an MCP client's ask_a
 and the scheduled task - a new ERROR line in the store's log, a run started by the client software (findings, the
 mail at MailHog), a second run reading nothing new, a run through the MCP server's run_task.
 
-Writes local-data/measurements/general-chat/scenarios-<date>.md (ignored by git).
+Writes local-data/measurements/general-chat/scenarios-<date>-<time>.md, with --only scenarios-<date>-<time>-only.md
+(ignored by git).
 
   python3 scenarios.py [--person bernd] [--only id1,id2]
 """
@@ -291,13 +292,15 @@ def main():
                   f"{done['seconds']:.1f} s")
         if steps:
             results.append({**scenario, "results": steps})
-    write(results, arguments.person)
+    write(results, arguments.person, partial=bool(only))
 
 
-def write(results, person):
+def write(results, person, partial):
     REPORT_DIR.mkdir(parents=True, exist_ok=True)
     now = datetime.datetime.now()
-    path = REPORT_DIR / f"scenarios-{now:%Y-%m-%d-%H%M}.md"
+    # Seconds in the name and "-only" for a repeat: a repeat of one scenario right after the full run must not
+    # overwrite the full run's report.
+    path = REPORT_DIR / f"scenarios-{now:%Y-%m-%d-%H%M%S}{'-only' if partial else ''}.md"
     lines = [f"# General chat over topic tenants - scenarios {now:%Y-%m-%d %H:%M}", "",
              f"Asked as {person} in the test stack (devtools/general-chat-test), one conversation per scenario.", "",
              "| Scenario | Step | Sent | Topics asked | Files back | Checks | Seconds |",

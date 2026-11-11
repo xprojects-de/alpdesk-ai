@@ -108,7 +108,7 @@ In this order; a part that fails does not stop the others unless they build on i
    handbook's sandboxed frame - ask the user to look at it once in their own browser, or report it unclear. Where a
    step has the admin act while a person stays signed in, the admin goes through the API (walk.md "One browser holds
    one session") - say so in the notes.
-4. **`python3 scenarios.py`** - its report in `local-data/measurements/general-chat/scenarios-<date>.md`; every step with a check
+4. **`python3 scenarios.py`** - its report in `local-data/measurements/general-chat/scenarios-<date>-<time>.md` (a repeat with `--only` writes its own `...-only.md`); every step with a check
    that says NO is a failure to look at (its answer is in the report). A model that words a question differently is
    not a fault of the software: ask the scenario once more (`--only <id>`) before reporting it.
 5. Once, not per mode - from `Backend/`, in the background:
