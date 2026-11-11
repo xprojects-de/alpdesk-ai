@@ -33,19 +33,25 @@ public interface TenantMcpKeyRepository extends CrudRepository<TenantMcpKey, Lon
     @Query("SELECT connection_id FROM tenant_mcp_key_connection WHERE mcp_key_id = :mcpKeyId ORDER BY connection_id")
     List<Long> findConnectionIds(Long mcpKeyId);
 
+    /** The connected software the key may use with its level (READ, WRITE - roadmap point 68). */
+    @Query("SELECT connection_id, level FROM tenant_mcp_key_connection WHERE mcp_key_id = :mcpKeyId ORDER BY connection_id")
+    List<McpConnectionRepository.AccessRow> findConnectionLevels(Long mcpKeyId);
+
     @Query("""
-            SELECT c.mcp_key_id, c.connection_id FROM tenant_mcp_key_connection c
+            SELECT c.mcp_key_id, c.connection_id, c.level FROM tenant_mcp_key_connection c
             JOIN tenant_mcp_key k ON k.id = c.mcp_key_id WHERE k.tenant_id = :tenantId ORDER BY c.connection_id""")
     List<ConnectionRow> findConnectionsOfTenant(Long tenantId);
 
     @Query("DELETE FROM tenant_mcp_key_connection WHERE mcp_key_id = :mcpKeyId")
     void unassignConnections(Long mcpKeyId);
 
-    @Query("INSERT INTO tenant_mcp_key_connection (mcp_key_id, connection_id) VALUES (:mcpKeyId, :connectionId)")
-    void assignConnection(Long mcpKeyId, Long connectionId);
+    @Query("""
+            INSERT INTO tenant_mcp_key_connection (mcp_key_id, connection_id, level)
+            VALUES (:mcpKeyId, :connectionId, :level)""")
+    void assignConnection(Long mcpKeyId, Long connectionId, String level);
 
-    /** A connection a key may use. */
+    /** A connection a key may use, with its level. */
     @Introspected
-    record ConnectionRow(Long mcpKeyId, Long connectionId) {
+    record ConnectionRow(Long mcpKeyId, Long connectionId, String level) {
     }
 }

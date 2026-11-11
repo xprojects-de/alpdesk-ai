@@ -75,6 +75,7 @@ the user agrees to - no code before that. Then the implementation with its specs
 | 65 | Kerberos for the SMB file store: the store signs in with a ticket of the company's Active Directory instead of NTLM - for companies whose policy switches NTLM off, and the server proves itself (the limit of point 64 closed) | M (about 4-6 days with a test domain) | later - when a customer's policy refuses NTLM and a test domain is at hand; after point 64; proposal first - what is known: a separate plan (kept outside the repository) |
 | 66 | Media and documents read apart from the app: defence in depth for the two places that read foreign files - ffmpeg (audio and video of the chat) runs in the app's container, Tika has no time limit. ffmpeg started without the app's environment, the app's container hardened (no capabilities, no new privileges, later a read-only root), then conversion in a process or container of its own | S for the first two steps, M-L for the separation | later; from the security review of 10 November 2026; the first two steps can go into any release; proposal first |
 | 67 | A user's own connections to software: a tenant user connects an MCP server or an A2A agent on the account page with their own address and sign-in (a token, or OAuth) - the tools are read for that user and used in that user's chat only, with the person's rights in the software; the tenant's connections stay as they are, shared and the tenant admin's; nothing of an issue tracker or a wiki in the core | M (about 3-4 days) | **plan agreed** 10 Nov 2026 for 2.1.0, the user's shape (replaces the modes on a tenant's connection agreed earlier that day): a tenant admin's switch, off by default, and any address the rules allow; not started - after 2.0.0 is released |
+| 68 | Changing tools of the connected software through to MCP clients: a company's own MCP server behind ours offers tools that change something (a ticket created in an issue tracker, a document filed on another server) and Claude Code, Cowork or Copilot call them directly - a level per MCP key and software (none, read, read and change) where the key card has a tick per software today, the tool marked as changing - whether its user is asked is the client's matter; `ask_assistant` and `/a2a` stay reading | S (about 2-3 days) | **built** 11 Nov 2026 (2.0.0, migration `V18` - the release candidate is out) - [architecture/mcp.md](architecture/mcp.md) "Changing tools passed through"; the "later" of point 41 |
 
 ## Target architecture
 
@@ -2457,7 +2458,7 @@ the plugins are MCP servers, Zirmo keeps the rules.
 **Not built now, on purpose**: resources (`resources/list`, `resources/read` - raw content, own rules; when a
 module offers some); a catalog of the connected software at the admin (a module is entered per tenant as connected
 software); usage per call of a connected software (only the AI providers are counted); changing tools passed through (Cowork would ask before each call -
-later); elicitation (point 30).
+later: point 68); elicitation (point 30).
 
 **Size** (about 5 days): tools passed through with the choice per key for both ways and the switch per connection,
 migration (existing keys get every opened connection, `mcp_server_reads` dropped; the switch "für den MCP-Server" gone
@@ -3558,3 +3559,94 @@ personal connection with colleagues; personal connections for keys and tasks.
 1. **Who may**: only with the tenant admin's switch, off by default (step 0).
 2. **Which addresses**: any address the connections' rules allow. Not built: addresses offered by the tenant admin
    (name and address, the user adds the sign-in) - when many users of one company type the same address.
+
+## 68 Changing tools of the connected software through to MCP clients
+
+**Built 11 November 2026** for **2.0.0** (agreed the same day: a level per MCP key and software) - the decisions
+in [architecture/mcp.md](architecture/mcp.md) "Changing tools passed through". It is the "later" of point 41. The API
+took `changingConnectionIds` next to `connectionIds` instead of the groups' `levels`: the key's software stays as
+the smoke test, the test stacks and the frontend send it.
+
+**A migration of its own** (decided 11 November 2026): the release candidate of 2.0.0 is out and installed, so the
+column does not go into `V17__release_2_0_0.sql` - an installation of the candidate has applied that file, and a
+changed one would stop its start. A new file after it.
+
+**Goal**: a company uses its MCP keys from Claude Code, Cowork or Copilot and puts an MCP server of its own behind
+ours as connected software. That server also offers tools that change something - a ticket created in an issue
+tracker, a comment added, a document filed on another server. Today the proxy passes a connection's **reading** tools
+only (`SoftwareMcpProxy.passed`, the level fixed to `READ`); a changing tool reaches nobody outside the chat. The
+client's model shall call those tools directly, as it calls the reading ones.
+
+**Why it is safe to pass them now**: in the chat a changing call waits for the user's decision, and a key has no user
+- hence "never" until now. Passed through directly the decision is the MCP client's, by its own permission rules; the
+tenant admin giving the key the level is the approval, as naming a tool in a task's text is (mcp.md "Tools called by
+scheduled tasks"). **Corrected 11 November 2026**: this point first said the client asks before every call of a tool
+not marked read-only. Claude Code's documentation says otherwise - it asks at the first use of every MCP tool,
+whatever its annotations, lets its user allow the tool for good, and asks nothing in auto mode (a classifier
+decides), with bypassed permissions or an allow rule. Forcing the question from our side
+(`_meta["anthropic/requiresUserInteraction"]`) was decided against the same day: agents working without a person
+are the case; mcp.md "What the client does".
+
+**The shape**:
+- **A level per MCP key and software** where the key card has a tick per software today: none, `READ` ("nur lesen" -
+  the tick as it is), `WRITE` ("lesen und ändern" - new), the user groups' `McpAccessLevel`. A column `level` on
+  `tenant_mcp_key_connection`, every row there `READ` - a key that exists gets nothing new. Per key and software, not
+  one switch per key: the assignment is there already, and a key may then change in one software and only read in
+  another without turning the other's tools off for everyone.
+- **Which tools**: the connection's turned-on tools as today - a tenant admin turns each tool on; one left off (a
+  delete) reaches no key. With `WRITE` the key's `tools/list` adds the changing ones of a connection that **passes
+  through** ("Direkt an MCP-Clients"); `tools/call` checks the same (`McpTools.usable(tool, level)`, one place for
+  list and call). A connection that answers only has no `WRITE` to choose - the key card offers it only where the
+  connection passes through, and the service refuses it otherwise.
+- **Marked as changing**: `readOnlyHint: false` and nothing else - so Claude Code neither repeats the call by itself
+  nor runs it in parallel (it does both for a read-only tool). The software's own `destructiveHint` is not stored (`mcp_tool` keeps `readOnlyHint` and
+  `changes`); no column for it until a client makes a difference of it.
+- **`ask_assistant` and `/a2a` stay reading** (`McpTools.forMcpKey`): there the tenant's model would decide and no
+  person sees the call before it runs. The client software's API keys stay reading too.
+- **A call that failed after it was sent may have run** (no answer in time, an answer without content or too large):
+  the tool error of a changing call says so ("... the change may have been made; check before calling again"), since
+  the client's model repeats a failed call.
+- **A software that stops passing through takes the level off its keys** (the review of 11 November 2026: left, it
+  would be in force again unseen when the switch is turned back on).
+- **A line in the log for every changing call** - key, software, tool, never the arguments: the chat keeps who decided
+  what (`PendingAction`), the proxy logs failures only.
+- **API and frontend**: `changingConnectionIds` next to `connectionIds` on the key (of its software, those it may
+  change in); in the key's dialog "Darf ändern in" below the software, the key's row says where it may change; both
+  languages.
+
+**What it costs** (said plainly):
+- **A key is a shared secret**: whoever holds it changes what the key may change; no rights per person.
+- **Everyone writes as one account**: a connection signs in once (its key, or one OAuth sign-in) - the issue tracker
+  sees that account, not the person at the client. A software that must know the person takes it as an argument, or
+  the person connects it themselves (point 67 - in the chat only).
+- **Only what the client asks stands** between a prompt injection read at the client and a change in the software -
+  nothing where it is told not to ask (auto mode, bypassed permissions, an allow rule). `SECURITY.md` says so.
+- **Binary files stay poor**: a tool takes JSON arguments, so a PDF to file would be base64 written out by the
+  client's model - text is fine, large binary files are not this point's.
+- **No question back from the software**: `/mcp` is stateless, a tool asking for values during the call (elicitation,
+  point 30) fails through the proxy - its tools take everything as arguments.
+
+**Changes with it**: `docs/architecture/mcp.md` ("Connected software through to MCP clients", the MCP keys),
+`SECURITY.md` (the three places that say a key never gets a changing tool), CHANGELOG `### Added`; a changing scenario
+in `devtools/mcp-test-server` and `proxy_check.py`, the line in `devtools/general-chat-test/walk/features.md`. Specs:
+`McpProxySpec` (a key with `READ` lists and calls no changing tool, with `WRITE` both; a tool turned off; a connection
+not passing through; another key; another tenant; the annotation; the timeout's text), `McpSpec` (`ask_assistant`
+still reading with `WRITE`), the key's API (the level saved, refused for an unknown connection and for `WRITE` on a
+connection that answers only), the migration keeping every key at `READ`.
+
+**Size**: about 2-3 days - the column, the key's API and service (0.5), the proxy with annotation, error text and log
+line (0.5), the key card (0.5), specs (1), docs, SECURITY.md, the test server (0.5).
+
+**Not built, on purpose**: changing tools for `ask_assistant`, `/a2a` or the client software's API keys; a record of
+the changing calls in the database (the log line until someone must look them up); the software's `destructiveHint`
+and `idempotentHint` passed on; elicitation (point 30); rights per person (point 67, OAuth per person).
+
+**Noted for later - a question back over A2A** (11 November 2026, left out for now): `/a2a` could offer changing
+tools the way the chat does, with the calling agent in the user's place - the task goes to `input-required` naming
+the tool and its values, the agent confirms or declines with a message to the task, then the call runs or is dropped.
+What it needs: `input-required` at our server (a message to an existing task is `UnsupportedOperationError` today,
+a2a.md), every such question a stored task, the waiting call owned by the key instead of a user - about a week. Its
+limit: an agent decides at the other end, not surely a person - a model confirming a model's question is no check,
+and a workflow engine without a user confirms by itself or hangs; `SECURITY.md` would have to say the calling agent's
+operator answers for it. `ask_assistant` has no counterpart (elicitation, point 30 - `/mcp` is stateless). When: an
+agent that speaks A2A only must change something and a person decides behind it.

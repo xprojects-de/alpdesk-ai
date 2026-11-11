@@ -77,7 +77,23 @@ export const mcpKeyReducer = createReducer(
         state.scope === scope
             ? {
                   ...state,
-                  keys: state.keys.map(k => ({...k, connectionIds: k.connectionIds.filter(id => id !== connectionId)})),
+                  keys: state.keys.map(k => ({
+                      ...k,
+                      connectionIds: k.connectionIds.filter(id => id !== connectionId),
+                      changingConnectionIds: k.changingConnectionIds.filter(id => id !== connectionId),
+                  })),
+              }
+            : state,
+    ),
+    // A software that stops going to MCP clients takes the level off its keys - so does the list.
+    on(McpConnectionActions.setPassThroughSuccess, (state, {scope, connection}) =>
+        state.scope === scope && !connection.passesThrough
+            ? {
+                  ...state,
+                  keys: state.keys.map(k => ({
+                      ...k,
+                      changingConnectionIds: k.changingConnectionIds.filter(id => id !== connection.id),
+                  })),
               }
             : state,
     ),

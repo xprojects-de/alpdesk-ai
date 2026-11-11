@@ -10,18 +10,20 @@ import java.util.List;
 /**
  * One of the tenant's MCP keys as shown - its prefix, never the key; description: what it releases, in the tenant
  * admin's words; areaIds: what it finds besides the company knowledge;
- * connectionIds: the connected software it may use; taskIds: the scheduled tasks it may list and start.
+ * connectionIds: the connected software it may use; changingConnectionIds: those of them whose changing tools go to its
+ * MCP client too; taskIds: the scheduled tasks it may list and start.
  */
 @Serdeable
 public record McpKeyResponse(Long id, String name, @Nullable String description, String keyPrefix, boolean webSearch, List<Long> areaIds,
                              List<Long> connectionIds, List<Long> taskIds, Instant createdAt,
                              @Nullable Instant lastUsedAt,
                              /** The doors it opens: /mcp and /a2a. */
-                             boolean mcp, boolean a2a) {
+                             boolean mcp, boolean a2a, List<Long> changingConnectionIds) {
 
     public static McpKeyResponse from(TenantMcpKey key, List<Long> areaIds, List<Long> connectionIds,
-                                      List<Long> taskIds) {
+                                      List<Long> changingConnectionIds, List<Long> taskIds) {
         return new McpKeyResponse(key.id(), key.name(), key.description(), key.keyPrefix(), key.webSearch(), List.copyOf(areaIds),
-                List.copyOf(connectionIds), List.copyOf(taskIds), key.createdAt(), key.lastUsedAt(), key.mcp(), key.a2a());
+                List.copyOf(connectionIds), List.copyOf(taskIds), key.createdAt(), key.lastUsedAt(), key.mcp(), key.a2a(),
+                List.copyOf(changingConnectionIds));
     }
 }

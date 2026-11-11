@@ -283,6 +283,10 @@ public class McpConnectionService {
                 throw ServiceException.conflict("mcpConnection.notForA2a",
                         "An A2A agent has no tools to pass on to MCP clients");
             }
+            if (!passesThrough) {
+                // What a key may change in goes only directly to its client - switched on again, nobody chose it.
+                connections.mcpKeysReadOnly(connection.id());
+            }
             return response(connections.update(new McpConnection(connection.id(), connection.tenantId(),
                     connection.name(), connection.baseUrl(), connection.apiKey(), connection.keyHint(),
                     connection.toolsLoadedAt(), passesThrough, connection.instructions(), connection.protocol(),

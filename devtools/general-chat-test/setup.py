@@ -234,10 +234,14 @@ def a2a():
     state = json.loads(STATE.read_text())
     general_id = state["general"]["tenantId"]
     body = {"name": AGENT, "baseUrl": AGENT_URL, "protocol": "A2A", "answersChat": True}
-    # Kept when `full` made it a tool of the chat: it answers again.
+    # Kept when `full` made it a tool of the chat: it answers again. An update at the same address does not read the
+    # card again, so the kept one is reloaded - a first run before the agent was up left it without skills.
     kept = connection_named(admin, general_id, AGENT)
-    connection = call(admin, "PUT", f"/admin/tenants/{general_id}/mcp-connections/{kept['id']}", body) if kept \
-        else call(admin, "POST", f"/admin/tenants/{general_id}/mcp-connections", body)
+    if kept:
+        call(admin, "PUT", f"/admin/tenants/{general_id}/mcp-connections/{kept['id']}", body)
+        connection = call(admin, "POST", f"/admin/tenants/{general_id}/mcp-connections/{kept['id']}/reload")
+    else:
+        connection = call(admin, "POST", f"/admin/tenants/{general_id}/mcp-connections", body)
     if connection.get("toolsError"):
         raise SystemExit(f"the agent's card could not be read at {AGENT_URL}: {connection['toolsError']} - "
                          "is the test agent running (TEST_AGENT_DEMO=1 devtools/a2a-test-agent/start.sh)?")

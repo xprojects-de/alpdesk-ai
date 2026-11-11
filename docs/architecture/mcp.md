@@ -156,7 +156,8 @@ API: Claude Code brings its own model and takes extra knowledge through MCP tool
   (`McpTools.forMcpKey`, the key's id in the `ToolContext`): Claude Code asks, our assistant looks it up there, weighs
   it and answers. Its changing tools never - there is no conversation to ask in and no user whose level would count.
   Whoever holds the key reads what those tools give, and the answers go to the asking client. A connection that
-  passes through gives the same key its tools directly too ("Connected software through to MCP clients" below).
+  passes through gives the same key its tools directly too ("Connected software through to MCP clients" below) -
+  there, and only there, also the changing ones where the key may change in that software.
   `McpSpec` holds it: a key without the software gets nothing, another key of the tenant neither.
 - **Claude Code** - see "Connecting Claude Code" below.
 - **GitHub Copilot (VS Code)**: `.vscode/mcp.json` with the server under the brand's name (`"muster-ai"`), `"type":
@@ -317,8 +318,56 @@ who gets what. `services.mcp.SoftwareMcpProxy`, answered by
   October 2026: a counter `_2` where two came out alike moved a name to another tool when one before it was turned on
   or off, and a client holding the old list called that one). Each name comes from its own tool alone, so a name never
   moves to another tool; `__` is always in it (it tells a passed-through call from ours - our tools never have it). The
-  description starts with `[<connection>] `, the input schema is the software's, marked read-only. Changing tools
-  never.
+  description starts with `[<connection>] `, the input schema is the software's, marked read-only. The changing
+  tools only where the key may change in that software (below).
+- **Changing tools passed through** (decided 11 November 2026, roadmap point 68 - for a company's own MCP server that
+  creates a ticket or files a document elsewhere, called from Claude Code or Copilot): **a level per key and
+  software**, `tenant_mcp_key_connection.level` (`READ`, `WRITE` - the user groups' `McpAccessLevel`; migration
+  `V18`, every key that existed `READ`). On `.../mcp-keys` it is `changingConnectionIds`, the software of
+  `connectionIds` whose changing tools go to the key's client too - left out on create none, on a change those it had
+  that it still may use (a software taken off the key loses its level). 400 `mcpKey.changingNotUsed` for one the key
+  may not use, `mcpKey.changingNotPassedThrough` for one that does not pass through or is an A2A agent, and
+  `mcpKey.unknownConnection` for another tenant's. In the key's dialog "Darf ändern in" below the software, offering
+  those of the chosen software that pass through; the key's row says "Ändert in: ...". **A software that stops
+  passing through takes the level off its keys** (`McpConnectionRepository.mcpKeysReadOnly` in `setPassThrough`): a
+  level left would be in force again the day the switch is turned back on, and no dialog shows it meanwhile.
+  - **Why it is right here and nowhere else**: in the chat a changing call waits for the user's decision; a key has no
+    user. Passed through, the decision is the MCP client's: its own permission rules say whether its user is asked
+    ("What the client does" below) - the tenant admin giving the key the level is our approval, as naming a tool in
+    a task's text is. `ask_assistant`, `/a2a` and
+    the client software's API keys stay reading: there the tenant's model would call the tool and nobody sees the call
+    before it runs (`McpTools.forMcpKey` is unchanged).
+  - **Which tools**: those turned on (a tenant admin turns on each, a delete left off reaches no key) and marked
+    changing (`changes`). `tools/list` and `tools/call` take the same list (`SoftwareMcpProxy.passed`,
+    `McpTools.usable(tool, level)`): a key with `READ` neither lists nor calls a changing tool - the call is the
+    unknown tool of above. Marked `readOnlyHint: false` and nothing more; the software's own `destructiveHint` is not
+    kept. The mark matters: Claude Code repeats a tool marked read-only by itself after a dropped connection and
+    runs it in parallel with others - a changing tool must never be listed as read-only.
+  - **What the client does** (Claude Code's documentation, read 11 November 2026 - corrected the same day: the first
+    text said "the client asks before each call"): Claude Code asks at the **first use** of every MCP tool, whatever
+    its annotations, and its user may allow the tool for good; in auto mode a classifier decides, with bypassed
+    permissions or an allow rule (`mcp__<server>__<tool>`) nothing is asked - an agent without a person changes
+    without a question. `readOnlyHint` does not steer the question. An organisation enforces it in the client
+    (managed settings: `permissions.ask` / `permissions.deny`). **Not built, on purpose**: forcing the question from
+    our side (`_meta["anthropic/requiresUserInteraction"]: true` on the tool - Claude Code then asks at every call in
+    every mode and refuses it without a person): decided against 11 November 2026, since agents working without a
+    person are the case this was built for; if wanted later, a choice of the tenant admin, not fixed. What claude.ai,
+    Cowork and Copilot do is their documentation's matter and not checked.
+  - **A changing call that failed after it was sent** - no answer in time, an answer without content or too large
+    (`mcpServer.timeout`, `.requestFailed`, `.tooLarge`) - may have run at the software all the same; its tool error
+    says "... the change may have been made; check before calling again" (`SoftwareMcpProxy.failure`) - the client's
+    model repeats a failed call. Not for a software out of reach, a refused key or an error the software answered.
+  - **A line in the log for every changing call** (key id, tenant, tool, software - never the arguments): the chat
+    keeps who decided what (`PendingAction`), this is the proxy's trace. The software's names go in without control
+    characters - a tool's name is the other server's text, and a line break in it would forge a line.
+  - **What it costs**: a key is a shared secret - whoever holds it changes what it may change; every call reaches the
+    software as the connection's one account (its key or its OAuth sign-in), not as the person at the client;
+    between a prompt injection read at the client and the change stands only what the client asks - nothing where it
+    is told not to ask. A tool takes JSON arguments only (a binary file would be base64 written
+    out by the client's model), and asks no values back during the call (elicitation, point 30 - `/mcp` is
+    stateless).
+  - Not built: a question back over A2A (the calling agent confirming, `input-required` - roadmap point 68 "Noted for
+    later"); a record of the changing calls in the database; the software's `destructiveHint` and `idempotentHint`.
 - **Calls**: `tools/call` of such a name goes through `McpClient` to the software with its key and the client's
   arguments (the software checks them - the SDK checks only its registered tools), off the event loop
   (`boundedElastic`), within `app.ai.timeout`. Its text comes back as it is; its files as embedded resources by the
@@ -347,9 +396,11 @@ who gets what. `services.mcp.SoftwareMcpProxy`, answered by
 - **No `tools/list_changed`**: `/mcp` is stateless (no event stream), so a client learns of a key's changed software
   at its next `tools/list` - Claude Code at the start of a session, Cowork when it connects again.
 - **Not built, on purpose**: resources (`resources/list`, `resources/read`), a catalog of the connected software at the
-  admin, usage per call of a connected software (only the AI providers are counted), changing tools passed through, elicitation (point 30).
+  admin, usage per call of a connected software (only the AI providers are counted), elicitation (point 30).
 - Tests: `controller/mcp/McpProxySpec` (listing, names, calls, errors, files, a key without the software, another
-  tenant, not passing through, instructions, prompts), `services/mcp/SoftwareMcpProxySpec` (the names), `McpSpec` (the key's software for `ask_assistant`, the choice
+  tenant, not passing through, instructions, prompts; the changing tools with the level: listed and called, turned
+  off, taken back, kept on a change of the key's software, the admin's API, `ask_assistant` still reading, the refused
+  levels), `services/mcp/SoftwareMcpProxySpec` (the names, a changing call's timeout), `McpSpec` (the key's software for `ask_assistant`, the choice
   per key), `McpConnectionSpec` (the switch); the smoke test (a passed-through tool called through the AOT jar, its
   instructions); by hand: `devtools/mcp-test-server/proxy_check.py` - the test server as a module, the MCP SDK's client
   with a key with and one without it (its README).
@@ -504,7 +555,9 @@ call - is not built: when a module needs it.
     stored answer when it is stored, so an answer that finds the mark changed since it was prepared knows the
     conversation went on - also when it was only a decided call's answer stored meanwhile, which errs to the safe
     side. Both answer 409 "This action expired - ask again".
-  - Another user's call answers 404. The client software and the MCP key never get changing tools: they have no user.
+  - Another user's call answers 404. The client software and `ask_assistant` never get changing tools: they have no
+    user. An MCP key gets them only passed through to its client, whose own rules decide whether its user is asked
+    (above, roadmap point 68).
   - What a tool may change at all is the other side's decision: its tools and the rights of our key there.
 - **Files in tool results** (e.g. a tool returning a generated project as a ZIP archive): a tool may return files the way MCP provides for them - an `EmbeddedResource` in the `CallToolResult`, as
   `BlobResourceContents` (base64) or `TextResourceContents`, and images as `ImageContent`. `McpClient.callTool`

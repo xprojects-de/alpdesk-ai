@@ -186,7 +186,7 @@ connection is there, `check.py` expects it reached - the demo must keep running.
 ## Conversations with a real model
 
 ```bash
-python3 scenarios.py [--only a2a-file-in,mcp-pdf-in]   # writes local-data/measurements/general-chat/scenarios-<date>.md
+python3 scenarios.py [--only a2a-file-in,mcp-pdf-in]   # writes local-data/measurements/general-chat/scenarios-<date>-<time>[-only].md
 ```
 
 Thirteen conversations of the general chat as `bernd`, each of one or more steps (`SCENARIOS` in `scenarios.py`): a

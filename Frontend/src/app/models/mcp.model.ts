@@ -1,6 +1,7 @@
 /**
  * One of the tenant's MCP keys, as shown - its prefix, never the key. areaIds: the knowledge areas it finds besides the
- * company knowledge; connectionIds: the connected software it may use; taskIds: the scheduled tasks it may start.
+ * company knowledge; connectionIds: the connected software it may use; changingConnectionIds: those of them whose
+ * changing tools its MCP client may call too; taskIds: the scheduled tasks it may start.
  */
 export interface McpKey {
     id: number;
@@ -11,6 +12,7 @@ export interface McpKey {
     webSearch: boolean;
     areaIds: number[];
     connectionIds: number[];
+    changingConnectionIds: number[];
     taskIds: number[];
     createdAt: string;
     lastUsedAt: string | null;
@@ -27,6 +29,7 @@ export interface McpKeyRequest {
     webSearch?: boolean;
     areaIds?: number[];
     connectionIds?: number[];
+    changingConnectionIds?: number[];
     taskIds?: number[];
 }
 

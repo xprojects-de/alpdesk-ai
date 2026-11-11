@@ -25,6 +25,8 @@ import {dialogSave} from "../dialog-save";
 export interface KeySoftwareChoice {
     id: number;
     label: string;
+    /** Only an MCP key: it goes directly to MCP clients - the key may change in it too. */
+    changeable?: boolean;
 }
 
 export interface KeyDialogData {
@@ -135,6 +137,21 @@ export interface KeyDialogData {
                         </mat-select>
                         <mat-hint>{{ "keyDialog." + data.kind + ".softwareHint" | transloco }}</mat-hint>
                     </mat-form-field>
+                    @if (data.choices.changing && changeableSoftware().length > 0) {
+                        <mat-form-field appearance="outline">
+                            <mat-label>{{ "keyDialog.changing" | transloco }}</mat-label>
+                            <mat-select
+                                formControlName="changingConnectionIds"
+                                multiple
+                                [placeholder]="'keyDialog.noChanging' | transloco"
+                            >
+                                @for (software of changeableSoftware(); track software.id) {
+                                    <mat-option [value]="software.id">{{ software.label }}</mat-option>
+                                }
+                            </mat-select>
+                            <mat-hint>{{ "keyDialog.changingHint" | transloco }}</mat-hint>
+                        </mat-form-field>
+                    }
                 }
 
                 @if (data.choices.tasks) {
@@ -213,6 +230,8 @@ export class KeyDialogComponent {
         name: [this.data.key?.name ?? "", [Validators.required, notBlank()]],
         areaIds: [this.data.key?.areaIds ?? ([] as number[])],
         connectionIds: [this.data.key?.connectionIds ?? ([] as number[])],
+        // None unless chosen: a key reads only, as the backend's default.
+        changingConnectionIds: [this.data.key?.changingConnectionIds ?? ([] as number[])],
         taskIds: [this.data.key?.taskIds ?? ([] as number[])],
         webSearch: [this.data.key?.webSearch ?? false],
         // A new API key keeps its questions unless told not to - as the backend does when it is left out.
@@ -222,16 +241,24 @@ export class KeyDialogComponent {
         mcp: [this.data.key?.mcp ?? true],
         a2a: [this.data.key?.a2a ?? false],
     });
-    private readonly doorValues = toSignal(this.form.valueChanges, {initialValue: this.form.getRawValue()});
+    private readonly values = toSignal(this.form.valueChanges, {initialValue: this.form.getRawValue()});
     readonly missingDoor = computed(() =>
-        noDoor({mcp: this.doorValues().mcp ?? false, a2a: this.doorValues().a2a ?? false}, this.data.choices),
+        noDoor({mcp: this.values().mcp ?? false, a2a: this.values().a2a ?? false}, this.data.choices),
     );
+    private readonly changeable = this.data.software
+        .filter(software => software.changeable)
+        .map(software => software.id);
+    /** What the key may change in: of the software chosen above, those that go directly to MCP clients. */
+    readonly changeableSoftware = computed(() => {
+        const used = this.values().connectionIds ?? [];
+        return this.data.software.filter(software => software.changeable && used.includes(software.id));
+    });
 
     save(): void {
         if (this.form.invalid || this.missingDoor()) {
             return;
         }
-        this.saver.submit(keyRequest(this.form.getRawValue(), this.data.choices));
+        this.saver.submit(keyRequest(this.form.getRawValue(), this.data.choices, this.changeable));
     }
 
     cancel(): void {

@@ -2,7 +2,7 @@ import {Component, input} from "@angular/core";
 import {TranslocoPipe} from "@jsverse/transloco";
 import {KeySummary} from "../../../utils/key-form.util";
 
-/** A key's rights in its table row, short: its areas, software, tasks, the web search - changed in its dialog. */
+/** A key's rights in its table row, short: its areas, software (and where it may change), tasks, the web search - changed in its dialog. */
 @Component({
     selector: "app-key-rights",
     imports: [TranslocoPipe],
@@ -16,6 +16,11 @@ import {KeySummary} from "../../../utils/key-form.util";
             @if (summary().software.length > 0) {
                 <span class="app-tag">{{
                     "keyRights.software" | transloco: {names: summary().software.join(", ")}
+                }}</span>
+            }
+            @if (summary().changing.length > 0) {
+                <span class="app-tag">{{
+                    "keyRights.changing" | transloco: {names: summary().changing.join(", ")}
                 }}</span>
             }
             @if (summary().tasks.length > 0) {

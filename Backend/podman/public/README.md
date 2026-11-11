@@ -50,7 +50,9 @@ take the release that follows without being set up again.
   themselves - with MCP keys the tenant admin creates, each with its own knowledge areas, connected software and web
   search; claude.ai and Cowork take the server as a custom connector with the key as a request header. A connected
   software switched "Directly to MCP clients" ("Direkt an MCP-Clients") reaches them directly: its reading tools and
-  prompts appear among the server's tools (`<software>__<tool>`), while its address and key stay in the installation.
+  prompts appear among the server's tools (`<software>__<tool>`), while its address and key stay in the installation -
+  and its changing tools too, for a key the tenant admin lets change in it ("Darf ändern in"); whether its user
+  is asked before such a call is the client's matter (SECURITY.md).
 - **Single sign-on** through a WAM proxy that passes the signed-in person on in a header (optional).
 - **Branding** per installation and per tenant: name, colour and logo - with a login page of its own for every tenant.
 

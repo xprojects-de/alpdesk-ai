@@ -4,7 +4,9 @@ import de.alpdesk.dto.mcp.McpKeyCreatedResponse;
 import de.alpdesk.dto.mcp.McpKeyResponse;
 import de.alpdesk.entities.mcp.TenantMcpKey;
 import de.alpdesk.entities.tenant.Tenant;
+import de.alpdesk.entities.mcp.McpAccessLevel;
 import de.alpdesk.entities.mcp.McpConnection;
+import de.alpdesk.entities.mcp.McpConnectionProtocol;
 import de.alpdesk.repositories.mcp.McpConnectionRepository;
 import de.alpdesk.repositories.mcp.TenantMcpKeyRepository;
 import de.alpdesk.repositories.tenant.TenantRepository;
@@ -28,6 +30,7 @@ import java.util.Base64;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.HexFormat;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -36,8 +39,8 @@ import java.util.Set;
 
 /**
  * The tenant's keys for its MCP server (docs/architecture/mcp.md "MCP keys", roadmap points 39 and 41), kept by its
- * tenant admins and the admin: several per tenant, each with a name, its knowledge areas, the connected software and
- * the scheduled tasks it may use and the web search - like the client software's API keys. Only the hash is stored and the plain key is shown once; renewing a key gives it a new secret and
+ * tenant admins and the admin: several per tenant, each with a name, its knowledge areas, the connected software (each
+ * read, or read and changed - roadmap point 68) and the scheduled tasks it may use and the web search - like the client software's API keys. Only the hash is stored and the plain key is shown once; renewing a key gives it a new secret and
  * keeps its settings.
  */
 @Singleton
@@ -82,14 +85,19 @@ public class McpKeyService {
         requireTenant(tenantId);
         Map<Long, List<Long>> areasOfKeys = areas.areasOfMcpKeys(tenantId);
         Map<Long, List<Long>> connectionsOfKeys = new HashMap<>();
+        Map<Long, List<Long>> changingOfKeys = new HashMap<>();
         for (TenantMcpKeyRepository.ConnectionRow row : keys.findConnectionsOfTenant(tenantId)) {
             connectionsOfKeys.computeIfAbsent(row.mcpKeyId(), _ -> new ArrayList<>()).add(row.connectionId());
+            if (McpAccessLevel.valueOf(row.level()) == McpAccessLevel.WRITE) {
+                changingOfKeys.computeIfAbsent(row.mcpKeyId(), _ -> new ArrayList<>()).add(row.connectionId());
+            }
         }
         Map<Long, List<Long>> tasksOfKeys = tasks.tasksOfMcpKeys(tenantId);
         List<McpKeyResponse> list = new ArrayList<>();
         for (TenantMcpKey key : keys.findByTenantIdOrderByCreatedAt(tenantId)) {
             list.add(McpKeyResponse.from(key, areasOfKeys.getOrDefault(key.id(), List.of()),
-                    connectionsOfKeys.getOrDefault(key.id(), List.of()), tasksOfKeys.getOrDefault(key.id(), List.of())));
+                    connectionsOfKeys.getOrDefault(key.id(), List.of()), changingOfKeys.getOrDefault(key.id(), List.of()),
+                    tasksOfKeys.getOrDefault(key.id(), List.of())));
         }
         return list;
     }
@@ -100,14 +108,16 @@ public class McpKeyService {
     }
 
     /**
-     * A new key: name required (400), web search off, no description, area, software or task unless given; 400 for
-     * an unknown area, connection or task or a description over {@value #MAX_DESCRIPTION_LENGTH} characters, 404 for
-     * an unknown tenant.
+     * A new key: name required (400), web search off, no description, area, software or task unless given, and no
+     * software it may change in; 400 for an unknown area, connection or task, a description over
+     * {@value #MAX_DESCRIPTION_LENGTH} characters or a software to change in it may not use or that does not pass
+     * through, 404 for an unknown tenant.
      */
     @Transactional
     public McpKeyCreatedResponse create(Long tenantId, @Nullable String name, @Nullable String description,
                                         @Nullable Boolean webSearch,
                                         @Nullable List<Long> areaIds, @Nullable List<Long> connectionIds,
+                                        @Nullable List<Long> changingConnectionIds,
                                         @Nullable List<Long> taskIds, @Nullable Boolean mcp, @Nullable Boolean a2a) {
         requireTenant(tenantId);
         boolean opensMcp = mcp == null || mcp;
@@ -118,19 +128,21 @@ public class McpKeyService {
                 checkedDescription(description), displayPrefix(plainKey),
                 hash(plainKey), Boolean.TRUE.equals(webSearch), opensMcp, opensA2a, Instant.now(), null));
         areas.assignMcpKey(tenantId, saved.id(), areaIds);
-        assignConnections(tenantId, saved.id(), connectionIds);
+        assignConnections(tenantId, saved.id(), connectionIds, changingConnectionIds);
         tasks.assignMcpKey(tenantId, saved.id(), taskIds);
         return new McpKeyCreatedResponse(response(saved), plainKey);
     }
 
     /**
      * Renames the key, changes its description (empty: removed), switches its web search or changes its areas, its
-     * software or its tasks - left out: unchanged; empty for another tenant's key, 400 as on create.
+     * software, the software it may change in or its tasks - left out: unchanged (the software it may change in: the
+     * ones it had that it still may use); empty for another tenant's key, 400 as on create.
      */
     @Transactional
     public Optional<McpKeyResponse> update(Long tenantId, Long keyId, @Nullable String name,
                                            @Nullable String description, @Nullable Boolean webSearch, @Nullable List<Long> areaIds,
-                                           @Nullable List<Long> connectionIds, @Nullable List<Long> taskIds,
+                                           @Nullable List<Long> connectionIds, @Nullable List<Long> changingConnectionIds,
+                                           @Nullable List<Long> taskIds,
                                            @Nullable Boolean mcp, @Nullable Boolean a2a) {
         String newName = name == null ? null : requireName(name);
         String newDescription = description == null ? null : checkedDescription(description);
@@ -144,7 +156,7 @@ public class McpKeyService {
         boolean opensA2a = a2a == null ? key.a2a() : a2a;
         requireDoor(opensMcp, opensA2a);
         areas.assignMcpKey(tenantId, key.id(), areaIds);
-        assignConnections(tenantId, key.id(), connectionIds);
+        assignConnections(tenantId, key.id(), connectionIds, changingConnectionIds);
         tasks.assignMcpKey(tenantId, key.id(), taskIds);
         TenantMcpKey updated = keys.update(new TenantMcpKey(key.id(), key.tenantId(), newName == null ? key.name() : newName,
                 description == null ? key.description() : newDescription, key.keyPrefix(), key.keyHash(), webSearch == null ? key.webSearch() : webSearch, opensMcp, opensA2a,
@@ -251,31 +263,89 @@ public class McpKeyService {
     }
 
     private McpKeyResponse response(TenantMcpKey key) {
-        return McpKeyResponse.from(key, areas.areasOfMcpKey(key.id()), keys.findConnectionIds(key.id()),
+        List<Long> connectionIds = new ArrayList<>();
+        List<Long> changingIds = new ArrayList<>();
+        for (McpConnectionRepository.AccessRow row : keys.findConnectionLevels(key.id())) {
+            connectionIds.add(row.connectionId());
+            if (row.accessLevel() == McpAccessLevel.WRITE) {
+                changingIds.add(row.connectionId());
+            }
+        }
+        return McpKeyResponse.from(key, areas.areasOfMcpKey(key.id()), connectionIds, changingIds,
                 tasks.taskIdsOfMcpKey(key.id()));
     }
 
     /**
-     * Replaces the key's software - in the caller's transaction. null: unchanged. 400 for a connection that is not the
-     * tenant's.
+     * Replaces the key's software and the ones it may change in - in the caller's transaction. Both null: unchanged.
+     * The software left out: the key's as it is; the ones to change in left out: those it had that it still may use. 400
+     * for a connection that is not the tenant's, and for one to change in that the key may not use or that does not
+     * pass through to MCP clients (an answer-only software's or an A2A agent's changing tools reach nobody here).
      */
-    private void assignConnections(Long tenantId, Long mcpKeyId, @Nullable List<Long> connectionIds) {
-        if (connectionIds == null) {
+    private void assignConnections(Long tenantId, Long mcpKeyId, @Nullable List<Long> connectionIds,
+                                   @Nullable List<Long> changingConnectionIds) {
+        if (connectionIds == null && changingConnectionIds == null) {
             return;
         }
-        Set<Long> known = new HashSet<>();
+        Map<Long, McpConnection> known = new HashMap<>();
         for (McpConnection connection : connections.findByTenantIdOrderByName(tenantId)) {
-            known.add(connection.id());
+            known.put(connection.id(), connection);
         }
+        Map<Long, McpAccessLevel> current = new LinkedHashMap<>();
+        for (McpConnectionRepository.AccessRow row : keys.findConnectionLevels(mcpKeyId)) {
+            current.put(row.connectionId(), row.accessLevel());
+        }
+        Set<Long> used = connectionIds == null ? current.keySet() : checkedConnections(connectionIds, known);
+        Set<Long> changing = changingConnectionIds == null ? stillChanging(current, used)
+                : checkedChanging(changingConnectionIds, used, known);
+        keys.unassignConnections(mcpKeyId);
+        for (Long connectionId : used) {
+            McpAccessLevel level = changing.contains(connectionId) ? McpAccessLevel.WRITE : McpAccessLevel.READ;
+            keys.assignConnection(mcpKeyId, connectionId, level.name());
+        }
+    }
+
+    private static Set<Long> checkedConnections(List<Long> connectionIds, Map<Long, McpConnection> known) {
         Set<Long> checked = new LinkedHashSet<>();
         for (Long connectionId : connectionIds) {
-            if (connectionId == null || !known.contains(connectionId)) {
+            if (connectionId == null || !known.containsKey(connectionId)) {
                 throw ServiceException.badRequest("mcpKey.unknownConnection", "Unknown connected software");
             }
             checked.add(connectionId);
         }
-        keys.unassignConnections(mcpKeyId);
-        checked.forEach(connectionId -> keys.assignConnection(mcpKeyId, connectionId));
+        return checked;
+    }
+
+    /** The software the key could change in before and still may use - a software taken away loses it. */
+    private static Set<Long> stillChanging(Map<Long, McpAccessLevel> current, Set<Long> used) {
+        Set<Long> changing = new HashSet<>();
+        current.forEach((connectionId, level) -> {
+            if (level == McpAccessLevel.WRITE && used.contains(connectionId)) {
+                changing.add(connectionId);
+            }
+        });
+        return changing;
+    }
+
+    private static Set<Long> checkedChanging(List<Long> changingConnectionIds, Set<Long> used,
+                                             Map<Long, McpConnection> known) {
+        Set<Long> checked = new HashSet<>();
+        for (Long connectionId : changingConnectionIds) {
+            if (connectionId == null || !known.containsKey(connectionId)) {
+                throw ServiceException.badRequest("mcpKey.unknownConnection", "Unknown connected software");
+            }
+            if (!used.contains(connectionId)) {
+                throw ServiceException.badRequest("mcpKey.changingNotUsed",
+                        "The key may change only in software it may use");
+            }
+            McpConnection connection = known.get(connectionId);
+            if (!connection.passesThrough() || connection.protocol() != McpConnectionProtocol.MCP) {
+                throw ServiceException.badRequest("mcpKey.changingNotPassedThrough",
+                        "The key may change only in software that goes directly to MCP clients",
+                        Map.of("name", connection.name()));
+            }
+            checked.add(connectionId);
+        }
+        return checked;
     }
 
     private void touch(TenantMcpKey key) {

@@ -22,6 +22,13 @@ public interface McpConnectionRepository extends CrudRepository<McpConnection, L
 
     int deleteByIdAndTenantId(Long id, Long tenantId);
 
+    /**
+     * No MCP key may change in the connection any more (roadmap point 68) - when it stops going to MCP clients: a
+     * level left would be in force again, unseen, the day it is switched back on.
+     */
+    @Query("UPDATE tenant_mcp_key_connection SET level = 'READ' WHERE connection_id = :connectionId")
+    void mcpKeysReadOnly(Long connectionId);
+
     /** The connected software an API key of the client software may use (roadmap point 42), ordered by id. */
     @Query("SELECT connection_id FROM tenant_api_key_connection WHERE api_key_id = :apiKeyId ORDER BY connection_id")
     List<Long> findConnectionIdsOfApiKey(Long apiKeyId);

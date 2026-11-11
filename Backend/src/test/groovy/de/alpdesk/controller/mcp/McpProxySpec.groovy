@@ -20,7 +20,9 @@ import java.util.zip.ZipOutputStream
 /**
  * The connected software passed through the tenant's MCP server (roadmap point 41): an MCP key with a software that
  * passes through ("Direkt an MCP-Clients") gets its reading tools in tools/list and calls them itself - no model answers
- * in between. A key without the software, or a software that does not pass through, gets none of them.
+ * in between. A key without the software, or a software that does not pass through, gets none of them. A key that may
+ * change in the software (roadmap point 68) gets its changing tools too, marked as not read-only - whether its user is
+ * asked is the client's matter; ask_assistant stays reading.
  */
 @MicronautTest(transactional = false)
 class McpProxySpec extends Specification {
@@ -453,6 +455,173 @@ class McpProxySpec extends Specification {
         change << ["renamed", "deleted"]
     }
 
+    def "a key that may change in the software lists its changing tools too, marked as not read-only, and calls them"() {
+        given:
+        def setup = tenantWithSoftware(true)
+
+        when:
+        def changed = api.call(setup.admin, "PUT", "/tenant/admin/mcp-keys/${setup.keyId}",
+                [changingConnectionIds: [setup.connection.id]]) as Map
+        def listed = rpc(setup.key, "tools/list").result.tools as List<Map>
+        def cancel = listed.find { it.name == "Buchhaltung__cancel_invoice" }
+        def find = listed.find { it.name == "Buchhaltung__find_invoice" }
+        def result = rpc(setup.key, "tools/call", [name: "Buchhaltung__cancel_invoice", arguments: [number: "4711"]]).result
+
+        then:
+        changed.connectionIds == [setup.connection.id]
+        changed.changingConnectionIds == [setup.connection.id]
+        cancel.description == "[Buchhaltung] Cancels an invoice"
+        cancel.annotations.readOnlyHint == false
+        cancel.annotations.destructiveHint == null
+        find.annotations.readOnlyHint == true
+        !result.isError
+        software.calls()*.params*.name == ["cancel_invoice"]
+        software.calls()[0].params.arguments == [number: "4711"]
+        fake.chats.isEmpty()
+    }
+
+    def "a changing tool turned off reaches no key, even one that may change"() {
+        given:
+        def setup = tenantWithSoftware(true)
+        api.call(setup.admin, "PUT", "/tenant/admin/mcp-keys/${setup.keyId}", [changingConnectionIds: [setup.connection.id]])
+        def cancel = (setup.connection.tools as List<Map>).find { it.name == "cancel_invoice" }
+        api.call(setup.admin, "PUT", "/tenant/admin/mcp-connections/${setup.connection.id}/tools/${cancel.id}", [enabled: false])
+
+        expect:
+        !toolNames(setup.key).contains("Buchhaltung__cancel_invoice")
+        unknownTool(rpc(setup.key, "tools/call", [name: "Buchhaltung__cancel_invoice", arguments: [number: "4711"]]))
+        software.calls().isEmpty()
+    }
+
+    def "a software that stops passing through takes the level off its keys - switched on again nobody chose it; taken back by hand it is gone too"() {
+        given:
+        def setup = tenantWithSoftware(true)
+        api.call(setup.admin, "PUT", "/tenant/admin/mcp-keys/${setup.keyId}", [changingConnectionIds: [setup.connection.id]])
+        assert toolNames(setup.key).contains("Buchhaltung__cancel_invoice")
+
+        when: "the software stops passing through"
+        api.call(setup.admin, "PUT", "/tenant/admin/mcp-connections/${setup.connection.id}/pass-through", [passesThrough: false])
+
+        then:
+        !toolNames(setup.key).any { it.contains("__") }
+
+        when: "it passes through again"
+        api.call(setup.admin, "PUT", "/tenant/admin/mcp-connections/${setup.connection.id}/pass-through", [passesThrough: true])
+        def again = toolNames(setup.key)
+        def listed = (api.call(setup.admin, "GET", "/tenant/admin/mcp-keys") as List<Map>).find { it.id == setup.keyId }
+
+        then: "the key reads only - and still has the software"
+        again.contains("Buchhaltung__find_invoice")
+        !again.contains("Buchhaltung__cancel_invoice")
+        listed.changingConnectionIds == []
+        listed.connectionIds == [setup.connection.id]
+
+        when: "given again, then taken back by hand"
+        api.call(setup.admin, "PUT", "/tenant/admin/mcp-keys/${setup.keyId}", [changingConnectionIds: [setup.connection.id]])
+        def given = toolNames(setup.key)
+        def back = api.call(setup.admin, "PUT", "/tenant/admin/mcp-keys/${setup.keyId}", [changingConnectionIds: []]) as Map
+
+        then:
+        given.contains("Buchhaltung__cancel_invoice")
+        back.changingConnectionIds == []
+        back.connectionIds == [setup.connection.id]
+        !toolNames(setup.key).contains("Buchhaltung__cancel_invoice")
+        toolNames(setup.key).contains("Buchhaltung__find_invoice")
+        unknownTool(rpc(setup.key, "tools/call", [name: "Buchhaltung__cancel_invoice", arguments: [number: "4711"]]))
+        software.calls().isEmpty()
+    }
+
+    def "a change of the key's software keeps the level of the software it still has, and drops it with the software"() {
+        given:
+        def setup = tenantWithSoftware(true)
+        def second = api.call(setup.admin, "POST", "/tenant/admin/mcp-connections", [name: "Lager", baseUrl: software.url()]) as Map
+        api.call(setup.admin, "PUT", "/tenant/admin/mcp-keys/${setup.keyId}", [changingConnectionIds: [setup.connection.id]])
+
+        when:
+        def widened = api.call(setup.admin, "PUT", "/tenant/admin/mcp-keys/${setup.keyId}",
+                [connectionIds: [setup.connection.id, second.id], name: "Claude Code"]) as Map
+        def narrowed = api.call(setup.admin, "PUT", "/tenant/admin/mcp-keys/${setup.keyId}", [connectionIds: [second.id]]) as Map
+        def readded = api.call(setup.admin, "PUT", "/tenant/admin/mcp-keys/${setup.keyId}",
+                [connectionIds: [setup.connection.id, second.id]]) as Map
+
+        then:
+        widened.changingConnectionIds == [setup.connection.id]
+        narrowed.changingConnectionIds == []
+        readded.changingConnectionIds == []
+        (api.call(setup.admin, "GET", "/tenant/admin/mcp-keys") as List<Map>).find { it.id == setup.keyId }
+                .changingConnectionIds == []
+    }
+
+    def "the admin gives a key of a tenant the level the same way - a new key changes nowhere unless given"() {
+        given:
+        def setup = tenantWithSoftware(true)
+
+        when:
+        def created = api.admin("POST", "/admin/tenants/${setup.tenant.id}/mcp-keys",
+                [name: "Werkstatt", connectionIds: [setup.connection.id], changingConnectionIds: [setup.connection.id]]) as Map
+        def listed = (api.admin("GET", "/admin/tenants/${setup.tenant.id}/mcp-keys") as List<Map>)
+
+        then:
+        created.key.changingConnectionIds == [setup.connection.id]
+        toolNames(created.plainKey as String).contains("Buchhaltung__cancel_invoice")
+        listed.find { it.id == setup.keyId }.changingConnectionIds == []
+        listed.find { it.id == created.key.id }.changingConnectionIds == [setup.connection.id]
+    }
+
+    def "ask_assistant of a key that may change still offers its model the reading tools only"() {
+        given:
+        def setup = tenantWithSoftware(true)
+        api.call(setup.admin, "PUT", "/tenant/admin/mcp-keys/${setup.keyId}", [changingConnectionIds: [setup.connection.id]])
+
+        when:
+        rpc(setup.key, "tools/call", [name: "ask_assistant", arguments: [
+                question: 'Storno? [[call Buchhaltung__cancel_invoice {"number":"4711"}]]']])
+
+        then:
+        fake.chats.last().tools.contains("Buchhaltung__find_invoice")
+        !fake.chats.last().tools.contains("Buchhaltung__cancel_invoice")
+        !software.calls().any { it.params?.name == "cancel_invoice" }
+    }
+
+    def "a software to change in is refused when #reason"() {
+        given:
+        def setup = tenantWithSoftware(true)
+        def answerOnly = api.call(setup.admin, "POST", "/tenant/admin/mcp-connections", [name: "Lager", baseUrl: software.url()]) as Map
+        def foreign = tenantWithSoftware(true, "Fremd")
+        def ids = [own: setup.connection.id, answerOnly: answerOnly.id, foreign: foreign.connection.id]
+        def body = [name: "Neu", connectionIds: used.collect { ids[it] }, changingConnectionIds: changing.collect { ids[it] }]
+
+        expect:
+        refusal(setup.admin, "POST", "/tenant/admin/mcp-keys", body) == [400, code]
+        refusal(setup.admin, "PUT", "/tenant/admin/mcp-keys/${setup.keyId}", body) == [400, code]
+        (api.call(setup.admin, "GET", "/tenant/admin/mcp-keys") as List<Map>).find { it.id == setup.keyId }
+                .changingConnectionIds == []
+
+        where:
+        reason                                   | used                  | changing       | code
+        "the key may not use it"                 | []                    | ["own"]        | "mcpKey.changingNotUsed"
+        "it does not pass through"               | ["own", "answerOnly"] | ["answerOnly"] | "mcpKey.changingNotPassedThrough"
+        "it is another tenant's"                 | ["own"]               | ["foreign"]    | "mcpKey.unknownConnection"
+        "it is no id"                            | ["own"]               | [null]         | "mcpKey.unknownConnection"
+    }
+
+    def "an A2A agent is no software to change in - it has no tools to pass through"() {
+        given:
+        def agent = new de.alpdesk.services.a2a.FakeA2aAgent()
+        def setup = tenantWithSoftware(true)
+        api.admin("PUT", "/admin/tenants/${setup.tenant.id}", [name: setup.tenant.name, a2aAllowed: true])
+        def connection = api.call(setup.admin, "POST", "/tenant/admin/mcp-connections",
+                [name: "Fakeagent", baseUrl: agent.url(), protocol: "A2A"]) as Map
+
+        expect:
+        refusal(setup.admin, "PUT", "/tenant/admin/mcp-keys/${setup.keyId}",
+                [connectionIds: [setup.connection.id, connection.id], changingConnectionIds: [connection.id]]) ==
+                [400, "mcpKey.changingNotPassedThrough"]
+
+        cleanup:
+        agent.stop()
+    }
+
     /** A tenant with a chat model, a connected software with its reading tool on and a key given it. */
     private Map tenantWithSoftware(boolean passesThrough, String name = "Buchhaltung") {
         def tenant = api.tenant()
@@ -476,6 +645,16 @@ class McpProxySpec extends Specification {
     private void enableReading(String admin, Map connection) {
         (connection.tools as List<Map>).each {
             api.call(admin, "PUT", "/tenant/admin/mcp-connections/${connection.id}/tools/${it.id}", [enabled: true])
+        }
+    }
+
+    /** Status and error code of a refused call. */
+    private List refusal(String token, String method, String path, Map body) {
+        try {
+            api.call(token, method, path, body)
+            throw new AssertionError("$method $path was not refused")
+        } catch (HttpClientResponseException e) {
+            [e.status.code, e.response.getBody(Map).map { it.code }.orElse(null)]
         }
     }
 

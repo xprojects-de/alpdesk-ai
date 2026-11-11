@@ -641,6 +641,8 @@
       "mcpKey": {
         "nameRequired": "Give the MCP key a name",
         "unknownConnection": "This connected software does not exist (any more)",
+        "changingNotUsed": "The key may change only in software it may use",
+        "changingNotPassedThrough": "{{name}} does not go directly to MCP clients - the key cannot change in it",
         "unknownTask": "This task does not exist (any more)",
         "descriptionTooLong": "The description may have at most {{max}} characters",
         "noDoor": "The key must open /mcp, /a2a or both"
@@ -2664,6 +2666,9 @@
     "onlyCompanyKnowledge": "company knowledge only",
     "software": "Software",
     "noSoftware": "no software",
+    "changing": "May change in",
+    "noChanging": "nowhere - reading only",
+    "changingHint": "Its client (Claude Code, Copilot) may call the changing tools of this software too - e.g. create a ticket - without a question from Zirmo. Whether its user is asked is the client's matter: Claude Code asks at a tool's first use, and not at all in auto mode or with an allow rule. Only software that goes directly to MCP clients.",
     "tasks": "Tasks",
     "noTasks": "no task",
     "webSearch": "Web search",
@@ -2699,6 +2704,7 @@
     "areas": "Areas: {{names}}",
     "companyKnowledge": "company knowledge only",
     "software": "Software: {{names}}",
+    "changing": "Changes in: {{names}}",
     "tasks": "Tasks: {{names}}",
     "webSearch": "Web search",
     "noHistory": "no history",

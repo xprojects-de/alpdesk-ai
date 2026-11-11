@@ -149,8 +149,16 @@ MCP, size limits), `Backend/podman/**` (Caddyfile, compose files, `.env.example`
      ends only that key's old secret, deleting ends it at once with its areas; the plain key of a new or renewed key
      shown once and dropped when the page is left; **the key's software** (`tenant_mcp_key_connection`, mcp.md
      "Connected software through to MCP clients"): a key reaches only the connections given it - through
-     `ask_assistant` (`McpTools.forMcpKey`) and passed through -, only reading tools, passed through only where the
-     connection is switched on; a name the key does not have (another key's, another tenant's, a changing tool, a tool
+     `ask_assistant` (`McpTools.forMcpKey`) and passed through -, passed through only where the
+     connection is switched on; **changing tools only passed through and only by the key's level** (roadmap point 68,
+     mcp.md "Changing tools passed through"): `tenant_mcp_key_connection.level` `WRITE` per key and software
+     ("Darf ändern in", off for every key, refused for a software the key may not use, that does not pass through or
+     is an A2A agent), the tool marked `readOnlyHint: false`; whether a person is asked is the MCP client's matter
+     (Claude Code: at a tool's first use, nothing in auto mode, with bypassed permissions or an allow rule) - nothing
+     else stands between a prompt injection the client read and the change, and SECURITY.md must say exactly that; `ask_assistant`, `/a2a` and the API keys
+     give the tenant's model reading tools only; the level falls back when the software stops passing through; every
+     changing call logged (key, tool, software - no arguments, the names without control characters); a name the key
+     does not have (another key's, another tenant's, a changing tool without the level, a tool
      turned off) is unknown, list and call computed alike; the software's address and key never in an answer; another
      tenant's connection id on a key 400; its instructions, descriptions and prompts are foreign text to both models;
      the client software's API key likewise only the connections given it (`tenant_api_key_connection`,
@@ -617,7 +625,9 @@ MCP, size limits), `Backend/podman/**` (Caddyfile, compose files, `.env.example`
      agent's answer, a web page): prompt injection - text in a document, a chat file or a tool result that makes the model call a
      changing tool: such a call must wait for the user's decision (decided once, atomically, by that user, re-checked
      against the user's level - the highest of its groups, part 7 -, expired after a day or a new question); a tool result or a document never reaches
-     another tenant's or user's chat; the MCP server answers only the reading tools of its tenant; tool results and
+     another tenant's or user's chat; the MCP server's own model (`ask_assistant`, `/a2a`) gets only the reading tools
+     of its tenant - a changing one reaches only the MCP client of a key with the level for it, by whose own rules its user is asked or not;
+     tool results and
      model answers are bounded in size. **MCP clients that act on the PC** (Cowork, Claude Code): passages from
      `search_knowledge` / `read_document` and `ask_assistant`'s answers reach an agent that may write local files - a
      prepared document is prompt injection there too; the server never marks its own tools as writing and offers no
