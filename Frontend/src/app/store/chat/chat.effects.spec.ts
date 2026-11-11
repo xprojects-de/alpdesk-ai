@@ -22,6 +22,14 @@ describe("ChatEffects", () => {
         request: {conversationId: null, modelId: 1, message: "Wann ist Inventur?", templateId: null},
     });
 
+    // overrideSelector changes the selector itself, for every spec that runs after this one in the same worker - reset
+    // it, or another file reading selectAccount (the language effects) gets this account without a user id.
+    let store: MockStore | undefined;
+    afterEach(() => {
+        store?.resetSelectors();
+        store = undefined;
+    });
+
     function setup(selectedId: number | null = null, answersThroughAgent = false) {
         const actions$ = new Subject<Action>();
         const streams: Subject<ChatStreamEvent>[] = [];
@@ -43,8 +51,9 @@ describe("ChatEffects", () => {
                 {provide: ChatService, useValue: chatService},
             ],
         });
-        TestBed.inject(MockStore).overrideSelector(ChatSelectors.selectSelectedConversationId, selectedId);
-        TestBed.inject(MockStore).overrideSelector(AccountSelectors.selectAccount, {
+        store = TestBed.inject(MockStore);
+        store.overrideSelector(ChatSelectors.selectSelectedConversationId, selectedId);
+        store.overrideSelector(AccountSelectors.selectAccount, {
             answersThroughAgent,
         } as Account);
         const effects = TestBed.inject(ChatEffects);
