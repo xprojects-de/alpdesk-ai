@@ -224,6 +224,7 @@ public class McpTools {
                     : keep(context, connection, file));
         }
         appendTexts(text, result.files());
+        appendStructured(text, result.structured());
         // The software's name first: a general chat asks several topics, and a document's id holds only within one.
         String answer = "[" + connection.name() + "] " + text.toString().strip();
         return result.error() ? ToolResult.error(answer) : ToolResult.text(answer);
@@ -240,6 +241,22 @@ public class McpTools {
         }
         String errorPrefix = "Error: " + prefix;
         return result.startsWith(errorPrefix) ? "Error: " + result.substring(errorPrefix.length()) : result;
+    }
+
+    /**
+     * The result's structured content beside its text, for the model - the text may be a summary only, and an MCP
+     * client gets both too. Within the result's {@value McpClient#MAX_RESULT_TEXT} characters; left out with a note
+     * beyond them, never cut (half a JSON is worth nothing).
+     */
+    private static void appendStructured(StringBuilder text, @Nullable String structured) {
+        if (structured == null) {
+            return;
+        }
+        if (text.length() + structured.length() > McpClient.MAX_RESULT_TEXT) {
+            text.append("\n[the structured result left out - the result is long enough]");
+            return;
+        }
+        text.append("\n\n=== Structured result ===\n").append(structured);
     }
 
     /**

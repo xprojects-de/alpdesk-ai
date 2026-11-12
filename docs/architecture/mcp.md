@@ -722,7 +722,14 @@ call - is not built: when a module needs it.
   `BlobResourceContents` (base64) or `TextResourceContents`, and images as `ImageContent`. `McpClient.callTool`
   decodes them into `CallResult.files` (name = the last part of the resource's `uri`, an image `bild`; the type the
   server says); content that is no valid base64 is left out and noted in the text for the model; audio is still left
-  out (`[audio content left out]`); a `resource_link` is fetched at once (below, roadmap point 63). `McpTools.execute` (it gets the answer's
+  out (`[audio content left out]`); a `resource_link` is fetched at once (below, roadmap point 63). **A result's
+  structured content reaches the model** (decided 12 November 2026 - before, it was dropped): without any text it is
+  the text, as its JSON (the specification asks for a text beside it but does not require one, and the model got
+  nothing); beside a text it follows it as `=== Structured result ===` and its JSON (`CallResult.structured`,
+  `McpTools.appendStructured`) - the text may be a summary only, and an MCP client gets both through the proxy too.
+  Not twice: where the text is that JSON already, as most servers send it, the text alone. Within the result's 100,000
+  characters; beyond them the structured part is left out with a note, never cut. A task's `call_tool` step reads the
+  text as before (`CallResult.text` - a second JSON after it would break its search for the array). `McpTools.execute` (it gets the answer's
   `ToolContext`, also for a changing call run by the user's decision) stores each file like one of `create_file`
   (`ChatFileService.createReturned`) into `ToolContext.createdFiles`: it hangs at the answer as `GENERATED`, the
   download below it, and the model is told the file was created and not to write a link to it.

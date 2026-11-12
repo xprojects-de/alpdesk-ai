@@ -130,12 +130,14 @@ public class McpClient {
      * What a tool call gave: its text, whether the server reports it as an error, the files it returned - and whether
      * the text was longer than {@value #MAX_RESULT_TEXT} characters and cut there; {@code linkFailedForNow} when a link
      * gave no file for a reason the next try may not have (its server out of reach, too slow, failing).
+     * {@code structured}: the result's structured content as JSON where it says more than the text - null without
+     * any, when the text is that JSON already, or when there was no text and the JSON became the text.
      */
     public record CallResult(String text, boolean error, List<ReturnedFile> files, boolean cutOff,
-                             boolean linkFailedForNow) {
+                             boolean linkFailedForNow, @Nullable String structured) {
 
         public CallResult(String text, boolean error, List<ReturnedFile> files, boolean cutOff) {
-            this(text, error, files, cutOff, false);
+            this(text, error, files, cutOff, false, null);
         }
     }
 
@@ -267,7 +269,9 @@ public class McpClient {
      * Calls the tool with the arguments the model gave. 502 as at {@link #listTools}. A file it returns as a link
      * (resource_link) is fetched at once - a temporary download expires in minutes: a uri of the server's own read with
      * resources/read in the same session, an https one downloaded after it ({@link LinkDownloads}). A link that gives
-     * no file is a note for the model, never a failed call.
+     * no file is a note for the model, never a failed call. A structured result without any text comes as its JSON - the
+     * specification asks for a text beside it, but does not require one, and the model would get nothing. Beside a
+     * text it is kept apart (CallResult.structured): the text may be a summary only.
      */
     public CallResult callTool(Long tenantId, String name, String url, @Nullable Credential credential, String tool,
                                Map<String, Object> arguments) {
@@ -330,12 +334,30 @@ public class McpClient {
                 default -> text.append("[").append(part.type()).append(" content left out]\n");
             }
         }
+        String structured = result.structuredContent() == null ? null : structuredAsText(result.structuredContent());
+        boolean hasText = result.content().stream().anyMatch(McpSchema.TextContent.class::isInstance);
+        if (structured != null && !hasText) {
+            text.append(structured);
+        }
         String answer = text.toString().strip();
+        if (!hasText || isSameData(answer, result.structuredContent())) {
+            structured = null;
+        }
         boolean cutOff = answer.length() > MAX_RESULT_TEXT;
         if (cutOff) {
             answer = answer.substring(0, MAX_RESULT_TEXT) + "\n[cut off - the result was longer]";
         }
-        return new CallResult(answer, Boolean.TRUE.equals(result.isError()), files, cutOff, linkFailedForNow);
+        return new CallResult(answer, Boolean.TRUE.equals(result.isError()), files, cutOff, linkFailedForNow,
+                structured);
+    }
+
+    /** Whether the text is the structured content written out as JSON - what most servers send beside it. */
+    private boolean isSameData(String text, Object structured) {
+        try {
+            return structured.equals(json.readValue(text, Object.class));
+        } catch (IOException | RuntimeException notJson) {
+            return false;
+        }
     }
 
     /**
@@ -495,6 +517,14 @@ public class McpClient {
 
     private static boolean offersResources(McpSyncClient mcp) {
         return mcp.getServerCapabilities() != null && mcp.getServerCapabilities().resources() != null;
+    }
+
+    private String structuredAsText(Object structured) {
+        try {
+            return json.writeValueAsString(structured);
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
     }
 
     /** What a tool call answered, with what its links of the server's own gave - read while the session was open. */

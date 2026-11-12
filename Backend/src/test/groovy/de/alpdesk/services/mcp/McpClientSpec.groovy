@@ -127,6 +127,31 @@ class McpClientSpec extends Specification {
         tools[1].description() == "short"
     }
 
+    def "a structured result without text is the text; beside a text it is kept apart - unless the text is that JSON"() {
+        given:
+        software.callStructured = [invoice: "4711", total: 412.5]
+
+        when:
+        software.callContent = []
+        def onlyStructured = call()
+        software.callContent = [[type: "text", text: "1 invoice found"]]
+        def summary = call()
+        software.callContent = [[type: "text", text: '{"invoice": "4711", "total": 412.5}']]
+        def sameAsText = call()
+        software.callStructured = null
+        def none = call()
+
+        then:
+        [onlyStructured.text(), onlyStructured.structured()] == ['{"invoice":"4711","total":412.5}', null]
+        [summary.text(), summary.structured()] == ["1 invoice found", '{"invoice":"4711","total":412.5}']
+        [sameAsText.text(), sameAsText.structured()] == ['{"invoice": "4711", "total": 412.5}', null]
+        none.structured() == null
+    }
+
+    private McpClient.CallResult call() {
+        client.callTool(NO_TENANT, "Buchhaltung", software.url(), null, "find_invoice", [number: "4711"])
+    }
+
     def "a long result is cut for the model, a long error of the software too"() {
         when:
         software.callText = "r" * (McpClient.MAX_RESULT_TEXT + 10)

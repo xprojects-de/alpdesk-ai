@@ -142,6 +142,8 @@ Nothing in `.env` or `/api/v1` needs a hand; the new settings have defaults.
 
 ### Changed
 
+- **Structured results of a connected software reach the assistant**: the structured data a tool returns was
+  dropped; the assistant now reads it - beside the tool's text, or in its place where the tool sends no text.
 - **MCP clients get what your connected software sends, unchanged**: a software passed "Direkt an MCP-Clients" now
   reaches Claude Code and the other MCP clients as it answers - long text whole (no longer cut at 100,000 characters),
   an image as an image, files with the type the software names (an HTML page stays HTML), structured results, and
