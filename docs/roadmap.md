@@ -76,6 +76,7 @@ the user agrees to - no code before that. Then the implementation with its specs
 | 66 | Media and documents read apart from the app: defence in depth for the two places that read foreign files - ffmpeg (audio and video of the chat) runs in the app's container, Tika has no time limit. ffmpeg started without the app's environment, the app's container hardened (no capabilities, no new privileges, later a read-only root), then conversion in a process or container of its own | S for the first two steps, M-L for the separation | later; from the security review of 10 November 2026; the first two steps can go into any release; proposal first |
 | 67 | A user's own connections to software: a tenant user connects an MCP server or an A2A agent on the account page with their own address and sign-in (a token, or OAuth) - the tools are read for that user and used in that user's chat only, with the person's rights in the software; the tenant's connections stay as they are, shared and the tenant admin's; nothing of an issue tracker or a wiki in the core | M (about 3-4 days) | **plan agreed** 10 Nov 2026 for 2.1.0, the user's shape (replaces the modes on a tenant's connection agreed earlier that day): a tenant admin's switch, off by default, and any address the rules allow; not started - after 2.0.0 is released |
 | 68 | Changing tools of the connected software through to MCP clients: a company's own MCP server behind ours offers tools that change something (a ticket created in an issue tracker, a document filed on another server) and Claude Code, Cowork or Copilot call them directly - a level per MCP key and software (none, read, read and change) where the key card has a tick per software today, the tool marked as changing - whether its user is asked is the client's matter; `ask_assistant` and `/a2a` stay reading | S (about 2-3 days) | **built** 11 Nov 2026 (2.0.0, migration `V18` - the release candidate is out) - [architecture/mcp.md](architecture/mcp.md) "Changing tools passed through"; the "later" of point 41 |
+| 69 | MCP 2026-07-28: the tenant's MCP server and the clients to connected software move to the protocol's next revision - questions back, progress, long runs and subscriptions become possible; what the proxy has to do for it is listed | L | open - waits for the MCP Java SDK's client and Micronaut MCP; no date known (12 Nov 2026) |
 
 ## Target architecture
 
@@ -3655,3 +3656,54 @@ limit: an agent decides at the other end, not surely a person - a model confirmi
 and a workflow engine without a user confirms by itself or hangs; `SECURITY.md` would have to say the calling agent's
 operator answers for it. `ask_assistant` has no counterpart (elicitation, point 30 - `/mcp` is stateless). When: an
 agent that speaks A2A only must change something and a person decides behind it.
+
+## 69 MCP 2026-07-28
+
+**Noted** 12 November 2026, while the proxy was made to pass on unchanged what a connected software sends (point 41,
+[architecture/mcp.md](architecture/mcp.md) "Connected software through to MCP clients"). Nothing to build yet: Zirmo
+speaks 2025-11-25, the revision of the MCP Java SDK it uses on both sides - as a server at `/mcp` (Micronaut MCP) and
+as a client to the tenants' software. This point collects what the move to 2026-07-28 asks, so the notes spread over
+mcp.md have one place.
+
+**Waits for**: the MCP Java SDK with a client for 2026-07-28, and Micronaut MCP following it (an answer as a stream
+from the server's side among it). No date is known for either. Until then Zirmo is the slower part: Claude Code speaks
+the new revision already, and **a software built for 2026-07-28 alone cannot be connected** (the specification: a
+legacy client and a modern-only server fail; a server may serve both - mcp.md "What a server behind Zirmo must
+observe").
+
+**What becomes possible with it** - each left out today because `/mcp` answers one request with one answer:
+- questions back from the software during a call (`input_required` - elicitation, point 30);
+- progress and long runs (tasks);
+- subscriptions to a resource and `list_changed` (`subscriptions/listen`).
+
+**What the move asks of the proxy's design** (reviewed 11 November 2026 against both revisions - nothing in today's
+design blocks it):
+- Zirmo sets the per-request protocol fields and the headers `Mcp-Method` / `Mcp-Name` itself for each hop - it
+  renames, so the client's header and the one toward the software differ. Our own request to the software (not a
+  relay) does that by itself; a tool parameter marked `x-mcp-header` must be mirrored into `Mcp-Param-*` toward the
+  software too.
+- Results carry `resultType`; a question back is a result and passes like any other - the retry is the same
+  `tools/call` with the same name, so it finds its software without any state of ours.
+- `tools/list` needs caching hints: a merged list is private to the key (`cacheScope`), in a fixed order (ours is:
+  connection, then tool), with our own cursor.
+- `server/discover` answered by Zirmo; no `initialize`. Legacy clients served beside modern ones.
+- A task's id names no server - it needs the connection in front, as a resource's address has it. An id is opaque to
+  the client, so this is clean.
+- The `_meta` keys MCP reserves (`io.modelcontextprotocol/...`) carry the protocol version, capabilities, server info
+  and a subscription's id there: Zirmo sets its own and already keeps the software's back.
+- A resource whose address is a web address may be fetched by the client directly - they are never prefixed today for
+  that reason.
+
+**To be checked again then** (decided 12 November 2026):
+- "Resource not found" becomes `-32602` (today `-32002`; clients should still accept the old code).
+- An unknown method must answer HTTP 404 with `-32601`; today Micronaut MCP sends 400.
+- **The HTTP status of a JSON-RPC error**: neither revision names one for an error answering a request (read 12
+  November 2026). Micronaut MCP sends 400 or 500, on which the SDKs' clients end their session; `ResourceErrorStatus`
+  sends the errors of `resources/*` with 200. Whether that filter stays, widens to every request or goes depends on
+  what Micronaut MCP and the SDKs' clients do by then.
+- The error codes renumbered in 2026-07-28 (`HeaderMismatch`, `MissingRequiredClientCapability`,
+  `UnsupportedProtocolVersion`).
+- The clients to connected software: sessions, `resources/read` of a link, the OAuth sign-in (built against the
+  authorization specification of 2026-07-28 already - point 61).
+
+**Size**: L, and not to be estimated before the SDK's client exists. As every point: a written proposal first.

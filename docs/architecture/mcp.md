@@ -445,7 +445,7 @@ stored - "Files in tool results" below).
 - **Not built, on purpose**: subscriptions to a resource (`resources/subscribe`) and `list_changed` (with MCP
   2026-07-28 - `/mcp` answers one request with one answer), a catalog of the connected software at the admin, usage per
   call of a connected software (only the AI providers are counted), elicitation, progress and long runs (with MCP
-  2026-07-28, once the Java SDK has a client for it and Micronaut MCP follows).
+  2026-07-28, once the Java SDK has a client for it and Micronaut MCP follows - roadmap point 69).
 - Tests: `controller/mcp/McpProxySpec` (listing, names, the entry as the software listed it and the admin's mark, a
   tool not read again, calls unchanged - long text, images, audio, files with their type, structured content, `_meta` -,
   web links passed, own links embedded within 20, the 8 MB limit, errors, a key without the software, another tenant,
@@ -515,7 +515,7 @@ goes into the address, separated by a dot (`SoftwareResources`):
   answered with JSON or an event stream; 400, 403, 404 and 405 are prescribed for the transport's own failures only -
   a protocol version, a header, an origin, a session, in 2026-07-28 an unknown method with 404); the Java SDK's own
   stateless server sends 200. Only `resources/*`: every other request keeps the status the controller gives (an
-  unknown method 400, as shipped since October). **To be checked again when Zirmo moves to 2026-07-28**: the code
+  unknown method 400, as shipped since October). **To be checked again when Zirmo moves to 2026-07-28** (roadmap point 69, which collects what that move asks): the code
   becomes `-32602` there, an unknown method must answer 404, and what Micronaut MCP and the SDKs' clients do then
   decides whether this filter stays, widens or goes.
 - **Links in a tool result** stay resolved at once and embedded (above) - also a link that lives only as long as the
