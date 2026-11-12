@@ -419,6 +419,12 @@ proxy_not_found=$(curl -sS -X POST -H "Authorization: Bearer $proxy_key" -H "Con
   -d '{"jsonrpc":"2.0","id":12,"method":"resources/read","params":{"uri":"invoice://4711/receipt.txt"}}' \
   "http://127.0.0.1:$PORT/mcp") || true
 grep -q '"code":-32002' <<< "$proxy_not_found" || fail "reading an address without the connection answered: $proxy_not_found"
+# ... with HTTP 200: an SDK client takes another status for a broken server and ends its session.
+proxy_not_found_status=$(curl -sS -o /dev/null -w '%{http_code}' -X POST -H "Authorization: Bearer $proxy_key" \
+  -H "Content-Type: application/json" \
+  -d '{"jsonrpc":"2.0","id":13,"method":"resources/read","params":{"uri":"invoice://4711/receipt.txt"}}' \
+  "http://127.0.0.1:$PORT/mcp") || true
+[[ "$proxy_not_found_status" == "200" ]] || fail "a resource not found was sent with HTTP $proxy_not_found_status"
 proxy_initialized=$(curl -sS -X POST -H "Authorization: Bearer $proxy_key" -H "Content-Type: application/json" \
   -d '{"jsonrpc":"2.0","id":8,"method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"smoke","version":"1"}}}' \
   "http://127.0.0.1:$PORT/mcp") || true

@@ -267,7 +267,8 @@ address without the prefix, with another key's or tenant's prefix, a web address
 cursor that is not ours or names a software taken from the key · a software out of reach, or without resources, in a
 list of two, several out of reach (one `app.ai.timeout` for a page) · pass-through switched off and on again (the
 resources switch gone, refused while off) · the software's own error at `resources/read` (its
-code and message, sent with HTTP 500 by the transport - an SDK client's session ends, Claude Code's goes on) · a connection deleted while a key still lists it · a reload
+code and message) · any error answering `resources/*` sent with HTTP 200 (`ResourceErrorStatus` - an SDK client's
+session goes on), another method's error with the transport's 400 or 500 as before · a connection deleted while a key still lists it · a reload
 while the admin changes the key or the address (read again under a lock) · a software that turns a reading tool into a
 changing one (gone for a key that only reads, asked about for one that may change) · a changing call the software
 answers too late, without content or too large (the model told the change may have been made, not to repeat it

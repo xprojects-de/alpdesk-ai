@@ -155,15 +155,22 @@ async def with_software(session: ClientSession, initialized: types.InitializeRes
     read = await session.read_resource(f"{part}.test://tickets/4711/log")
     check("resources/read: an address following the template", "Ticket 4711" in read.contents[0].text
           and str(read.contents[0].uri) == f"{part}.test://tickets/4711/log", str(read.contents)[:300])
-    # "Not found" is a JSON-RPC error, which Micronaut MCP's transport sends with HTTP 500 - and this SDK's client
-    # ends its session on that. So it is asked on its own (/mcp is stateless).
+    # "Not found" is a JSON-RPC error - sent with HTTP 200 (Zirmo's ResourceErrorStatus; Micronaut MCP's transport
+    # alone would send 500, on which this SDK's client ends its session). Asked on its own, to see the status.
     answer = httpx.post(URL, headers={"Authorization": f"Bearer {WITH}", "Accept": "application/json, text/event-stream"},
                         json={"jsonrpc": "2.0", "id": 1, "method": "resources/read",
                               "params": {"uri": "test://files/report.csv"}})
     error = answer.json().get("error") or {}
     check("resources/read: an address without the prefix is not found, with the hint",
-          error.get("code") == -32002 and "list the resources" in error.get("message", ""),
+          answer.status_code == 200 and error.get("code") == -32002 and "list the resources" in error.get("message", ""),
           f"{answer.status_code} {answer.text[:300]}")
+    try:
+        await session.read_resource("test://files/report.csv")
+        check("resources/read: not found raises in the SDK's client", False)
+    except Exception as e:
+        check("resources/read: not found raises in the SDK's client", "Resource not found" in str(e), str(e))
+    still = await session.call_tool(f"{PREFIX}__echo", {"text": "noch da"})
+    check("resources/read: the session goes on after not found", not still.isError and "noch da" in still.content[0].text)
 
 
 async def without_software(session: ClientSession, initialized: types.InitializeResult) -> None:

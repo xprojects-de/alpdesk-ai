@@ -230,6 +230,22 @@ class McpProxyResourcesSpec extends Specification {
         result.content == [[type: "resource_link", uri: "buchhaltung.ticket://4711/gone.pdf", name: "gone.pdf"], web]
     }
 
+    def "an error answering a resources request goes out with HTTP 200 - an SDK client's session lives on; other errors keep their status"() {
+        given:
+        def setup = tenantWithSoftware(true)
+        def plainKey = (api.call(setup.admin, "POST", "/tenant/admin/mcp-keys", [name: "Bank"]) as Map).plainKey as String
+
+        expect:
+        status(setup.key, "resources/read", [uri: "ticket://4711/protokoll.log"]) == [200, -32002]
+        status(setup.key, "resources/read", [uri: "buchhaltung.ticket://9999/gone"]) == [200, -32002]
+        status(setup.key, "resources/list", [cursor: "nonsense"]) == [200, -32602]
+        status(plainKey, "resources/list", null) == [200, -32601]
+
+        and: "any other method's error as before"
+        status(setup.key, "nonsense/method", null) == [400, -32601]
+        status(setup.key, "tools/call", [name: "delete_document"]) == [400, -32602]
+    }
+
     def "the switch: required, an A2A agent has none, another tenant's connection is not found, the admin sets it too"() {
         given:
         def setup = tenantWithSoftware()
@@ -303,6 +319,20 @@ class McpProxyResourcesSpec extends Specification {
             throw new AssertionError("$method $path was not refused")
         } catch (HttpClientResponseException e) {
             [e.status.code, e.response.getBody(Map).map { it.code }.orElse(null)]
+        }
+    }
+
+    /** The HTTP status and the JSON-RPC error's code of an answer. */
+    private List status(String key, String method, Map params) {
+        Map message = [jsonrpc: "2.0", id: UUID.randomUUID().toString(), method: method]
+        if (params != null) {
+            message.params = params
+        }
+        try {
+            def response = client.toBlocking().exchange(HttpRequest.POST("/mcp", message).bearerAuth(key), Map)
+            [response.status.code, (response.body() as Map).error?.code]
+        } catch (HttpClientResponseException e) {
+            [e.status.code, e.response.getBody(Map).map { it.error?.code }.orElse(null)]
         }
     }
 

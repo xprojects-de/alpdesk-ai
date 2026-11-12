@@ -564,7 +564,7 @@ de.alpdesk
 │   │                  brand in initialize and tools/list, prompts/list and prompts/get), McpKeyService (the key's
 │   │                  areas and software); SoftwareMcpProxy (the key's connected software passed through to MCP
 │   │                  clients unchanged: tools, prompts, instructions), SoftwareResources (its resources, the
-│   │                  connection in front of the address); McpConnectionService (also the switches "Direkt an
+│   │                  connection in front of the address), ResourceErrorStatus (their errors with HTTP 200); McpConnectionService (also the switches "Direkt an
 │   │                  MCP-Clients" and "Ressourcen an MCP-Clients", .../pass-through, .../resources, .../sign-in), Credential (a call's bearer: key or OAuth token),
 │   │                  McpClient (MCP Java SDK client), LinkDownloads (a tool's file returned as an https link),
 │   │                  McpAddresses, McpTools (in the chat),

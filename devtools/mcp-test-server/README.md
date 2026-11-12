@@ -102,8 +102,7 @@ annotations, titles, output schemas and `_meta`, long text whole, an image as an
 type, structured content, a web link as a link, a link to its own resource embedded; the software's errors, an
 unknown name as a tool error, every prompt message - and, with "Ressourcen an MCP-Clients" on, its resources and
 templates with the connection in front (`testserver.test://...`), a read by such an address and "not found" with the
-hint for one without it (asked on its own: the transport sends it with HTTP 500, on which this SDK's client ends its
-session). With a third key that may change in the software ("Darf ändern in", `cancel_order` turned on at the
+hint for one without it - sent with HTTP 200, so the SDK client's session goes on. With a third key that may change in the software ("Darf ändern in", `cancel_order` turned on at the
 connection) it checks the changing tool too: listed, marked as not read-only, called. On a backend of your own (never
 the dev database): enter the test server at a test tenant (its address as seen from the backend, the host in
 `APP_AI_PLAIN_HTTP_HOSTS`), read its tools, switch it on, create the keys, then

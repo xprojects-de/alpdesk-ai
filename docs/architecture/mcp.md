@@ -505,11 +505,19 @@ goes into the address, separated by a dot (`SoftwareResources`):
   model that took an address out of a text finds its way (Claude Code did). A web address: not found, "fetch it
   directly". The software's own error (its "not found") goes back with its code and message. "Not found" is `-32002`
   (2025-11-25; `-32602` in 2026-07-28).
-- **"Not found" is a JSON-RPC error, sent with HTTP 500** - Micronaut MCP's transport gives every JSON-RPC error an
-  HTTP status (400 for invalid params, 500 for the rest), and our handler cannot change it. Claude Code reads it and its
-  session goes on (checked 11 November 2026); the official Python SDK's client ends its session on it, and so does the
-  Java SDK's (our general chat reads no resources). For tools this is why every failure is a tool error; the protocol
-  has no such way for a resource.
+- **An error answering a resources request goes out with HTTP 200** (`ResourceErrorStatus`, a response filter on
+  `/mcp`, decided 12 November 2026). Micronaut MCP's controller gives every JSON-RPC error an HTTP status (400 for
+  invalid params or an unknown method, 500 for the rest - "not found" among them), and the official SDKs' clients take
+  that for a broken server and end their whole session, the tools with it (seen with the Python SDK's; Claude Code
+  reads the error and goes on). For tools this is why every failure is a tool error; a resource has no such way -
+  "not found" can only be a JSON-RPC error, and an address a model guessed wrong must not cost the session. **The
+  specification names no HTTP status here** (read 12 November 2026, 2025-11-25 and 2026-07-28 alike: a request is
+  answered with JSON or an event stream; 400, 403, 404 and 405 are prescribed for the transport's own failures only -
+  a protocol version, a header, an origin, a session, in 2026-07-28 an unknown method with 404); the Java SDK's own
+  stateless server sends 200. Only `resources/*`: every other request keeps the status the controller gives (an
+  unknown method 400, as shipped since October). **To be checked again when Zirmo moves to 2026-07-28**: the code
+  becomes `-32602` there, an unknown method must answer 404, and what Micronaut MCP and the SDKs' clients do then
+  decides whether this filter stays, widens or goes.
 - **Links in a tool result** stay resolved at once and embedded (above) - also a link that lives only as long as the
   call; one left as a link gets the prefix where the switch is on.
 - **Addresses the software writes into a text are not touched and not reliably resolved**: Zirmo cannot tell them
@@ -525,7 +533,7 @@ goes into the address, separated by a dot (`SoftwareResources`):
   page by page with our cursor, a read reaching the right software among two, the answer's addresses prefixed, not
   found with the hint, a web address, the software's own error, a software out of reach in a list of two, a key without
   the software, another tenant, the switch gone with pass-through and refused without it, an A2A agent, a link left
-  in a result prefixed),
+  in a result prefixed), every error of a resources request with HTTP 200 and another method's as before),
   `services/mcp/SoftwareResourcesSpec`; by hand `proxy_check.py`.
 
 ### What a server behind Zirmo must observe
