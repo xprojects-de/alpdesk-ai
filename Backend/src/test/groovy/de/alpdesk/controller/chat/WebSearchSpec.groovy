@@ -76,6 +76,20 @@ class WebSearchSpec extends Specification {
         (usage.amount as BigDecimal) == 0.008
     }
 
+    def "a long query is cut before it goes out - a passage the model copied into it never leaves whole"() {
+        given:
+        def setup = tenantWithWebSearch()
+        def user = memberWithWebSearch(setup)
+        String passage = "Mindestlohn " * 50
+
+        when:
+        api.ask(user.token, [modelId: setup.chat.id, message: "Wie hoch ist der Mindestlohn? [[web ${passage}]]".toString()])
+
+        then:
+        passage.strip().length() > 400
+        tavily.searches*.query == [passage.strip().substring(0, 400)]
+    }
+
     def "without a group with web search the tool is not offered - for a tenant admin neither"() {
         given:
         def setup = tenantWithWebSearch()

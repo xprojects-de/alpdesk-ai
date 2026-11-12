@@ -208,6 +208,8 @@ Nothing in `.env` or `/api/v1` needs a hand; the new settings have defaults.
 
 ### Fixed
 
+- **A scheduled task's assistant prompt finds the knowledge again.** A `prompt` step with `assistant: true` searched
+  the company knowledge and its areas but never got a passage back - it answered without the documents.
 - **A connected software moved to another address** no longer keeps what was chosen for the old one: its resources
   stop going to MCP clients and its MCP keys read only, until a tenant admin chooses again.
 - **An A2A agent whose address answers with something that is no agent card** is now refused with that reason when
@@ -279,7 +281,8 @@ Nothing in `.env` or `/api/v1` needs a hand; the new settings have defaults.
 ### Security
 
 - A spreadsheet that unpacks into an excessive size is refused: a part of an Office file that unpacks into more than
-  200 MB is refused before it is read.
+  200 MB is refused before it is read, so is an Office file whose parts unpack into more than 500 MB together or that
+  has more than 10,000 parts - a file made of many parts just below the limit kept the server busy for minutes.
 - Reading certain HTML mails no longer slows down the knowledge sources.
 - **A connected software's address reaches its own host only.** An address whose path began with `//` followed by
   another host (`https://software.example.com//other.example.com/mcp`) sent the requests - and the connection's key -

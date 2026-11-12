@@ -243,8 +243,12 @@ class AiApi {
         client.toBlocking().exchange(token ? request.bearerAuth(token) : request, byte[])
     }
 
-    Map upload(String token, String fileName, String text) {
-        def body = MultipartBody.builder().addPart("file", fileName, MediaType.TEXT_PLAIN_TYPE, text.getBytes("UTF-8")).build()
+    Map upload(String token, String fileName, String text, Object areaId = null) {
+        def parts = MultipartBody.builder().addPart("file", fileName, MediaType.TEXT_PLAIN_TYPE, text.getBytes("UTF-8"))
+        if (areaId != null) {
+            parts.addPart("areaId", areaId.toString())
+        }
+        def body = parts.build()
         client.toBlocking().retrieve(HttpRequest.POST("/tenant/admin/documents", body)
                 .contentType(MediaType.MULTIPART_FORM_DATA_TYPE).bearerAuth(token), Map)
     }

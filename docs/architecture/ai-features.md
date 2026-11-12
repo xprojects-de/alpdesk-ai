@@ -223,7 +223,9 @@ between. Researched that day on the providers' pages: Claude in the EU exists th
   are held in memory whole before any text comes out - a crafted file of a few megabytes can take gigabytes. So every
   part is unpacked once and only counted before the file is parsed: 400
   `document.partTooLarge` for a part of more than 200 MB (`MAX_PART_BYTES`; DOCX and PPTX are read as a stream and
-  were never affected).
+  were never affected) or for all parts together of more than 500 MB (`MAX_PARTS_BYTES` - many parts just below the
+  limit of one would keep a thread unpacking for minutes), 400 `document.tooManyParts` for more than 10,000 parts
+  (`MAX_PARTS`; a presentation of hundreds of slides has a few thousand) - security review 12 November 2026.
 - `services.document.DocumentIndexer` embeds in the background (executor `indexing`, 2 threads): splits the text into
   chunks (recursive, 1000 characters, 100 overlap), embeds them in batches of 64 and stores them in the table
   `embedding` (langchain4j `PgVectorEmbeddingStore`, created with the model's dimension, metadata `document_id` and

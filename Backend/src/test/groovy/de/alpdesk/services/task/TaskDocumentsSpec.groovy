@@ -443,6 +443,30 @@ class TaskDocumentsSpec extends Specification {
         with.contains("read_document")
     }
 
+    def "extract: with knowledge: true the step finds the company knowledge only - never a knowledge area's documents"() {
+        given: "a tenant with a document in the company knowledge and one in an area"
+        def setup = tasks.tenant()
+        def embedding = api.embeddingModel()
+        api.allow(setup.tenant.id, embedding)
+        api.call(setup.token, "PUT", "/tenant/admin/embedding-model", [modelId: embedding.id])
+        def area = api.call(setup.token, "POST", "/tenant/admin/knowledge-areas", [name: "Vertrieb"]) as Map
+        api.awaitDocument(setup.token, api.upload(setup.token, "allgemein.txt", "Die Preisliste für alle: Wartung 100 Euro").id)
+        api.awaitDocument(setup.token, api.upload(setup.token, "vertrieb.txt", "Die Preisliste des Vertriebs: Rabatt 20 Prozent", area.id).id)
+        store.put("${INBOX}/a.txt", "date: 2026-03-01\n[[knowledge Die Preisliste]]".bytes)
+        def task = tasks.create(setup.token, extracting(setup.model, "it@example.com").replace(
+                "    fields:", "    knowledge: true\n    fields:"))
+
+        when:
+        def run = tasks.awaitRun(setup.token, task.id, tasks.start(setup.token, task.id))
+        String found = models.chats*.messages.flatten()
+                .findAll { it instanceof dev.langchain4j.data.message.ToolExecutionResultMessage }*.text().join("\n")
+
+        then:
+        (run.run as Map).state == "DONE"
+        found.contains("Wartung 100 Euro")
+        !found.contains("Rabatt 20 Prozent")
+    }
+
     def "read_documents: a cancel ends the run between documents - the documents after it are not read"() {
         given:
         def setup = tasks.tenant()

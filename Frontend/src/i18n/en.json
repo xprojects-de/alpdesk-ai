@@ -234,6 +234,7 @@
         "samePathInArea": "A document of the same path is in that area already",
         "scanFoundNothing": "The image model found no text or picture in the document",
         "tooLarge": "A document may have at most {{maxMb}} MB",
+        "tooManyParts": "The document has more than {{max}} parts - it cannot be read",
         "tooMuchText": "The document has too much text - at most {{max}} characters",
         "typeNotSupported": "This file type is not supported ({{type}}) - allowed: PDF, DOCX, ODT, RTF, TXT, Markdown, HTML, PPTX, XLSX, ODS, CSV",
         "unreadable": "The document could not be read",

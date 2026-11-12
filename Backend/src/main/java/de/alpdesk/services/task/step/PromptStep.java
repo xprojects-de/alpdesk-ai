@@ -113,9 +113,12 @@ public class PromptStep {
         }
         AiModel model = models.requireUsable(context.tenant().id(), step.agent().modelId(), ModelKind.CHAT);
         ResolvedKey key = keys.resolve(context.tenant(), model);
+        // As many hits as the tenant's chat (or the step's template) - 0 would let the knowledge search find nothing.
+        int searchResults = assistant == null ? 0
+                : assistants.forQuestion(context.tenant().id(), assistant.templateId()).searchResults();
         ToolContext tools = new ToolContext(context.tenant(), ToolContext.Asker.TASK, model, null,
                 KnowledgeScope.companyKnowledgeAnd(assistant == null ? List.of() : assistant.areaIds()),
-                context.dataSource(), null, false, 0, ToolContext.Files.NONE);
+                context.dataSource(), null, false, searchResults, ToolContext.Files.NONE);
         if (assistant == null) {
             tools.onlyTools(TOOLS);
         } else {

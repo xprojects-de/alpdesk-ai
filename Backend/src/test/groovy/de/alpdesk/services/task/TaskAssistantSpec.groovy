@@ -127,6 +127,38 @@ class TaskAssistantSpec extends Specification {
         codes(setup, prompting(setup.model, "x", "    software: [Fakeagent]\n")) == ["task.a2aNotAllowed"]
     }
 
+    def "the assistant's prompt finds the company knowledge and the areas the task names - no other area"() {
+        given:
+        def setup = withKnowledge()
+        def task = tasks.create(setup.token, prompting(setup.model,
+                'Was kostet es? [[call similarity_search {"query":"Was steht in der Preisliste?"}]]', "    areas: [Vertrieb]\n"))
+
+        when:
+        def run = tasks.awaitRun(setup.token, task.id, tasks.start(setup.token, task.id))
+
+        then:
+        (run.run as Map).state == "DONE"
+        def answer = (run.answers as List<Map>)[0].text as String
+        answer.contains("Wartung 100 Euro")
+        answer.contains("Rabatt 20 Prozent")
+        !answer.contains("Stunde 80 Euro")
+    }
+
+    def "an area deleted since the task was checked fails the run - it does not answer without it"() {
+        given:
+        def setup = withKnowledge()
+        def empty = api.call(setup.token, "POST", "/tenant/admin/knowledge-areas", [name: "Einkauf"]) as Map
+        def task = tasks.create(setup.token, prompting(setup.model, "x", "    areas: [Einkauf]\n"))
+        api.status(setup.token, "DELETE", "/tenant/admin/knowledge-areas/${empty.id}")
+
+        when:
+        def run = tasks.awaitRun(setup.token, task.id, tasks.start(setup.token, task.id))
+
+        then:
+        (run.run as Map).state == "FAILED"
+        (run.run as Map).errorCode == "task.assistantGone"
+    }
+
     def "software or a template deleted since the task was checked fails the run - it does not answer without them"() {
         given:
         def setup = withAgent()
@@ -239,6 +271,20 @@ class TaskAssistantSpec extends Specification {
         def user = api.user(setup.tenant.id)
         api.grant(setup.token, connection.id, user.id, "READ")
         setup + [connection: connection]
+    }
+
+    /** A tenant with a document in the company knowledge and one in each of the areas Vertrieb and Werkstatt. */
+    private Map withKnowledge() {
+        def setup = tasks.tenant()
+        def embedding = api.embeddingModel()
+        api.allow(setup.tenant.id, embedding)
+        api.call(setup.token, "PUT", "/tenant/admin/embedding-model", [modelId: embedding.id])
+        def sales = api.call(setup.token, "POST", "/tenant/admin/knowledge-areas", [name: "Vertrieb"]) as Map
+        def workshop = api.call(setup.token, "POST", "/tenant/admin/knowledge-areas", [name: "Werkstatt"]) as Map
+        api.awaitDocument(setup.token, api.upload(setup.token, "allgemein.txt", "Die Preisliste für alle: Wartung 100 Euro").id)
+        api.awaitDocument(setup.token, api.upload(setup.token, "vertrieb.txt", "Die Preisliste des Vertriebs: Rabatt 20 Prozent", sales.id).id)
+        api.awaitDocument(setup.token, api.upload(setup.token, "werkstatt.txt", "Die Preisliste der Werkstatt: Stunde 80 Euro", workshop.id).id)
+        setup
     }
 
     private List codes(Map setup, String source) {

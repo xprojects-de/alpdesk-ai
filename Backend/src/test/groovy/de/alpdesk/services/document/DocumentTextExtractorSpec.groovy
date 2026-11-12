@@ -137,6 +137,47 @@ class DocumentTextExtractorSpec extends Specification {
         e.params() == [max: "200"]
     }
 
+    def "a spreadsheet whose parts are modest each but unpack into more than their limit together is refused"() {
+        given: "three parts of 180 MB - none above the limit of one part"
+        def archive = new ByteArrayOutputStream()
+        new ZipOutputStream(archive).withCloseable { zip ->
+            byte[] megabyte = new byte[1024 * 1024]
+            3.times { sheet ->
+                zip.putNextEntry(new ZipEntry("xl/worksheets/sheet${sheet}.xml"))
+                180.times { zip.write(megabyte) }
+                zip.closeEntry()
+            }
+        }
+
+        when:
+        extractor.text("mappe.xlsx", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", archive.toByteArray())
+
+        then:
+        archive.size() < 1024 * 1024
+        def e = thrown(ServiceException)
+        e.code() == "document.partTooLarge"
+        e.params() == [max: "500"]
+    }
+
+    def "a spreadsheet of more parts than a real one has is refused before any is unpacked"() {
+        given:
+        def archive = new ByteArrayOutputStream()
+        new ZipOutputStream(archive).withCloseable { zip ->
+            (DocumentTextExtractor.MAX_PARTS + 1).times { part ->
+                zip.putNextEntry(new ZipEntry("xl/media/part${part}.bin"))
+                zip.closeEntry()
+            }
+        }
+
+        when:
+        extractor.text("mappe.xlsx", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", archive.toByteArray())
+
+        then:
+        def e = thrown(ServiceException)
+        e.code() == "document.tooManyParts"
+        e.params() == [max: "10000"]
+    }
+
     def "a #kind is refused with 415 - also under an allowed name"() {
         when:
         extractor.extract(name, content)
