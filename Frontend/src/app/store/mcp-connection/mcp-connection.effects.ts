@@ -271,6 +271,24 @@ export class McpConnectionEffects {
         ),
     );
 
+    setPassResources$ = createEffect(() =>
+        this.actions$.pipe(
+            ofType(McpConnectionActions.setPassResources),
+            concatMap(({scope, connectionId, passesResources}) =>
+                this.service.setPassResources(scope, connectionId, passesResources).pipe(
+                    map(connection => McpConnectionActions.setPassResourcesSuccess({scope, connection})),
+                    catchError(error =>
+                        of(
+                            McpConnectionActions.setPassResourcesFailure({
+                                error: this.errors.of(error, "errors.mcpConnection.setPassResources"),
+                            }),
+                        ),
+                    ),
+                ),
+            ),
+        ),
+    );
+
     loadAccess$ = createEffect(() =>
         this.actions$.pipe(
             ofType(McpConnectionActions.loadAccess),

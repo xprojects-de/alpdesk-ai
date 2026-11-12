@@ -139,6 +139,20 @@ export const setPassThroughFailure = createAction(
     props<{error: string}>(),
 );
 
+/** Whether MCP keys that pass the connection through read its resources ("Ressourcen an MCP-Clients"). */
+export const setPassResources = createAction(
+    "[MCP Connection] Set Pass Resources",
+    props<{scope: TenantScope; connectionId: number; passesResources: boolean}>(),
+);
+export const setPassResourcesSuccess = createAction(
+    "[MCP Connection] Set Pass Resources Success",
+    props<{scope: TenantScope; connection: McpConnection}>(),
+);
+export const setPassResourcesFailure = createAction(
+    "[MCP Connection] Set Pass Resources Failure",
+    props<{error: string}>(),
+);
+
 export const loadAccess = createAction(
     "[MCP Connection] Load Access",
     props<{scope: TenantScope; connectionId: number}>(),
