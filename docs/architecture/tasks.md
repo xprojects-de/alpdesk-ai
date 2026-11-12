@@ -426,7 +426,9 @@ the connection, its address and encrypted key, the internal hosts and the tool's
     results": the connections' address rules, our key only to the connection's own host, a chat file's 50 MB); an
     expired or refused link is the document's reason, not the step's failure; a link whose server is out of reach,
     too slow or failing (5xx, 429 - `LinkDownloads.NotFetched.forNow`, `CallResult.linkFailedForNow`) fails the step
-    (`task.linkFailedForNow`), and so does a file read as a document to be read again - a scan without an image
+    (`task.linkFailedForNow`) - likewise a link to a resource of the software's own it gives no answer for when asked
+    to read it (too slow, the connection lost; an error it answers is the document's reason) -, and so does a file
+    read as a document to be read again - a scan without an image
     model or its key (`task.documentNotYet`): a source keeps no read positions, so with `{lastRun}` moved on it would
     never be asked for again (task review 9 November 2026).
     `mcpServer.requestFailed` fails the step too, unlike a target's row (decided 6 November 2026): `McpClient` cannot
@@ -503,7 +505,9 @@ the connection, its address and encrypted key, the internal hosts and the tool's
   `CHOICE` line - not the rules our model gets (task and run go in the metadata). Such a tenant may leave `model` out
   of an assistant's prompt; any other gets `task.modelRequiredWithoutAgent` at the check - and at the run, when the
   tenant's agent stopped answering the chat since. An area, software or template deleted since the check fails the
-  step (`task.assistantGone`) - answered without them, the run would end `DONE` as if nothing were missing.
+  step (`task.assistantGone`) - answered without them, the run would end `DONE` as if nothing were missing. For the
+  same reason an A2A agent among the software fails the step with `task.agentUnavailable` once the admin took A2A
+  away from the tenant: its tool is no longer offered.
 
 ## Draft with AI (package D)
 

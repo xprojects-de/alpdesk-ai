@@ -145,6 +145,21 @@ class TaskAssistantSpec extends Specification {
         [first, second].every { (it.run as Map).state == "FAILED" && (it.run as Map).errorCode == "task.assistantGone" }
     }
 
+    def "an agent named as software whose A2A the admin took away since the check fails the run - it does not answer without the agent"() {
+        given:
+        def setup = withAgent()
+        def task = tasks.create(setup.token, prompting(setup.model, "x", "    software: [Fakeagent]\n"))
+        api.admin("PUT", "/admin/tenants/${setup.tenant.id}", [name: setup.tenant.name, a2aAllowed: false, tasksAllowed: true])
+
+        when:
+        def run = tasks.awaitRun(setup.token, task.id, tasks.start(setup.token, task.id))
+
+        then:
+        (run.run as Map).state == "FAILED"
+        (run.run as Map).errorCode == "task.agentUnavailable"
+        agent.messages().isEmpty()
+    }
+
     def "a tenant answering through its agent: the assistant's prompt is answered by the agent"() {
         given:
         def setup = withAgent(true)

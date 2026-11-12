@@ -478,7 +478,8 @@ public class A2aClient {
         try {
             return A2ACardResolver.builder().httpClient(adapter).baseUrl(origin(connection.baseUrl())).build()
                     .getAgentCard();
-        } catch (A2AClientJSONError e) {
+        } catch (A2AClientJSONError | A2AError e) {
+            // A2AError: JSON that is no card (no capabilities, say) - the SDK refuses it while building the card.
             throw ServiceException.badRequest("mcpConnection.cardInvalid", connection.name() + " offers no valid "
                     + "agent card: " + cut(String.valueOf(e.getMessage()), MAX_ERROR_TEXT), Map.of("name", connection.name()));
         } catch (A2AClientError e) {

@@ -318,6 +318,22 @@ class McpClientSpec extends Specification {
         "between headers and body" | [bodyDelayMillis: 2_000]
     }
 
+    def "a uri of the server's own the server gives no answer for is a note for now - the next try may give the file"() {
+        given: "a server that fails while reading its resource"
+        software.resources["dms://archive/beleg"] = FakeMcpSoftware.blob("dms://archive/beleg", "application/pdf", "x".bytes).resource
+        software.readStatus = 503
+        software.callContent = [[type: "text", text: "The document"], FakeMcpSoftware.link("dms://archive/beleg", "beleg.pdf")]
+
+        when:
+        def result = client.callTool(NO_TENANT, "Buchhaltung", software.url(), null, "find_invoice", [number: "4711"])
+
+        then:
+        !result.error()
+        result.files().isEmpty()
+        result.linkFailedForNow()
+        result.text() == 'The document\n[file "beleg.pdf" could not be fetched: the server did not answer when asked to read it]'
+    }
+
     def "a uri of the server's own from a server that offers no resources is a note - the SDK refuses before asking it"() {
         given: "a server without the resources capability linking to a uri of its own"
         software.callContent = [[type: "text", text: "The document"], FakeMcpSoftware.link("dms://archive/beleg", "beleg.pdf")]

@@ -202,6 +202,30 @@ class McpProxyResourcesSpec extends Specification {
         !software.received.any { it.method?.startsWith("resources/") }
     }
 
+    def "a new address is another software - its resources no longer go to MCP clients and its keys read only"() {
+        given: "a software whose resources pass, with a key that may change in it"
+        def setup = tenantWithSoftware(true)
+        api.call(setup.admin, "PUT", "/tenant/admin/mcp-keys/${setup.keyId}", [changingConnectionIds: [setup.connection.id]])
+        def other = new FakeMcpSoftware()
+        other.resourcePages[""] = [resources: [[uri: "crm://kunden/1", name: "kunde-1"]]]
+
+        when: "the connection is pointed at another server"
+        def moved = api.call(setup.admin, "PUT", "/tenant/admin/mcp-connections/${setup.connection.id}",
+                [name: "Buchhaltung", baseUrl: other.url()]) as Map
+        def key = (api.call(setup.admin, "GET", "/tenant/admin/mcp-keys") as List<Map>).find { it.id == setup.keyId }
+
+        then: "nobody chose that server's resources, or that the key may change in it"
+        !moved.passesResources
+        moved.passesThrough
+        rpc(setup.key, "resources/list").error.code == -32601
+        !other.received.any { it.method?.startsWith("resources/") }
+        key.changingConnectionIds == []
+        key.connectionIds == [setup.connection.id]
+
+        cleanup:
+        other.stop()
+    }
+
     def "a key with two software reads only the one whose switch is on"() {
         given:
         def setup = tenantWithSoftware(true)

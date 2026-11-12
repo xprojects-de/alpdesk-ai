@@ -159,11 +159,17 @@ public class PromptStep {
     }
 
     /**
-     * The areas, software and template the step was checked with, still there - else the step fails rather than answer
+     * The areas, software and template the step was checked with, still there - and an A2A agent among the software
+     * still allowed: its tool is not offered once the admin took A2A away. Else the step fails rather than answer
      * without them while the run reports DONE.
      */
     private void requireStillThere(StepContext context, AssistantAsk assistant) {
         Long tenantId = context.tenant().id();
+        if (!context.tenant().a2aAllowed()
+                && assistant.connectionIds().stream().anyMatch(id -> connections.isAgent(tenantId, id))) {
+            throw ServiceException.conflict("task.agentUnavailable",
+                    "The task's A2A agent is gone, or the tenant may no longer use A2A agents");
+        }
         boolean gone = !areas.namesById(tenantId).keySet().containsAll(assistant.areaIds())
                 || assistant.connectionIds().stream().anyMatch(id -> !connections.exists(tenantId, id))
                 || (assistant.templateId() != null && assistants.templates(tenantId).stream()

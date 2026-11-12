@@ -82,6 +82,8 @@ class FakeMcpSoftware {
     volatile int errorStatus = 200
     /** How long it waits before it answers a tool call - a software that takes its time, or hangs. */
     volatile long callDelayMillis = 0
+    /** The HTTP status resources/read answers with, without a body - a server failing for the moment; 0: it answers. */
+    volatile int readStatus = 0
     /** The instructions its answer to initialize gives; null: none. */
     volatile String instructions = null
     /** Whether the server is stateless: it sends no session id with its answer to initialize. */
@@ -208,6 +210,11 @@ class FakeMcpSoftware {
         }
         if (message.method == "tools/call" && callDelayMillis > 0) {
             Thread.sleep(callDelayMillis)
+        }
+        if (message.method == "resources/read" && readStatus > 0) {
+            exchange.sendResponseHeaders(readStatus, -1)
+            exchange.close()
+            return
         }
         if (message.id == null) {
             exchange.sendResponseHeaders(202, -1)

@@ -1017,6 +1017,56 @@ class TaskDocumentsSpec extends Specification {
         (scan.run as Map).errorCode == "task.documentNotYet"
     }
 
+    def "call_tool as a source of documents: a file of the software's own it cannot read for the moment fails the run - a file it refuses is the document's reason"() {
+        given:
+        def setup = tasks.tenant()
+        invoicing(setup)
+        software.resources["dms://beleg/7"] = [uri: "dms://beleg/7", mimeType: "text/plain", text: "date: 2026-03-07"]
+        software.answers.list_incoming_documents = { Map arguments ->
+            [content: [[type: "text", text: '[{"id": "7"}]']], isError: false]
+        }
+        software.answers.get_document = { Map arguments ->
+            [content: [FakeMcpSoftware.link("dms://beleg/" + link, "beleg-7.txt")], isError: false]
+        }
+        def link = "7"
+        def task = tasks.create(setup.token, sourcing("""
+              - id: documents
+                type: call_tool
+                connection: Faktura
+                tool: list_incoming_documents
+                key: id
+                file:
+                  tool: get_document
+              - id: rows
+                type: extract
+                model: ${setup.model.displayName}
+                input: documents
+                fields:
+                  - {name: date, type: date}"""))
+
+        when: "the software fails while reading its resource"
+        software.readStatus = 503
+        def down = tasks.awaitRun(setup.token, task.id, tasks.start(setup.token, task.id))
+
+        then: "with {lastRun} moved on the document would never be asked for again"
+        (down.run as Map).state == "FAILED"
+        (down.run as Map).errorCode == "task.linkFailedForNow"
+
+        when: "the software answers that it has no such resource"
+        software.readStatus = 0
+        link = "unknown"
+        def refused = tasks.awaitRun(setup.token, task.id, tasks.start(setup.token, task.id))
+
+        then:
+        (refused.run as Map).state == "DONE"
+        (((refused.steps as List<Map>).find { it.stepId == "documents" }.result as Map).documents as List<Map>)[0].problem
+                .contains("the server refused to read it - Resource not found")
+
+        cleanup:
+        software.readStatus = 0
+        software.resources.clear()
+    }
+
     def "call_tool as a source: an answer that is no array of objects, or more than 200, fails the run"() {
         given:
         def setup = tasks.tenant()

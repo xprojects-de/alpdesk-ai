@@ -208,6 +208,14 @@ Nothing in `.env` or `/api/v1` needs a hand; the new settings have defaults.
 
 ### Fixed
 
+- **A connected software moved to another address** no longer keeps what was chosen for the old one: its resources
+  stop going to MCP clients and its MCP keys read only, until a tenant admin chooses again.
+- **An A2A agent whose address answers with something that is no agent card** is now refused with that reason when
+  it is created, reloaded or checked, instead of an unexpected error.
+- **Scheduled tasks**: a prompt of the assistant that uses an A2A agent now fails its run once the admin no longer
+  allows the company A2A agents, instead of answering without the agent. And a document a software hands out as one
+  of its own resources is asked for again by the next run when the software did not answer while reading it,
+  instead of being filed as unreadable.
 - SharePoint / OneDrive stores sign in with Microsoft's sign-in library 1.26.1, which fixes how it picks a token from
   its cache.
 - **A document uploaded right after a restart no longer waits behind every company's index check**: on an

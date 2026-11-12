@@ -196,6 +196,8 @@ public class McpConnectionService {
             prompts.deleteByConnectionId(connectionId);
             // The sign-in was for the old address (its resource) - the new one is found again.
             oauth.forget(connectionId);
+            // Another software: nobody chose that its keys may change in it or read its resources.
+            connections.mcpKeysReadOnly(connectionId);
         }
         String clientId = blankToNull(request.clientId());
         if (clientId != null && !newAddress && key == null) {
@@ -203,8 +205,8 @@ public class McpConnectionService {
         }
         McpConnection updated = connections.update(new McpConnection(connectionId, tenantId, name, baseUrl, storedKey,
                 keyHint, newAddress ? null : connection.toolsLoadedAt(), connection.passesThrough(),
-                connection.passesResources(), newAddress ? null : connection.instructions(), connection.protocol(), answersChat, connection.createdAt(),
-                Instant.now()));
+                !newAddress && connection.passesResources(), newAddress ? null : connection.instructions(),
+                connection.protocol(), answersChat, connection.createdAt(), Instant.now()));
         return Optional.of(new Updated(updated, newAddress));
     }
 
@@ -828,6 +830,12 @@ public class McpConnectionService {
     /** Whether the tenant still has this connection - an assistant prompt step's software when it runs. */
     public boolean exists(Long tenantId, Long connectionId) {
         return connections.findByIdAndTenantId(connectionId, tenantId).isPresent();
+    }
+
+    /** Whether the tenant's connection is an A2A agent - an assistant prompt step's software when it runs. */
+    public boolean isAgent(Long tenantId, Long connectionId) {
+        return connections.findByIdAndTenantId(connectionId, tenantId)
+                .filter(connection -> connection.protocol() == McpConnectionProtocol.A2A).isPresent();
     }
 
     /** The tenant's A2A agent of this name (case does not matter) - for a task's call_agent step. */

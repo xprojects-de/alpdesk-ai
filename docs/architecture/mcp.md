@@ -582,7 +582,10 @@ call - is not built: when a module needs it.
   (`SecretCipher`), shown as `keyHint` only, and stays with its host: an address on another origin drops it unless a
   new one comes (like own model servers). **Another address is another software**: its tools are read anew and come in
   off, the old ones are removed - what was chosen for a tool (on, `changes`) must not pass to a tool of the same name
-  there. Only the name or the key changed, everything stays.
+  there. For the same reason its resources stop going to MCP clients (`passes_resources` off - the switch opens all of
+  them, there is no choice per resource) and every MCP key reads only in it again (the level `WRITE` back to `READ`),
+  as when it stops passing through; which keys and groups use the connection, and that it passes through, stay. Only
+  the name or the key changed, everything stays.
 - **Addresses** (`services.mcp.McpAddresses`): HTTPS, plain HTTP only to the hosts in `APP_AI_PLAIN_HTTP_HOSTS`; no
   user, query or fragment; a host that resolves to an internal address (loopback, private, link-local, `fc00::/7`,
   `100.64/10`) is refused unless it is one of those hosts - checked when saved and again before every call. An unknown
@@ -766,7 +769,8 @@ call - is not built: when a module needs it.
     software that hands out a file as a temporary download (valid once, for minutes) returns a link instead of the content. `McpClient.callTool` fetches it **at once**, before
     it returns - later the download has expired: a uri of the server's own (any scheme but http/https) with
     `resources/read` in the same session (where such a uri lives; the SDK refuses it for a server without the resources
-    capability), an http(s) address after the session with `LinkDownloads`: the connections' address rules
+    capability; no answer at all - too slow, the connection lost - is a failure for now like a download's, an error
+    the server answers is final), an http(s) address after the session with `LinkDownloads`: the connections' address rules
     (`McpAddresses.requireAllowed` - HTTPS, plain HTTP only to `app.ai.plain-http-hosts`, no internal address) before
     the request and after every redirect, followed by hand (3 at most); at most 50 MB (`ChatFileService.MAX_FILE_BYTES`,
     a chat file's - the JDK's `BodyHandlers.limiting` stops the body there) and 60 s for the whole download. **Our

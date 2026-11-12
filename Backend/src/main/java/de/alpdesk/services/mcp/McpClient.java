@@ -563,8 +563,7 @@ public class McpClient {
     }
 
     /** The links of the server's own read with resources/read - inside the session, where such a uri lives. */
-    private static Map<McpSchema.ResourceLink, Linked> readServerLinks(McpSyncClient mcp,
-                                                                      McpSchema.CallToolResult result) {
+    private Map<McpSchema.ResourceLink, Linked> readServerLinks(McpSyncClient mcp, McpSchema.CallToolResult result) {
         Map<McpSchema.ResourceLink, Linked> read = new HashMap<>();
         for (McpSchema.ResourceLink link : linksToFetch(result)) {
             if (!isWebAddress(link.uri())) {
@@ -574,12 +573,20 @@ public class McpClient {
         return read;
     }
 
-    private static Linked readResource(McpSyncClient mcp, McpSchema.ResourceLink link) {
+    /**
+     * An error the server answered is final. No answer at all - too slow, the connection lost - is for now: the next
+     * try may give the file, as with a download whose server is out of reach.
+     */
+    private Linked readResource(McpSyncClient mcp, McpSchema.ResourceLink link) {
         McpSchema.ReadResourceResult answer;
         try {
             answer = mcp.readResource(new McpSchema.ReadResourceRequest(link.uri()));
         } catch (RuntimeException e) {
-            return new Linked(null, "the server refused to read it" + refusal(e));
+            String refusal = refusal(e);
+            if (refusal.isEmpty() && errorAnswered(e) == null) {
+                return new Linked(null, "the server did not answer when asked to read it", true);
+            }
+            return new Linked(null, "the server refused to read it" + refusal);
         }
         if (answer == null || answer.contents() == null || answer.contents().isEmpty()) {
             return new Linked(null, "the server sent no content for it");
