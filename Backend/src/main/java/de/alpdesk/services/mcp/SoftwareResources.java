@@ -4,6 +4,7 @@ import de.alpdesk.entities.mcp.McpConnection;
 import de.alpdesk.entities.mcp.McpConnectionProtocol;
 import de.alpdesk.repositories.mcp.McpConnectionRepository;
 import de.alpdesk.services.common.ServiceException;
+import io.micronaut.context.annotation.Value;
 import io.micronaut.core.annotation.Nullable;
 import io.modelcontextprotocol.spec.McpSchema;
 import jakarta.inject.Singleton;
@@ -12,6 +13,7 @@ import org.slf4j.LoggerFactory;
 
 import java.nio.charset.StandardCharsets;
 import java.text.Normalizer;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.HashMap;
@@ -40,13 +42,16 @@ public class SoftwareResources {
     private final McpConnectionRepository connections;
     private final McpConnectionService connectionService;
     private final McpClient client;
+    private final Duration timeout;
 
     public SoftwareResources(SoftwareMcpProxy proxy, McpConnectionRepository connections,
-                             McpConnectionService connectionService, McpClient client) {
+                             McpConnectionService connectionService, McpClient client,
+                             @Value("${app.ai.timeout}") Duration timeout) {
         this.proxy = proxy;
         this.connections = connections;
         this.connectionService = connectionService;
         this.client = client;
+        this.timeout = timeout;
     }
 
     /** A request we refuse with a JSON-RPC error - an unknown address, a cursor that is not ours. */
@@ -173,7 +178,9 @@ public class SoftwareResources {
 
     /**
      * The page the cursor names - none: the first software's first page. A software that fails, or has nothing on its
-     * page and no next one, is left out and the next one asked in the same request: a page with entries, or the end.
+     * page and no next one, is left out and the next one asked in the same request: a page with entries, or the end -
+     * a client that stops at an empty page would never see the software after it. All within one app.ai.timeout: with
+     * several software out of reach the waits would add up, so past it the page ends empty and its cursor leads on.
      */
     private <T> Page<T> page(Long tenantId, List<McpConnection> sources, @Nullable String cursor, PageReader<T> reader,
                              Prefixer<T> prefixer) {
@@ -186,8 +193,12 @@ public class SoftwareResources {
             }
         }
         Map<Long, String> parts = parts(connections.findByTenantIdOrderByName(tenantId));
+        long deadline = System.nanoTime() + timeout.toNanos();
         for (int index = start; index < sources.size(); index++) {
             McpConnection connection = sources.get(index);
+            if (index > start && System.nanoTime() > deadline) {
+                return new Page<>(List.of(), new Cursor(connection.id(), null).encode());
+            }
             String softwareCursor = index == start && at != null ? at.softwareCursor() : null;
             SoftwarePage<T> page;
             try {

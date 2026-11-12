@@ -170,7 +170,7 @@ class McpProxyResourcesSpec extends Specification {
         second?.stop()
     }
 
-    def "no resources for a key without the software, another tenant's key, a software not passed through or with the switch off"() {
+    def "no resources for a key without the software or another tenant's key - and a software that stops passing through loses the switch"() {
         given:
         def setup = tenantWithSoftware(true)
         def otherKey = (api.call(setup.admin, "POST", "/tenant/admin/mcp-keys", [name: "Bank"]) as Map).plainKey as String
@@ -184,19 +184,20 @@ class McpProxyResourcesSpec extends Specification {
         rpc(otherKey, "resources/read", address).error.code == -32601
         rpc(otherTenantKey, "resources/read", address).error.code == -32601
 
-        when: "the software no longer passes through - the switch stays, without effect"
-        api.call(setup.admin, "PUT", "/tenant/admin/mcp-connections/${setup.connection.id}/pass-through", [passesThrough: false])
+        when: "the software no longer passes through - its resources go with it"
+        def off = api.call(setup.admin, "PUT", "/tenant/admin/mcp-connections/${setup.connection.id}/pass-through", [passesThrough: false]) as Map
 
         then:
+        !off.passesResources
         rpc(setup.key, "resources/read", address).error.code == -32601
-        (api.call(setup.admin, "GET", "/tenant/admin/mcp-connections") as List<Map>).find { it.id == setup.connection.id }
-                .passesResources
+        refusal(setup.admin, "PUT", "/tenant/admin/mcp-connections/${setup.connection.id}/resources", [passesResources: true]) ==
+                [409, "mcpConnection.resourcesNeedPassThrough"]
 
-        when: "it passes through again, its resources switched off"
-        api.call(setup.admin, "PUT", "/tenant/admin/mcp-connections/${setup.connection.id}/pass-through", [passesThrough: true])
-        api.call(setup.admin, "PUT", "/tenant/admin/mcp-connections/${setup.connection.id}/resources", [passesResources: false])
+        when: "it passes through again - nobody chose its resources"
+        def on = api.call(setup.admin, "PUT", "/tenant/admin/mcp-connections/${setup.connection.id}/pass-through", [passesThrough: true]) as Map
 
         then:
+        !on.passesResources
         rpc(setup.key, "resources/list").error.code == -32601
         !software.received.any { it.method?.startsWith("resources/") }
     }

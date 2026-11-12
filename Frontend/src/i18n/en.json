@@ -272,6 +272,7 @@
         "notFound": "Connection not found",
         "passThroughRequired": "Say whether the software is passed on to MCP clients",
         "passResourcesRequired": "Say whether the software's resources are passed on to MCP clients",
+        "resourcesNeedPassThrough": "Only software that goes directly to MCP clients can pass its resources on",
         "a2aNotAllowed": "The company may not connect A2A agents - the administrator allows it",
         "protocolFixed": "The protocol of a connection cannot change - make a new connection",
         "unsupportedBinding": "{{name}} offers no JSON-RPC interface - the only binding supported",

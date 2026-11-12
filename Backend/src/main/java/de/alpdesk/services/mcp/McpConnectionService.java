@@ -287,9 +287,11 @@ public class McpConnectionService {
                 // What a key may change in goes only directly to its client - switched on again, nobody chose it.
                 connections.mcpKeysReadOnly(connection.id());
             }
+            // Its resources go only with it, for the same reason: switched on again, nobody chose them.
+            boolean passesResources = passesThrough && connection.passesResources();
             return response(connections.update(new McpConnection(connection.id(), connection.tenantId(),
                     connection.name(), connection.baseUrl(), connection.apiKey(), connection.keyHint(),
-                    connection.toolsLoadedAt(), passesThrough, connection.passesResources(), connection.instructions(),
+                    connection.toolsLoadedAt(), passesThrough, passesResources, connection.instructions(),
                     connection.protocol(),
                     connection.answersChat(), connection.createdAt(), Instant.now())), null);
         });
@@ -297,8 +299,9 @@ public class McpConnectionService {
 
     /**
      * Whether MCP keys that pass the connection through read its resources too ("Ressourcen an MCP-Clients", decided 11
-     * November 2026) - off by default; in force only while it passes through, so it is kept when that is switched off.
-     * 400 without a value, 409 for an A2A agent, empty for another tenant's connection.
+     * November 2026) - off by default, and only for a connection that passes through: switching that off takes it off
+     * too (setPassThrough). 400 without a value, 409 for an A2A agent or a connection that does not pass through, empty
+     * for another tenant's connection.
      */
     @Transactional
     public Optional<McpConnectionResponse> setPassResources(Long tenantId, Long connectionId,
@@ -311,6 +314,10 @@ public class McpConnectionService {
             if (connection.protocol() == McpConnectionProtocol.A2A) {
                 throw ServiceException.conflict("mcpConnection.notForA2a",
                         "An A2A agent has no resources to pass on to MCP clients");
+            }
+            if (passesResources && !connection.passesThrough()) {
+                throw ServiceException.conflict("mcpConnection.resourcesNeedPassThrough",
+                        "Only a connection passed on to MCP clients can pass its resources on");
             }
             return response(connections.update(new McpConnection(connection.id(), connection.tenantId(),
                     connection.name(), connection.baseUrl(), connection.apiKey(), connection.keyHint(),

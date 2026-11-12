@@ -481,14 +481,19 @@ goes into the address, separated by a dot (`SoftwareResources`):
   changes its tools' names.
 - **The switch**: per connection, "Ressourcen an MCP-Clients" on the page "Software" below "Direkt an MCP-Clients",
   `mcp_connection.passes_resources` (`V19`), `PUT .../mcp-connections/{id}/resources` `{passesResources}` (400
-  `mcpConnection.passResourcesRequired` without a value, 409 `mcpConnection.notForA2a` for an A2A agent), **off by
-  default**. On, every key that passes the software through reads its resources - reading a resource is reading; no
-  switch per resource. In force only while the software passes through (the frontend greys it out then); it is kept
-  when pass-through is switched off.
+  `mcpConnection.passResourcesRequired` without a value, 409 `mcpConnection.notForA2a` for an A2A agent, 409
+  `mcpConnection.resourcesNeedPassThrough` for a connection that does not pass through - the frontend greys the switch
+  out then), **off by default**. On, every key that passes the software through reads its resources - reading a
+  resource is reading; no switch per resource. **A software that stops passing through loses the switch**
+  (`setPassThrough`, decided 12 November 2026 - as it takes the changing level off its keys): left on, it would be in
+  force again the day pass-through is turned back on, and nobody chose it then.
 - **`resources/list` and `resources/templates/list`**: asked live, every time - resources change with every ticket. A
   page of ours is one page of one software, in the order of the software's names; our cursor (opaque, base64) names the
   software and carries its cursor, so nothing is capped or cut and one software is paged at a time. A software that
-  fails, or has nothing on its page and no next one, is left out and the next asked in the same request. The name a
+  fails, or has nothing on its page and no next one, is left out and the next asked in the same request (a client that
+  stops at an empty page would never see the software after it) - all within one `app.ai.timeout` (decided 12 November
+  2026): with several software out of reach the waits would add up, so past it the page ends empty and its cursor
+  leads on. The name a
   client shows (`name`, `title`) gets `[<connection>] ` in front. **A web address is never prefixed** (2026-07-28 says a
   client may fetch an `https` resource directly - a prefix would break that). `initialize` says the server has
   resources (no subscriptions, no `list_changed`) when a software of the key has the switch on; without one, a
@@ -519,7 +524,8 @@ goes into the address, separated by a dot (`SoftwareResources`):
 - Tests: `controller/mcp/McpProxyResourcesSpec` (the switch off by default and its API, the lists merged and prefixed,
   page by page with our cursor, a read reaching the right software among two, the answer's addresses prefixed, not
   found with the hint, a web address, the software's own error, a software out of reach in a list of two, a key without
-  the software, another tenant, not passing through, an A2A agent, a link left in a result prefixed),
+  the software, another tenant, the switch gone with pass-through and refused without it, an A2A agent, a link left
+  in a result prefixed),
   `services/mcp/SoftwareResourcesSpec`; by hand `proxy_check.py`.
 
 ### What a server behind Zirmo must observe

@@ -272,6 +272,7 @@
         "notFound": "Verbindung nicht gefunden",
         "passThroughRequired": "Geben Sie an, ob die Software an MCP-Clients weitergegeben wird",
         "passResourcesRequired": "Geben Sie an, ob die Ressourcen der Software an MCP-Clients weitergegeben werden",
+        "resourcesNeedPassThrough": "Nur Software, die direkt an MCP-Clients geht, kann ihre Ressourcen weitergeben",
         "a2aNotAllowed": "Der Mandant darf keine A2A-Agenten anbinden - das erlaubt der Administrator",
         "protocolFixed": "Das Protokoll einer Verbindung lässt sich nicht ändern - legen Sie eine neue Verbindung an",
         "unsupportedBinding": "{{name}} bietet keine JSON-RPC-Schnittstelle - die einzige unterstützte",
