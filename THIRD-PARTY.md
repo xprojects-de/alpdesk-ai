@@ -8,7 +8,7 @@ unmodified libraries, or offer a permissive option.
 The licenses were read out of the resolved artifacts - POM metadata, `Bundle-License` in the jar manifests,
 `META-INF/LICENSE` files and source headers for the backend, the `license` field of each installed package for the
 frontend - not assumed. As of: backend `runtimeClasspath` and frontend `dependencies` of 23 October 2026, the AWS SDK and MSAL added 29 October 2026, Tika 4's
-libraries 6 November 2026, langchain4j's Bedrock module with the SDK's Bedrock and Netty clients 8 November 2026, Nimbus' OAuth SDK with its libraries 9 November 2026.
+libraries 6 November 2026, langchain4j's Bedrock module with the SDK's Bedrock and Netty clients 8 November 2026, Nimbus' OAuth SDK with its libraries 9 November 2026, Micronaut 5.2.6, the A2A SDK 1.5.1, MSAL 1.26.1 and openhtmltopdf 1.1.113 12 November 2026.
 
 ## Backend (Java, shipped in the jar)
 
@@ -34,7 +34,7 @@ Most of the stack. Apache-2.0 asks for the license and the NOTICE contents to be
 | `com.fasterxml.jackson.core:*`, `tools.jackson.*` | JSON, YAML |
 | `com.nimbusds:nimbus-jose-jwt` | JWT |
 | `com.nimbusds:oauth2-oidc-sdk`, `com.nimbusds:content-type`, `com.nimbusds:lang-tag`, `net.minidev:json-smart`, `net.minidev:accessors-smart`, `com.github.stephenc.jcip:jcip-annotations` | The OAuth messages of a connected software's sign-in (built and parsed only) |
-| `org.a2aproject.sdk:*` 1.5.0.Final (a2a-java-sdk-spec, -spec-grpc, -common, -jsonrpc-common, -server-common, -transport-jsonrpc, -client, -client-transport-spi, -client-transport-jsonrpc, -http-client) | A2A both ways (the official A2A Java SDK) |
+| `org.a2aproject.sdk:*` 1.5.1.Final (a2a-java-sdk-spec, -spec-grpc, -common, -jsonrpc-common, -server-common, -transport-jsonrpc, -client, -client-transport-spi, -client-transport-jsonrpc, -http-client) | A2A both ways (the official A2A Java SDK) |
 | `com.google.code.gson:gson` 2.15.0, `com.google.api.grpc:proto-google-common-protos` 2.71.0, `jakarta.enterprise:jakarta.enterprise.cdi-api` 4.1.0 | The A2A SDK's JSON, its protobuf types and annotations |
 | `com.zaxxer:HikariCP`, `com.zaxxer:SparseBitSet`, `io.projectreactor:reactor-core`, `io.smallrye.reactive:mutiny-zero`, `com.networknt:json-schema-validator`, `com.ethlo.time:itu`, `org.snakeyaml:snakeyaml-engine` | Runtime support |
 | `org.jspecify:jspecify`, `jakarta.inject:jakarta.inject-api`, `jakarta.validation:jakarta.validation-api`, `org.jetbrains:annotations`, `info.picocli:picocli` | Standard APIs and annotations |

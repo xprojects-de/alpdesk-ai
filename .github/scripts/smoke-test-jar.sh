@@ -652,8 +652,9 @@ cors_other=$(curl -s -o /dev/null -w '%{http_code}' -X OPTIONS -H "Origin: https
 [ "$cors_other" = "403" ] || fail "an origin not in APP_CORS_ORIGINS answered $cors_other, not 403"
 grep -q "Chat files: kept - no retention set" "$LOG" \
   || fail "with the retention variables set empty the start does not say the chat files are kept"
+# Outside the context path nothing is served: like any route that does not exist, it is refused (reject-not-found)
 root_status=$(curl -s -o /dev/null -w '%{http_code}' "http://127.0.0.1:$PORT/watchdog") || true
-[ "$root_status" = "404" ] || fail "/watchdog answered $root_status under a context path, not 404"
+[ "$root_status" = "401" ] || fail "/watchdog answered $root_status under a context path, not 401"
 prefixed_login=$(curl -sS -X POST -H "Content-Type: application/json" \
   -d "{\"username\":\"$APP_USERNAME\",\"password\":\"$APP_PASSWORD\"}" "http://127.0.0.1:$PORT/alpdesk-ai/login") || true
 grep -q '"access_token"' <<< "$prefixed_login" || fail "the login under the context path answered: $prefixed_login"

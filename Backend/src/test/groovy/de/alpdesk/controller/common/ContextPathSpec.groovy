@@ -32,7 +32,14 @@ class ContextPathSpec extends Specification {
         expect:
         status("/alpdesk-ai/watchdog") == HttpStatus.OK
         status("/alpdesk-ai/branding") == HttpStatus.OK
-        status("/watchdog") == HttpStatus.NOT_FOUND
+    }
+
+    def "a path outside the context path is refused like any route that does not exist"() {
+        // reject-not-found answers 401 to an anonymous request that reaches no route; since Micronaut 5.2.6 the
+        // security filter sees the paths outside the context path too, so they are refused the same way
+        expect:
+        status("/watchdog") == HttpStatus.UNAUTHORIZED
+        status("/alpdesk-ai/no-such-route") == HttpStatus.UNAUTHORIZED
     }
 
     def "the A2A card and the extensions' descriptions live under the context path, and the card names it"() {
