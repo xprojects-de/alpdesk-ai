@@ -173,6 +173,7 @@ class TenantApiKeySpec extends Specification {
         "GET"    | "T/mcp-connections"
         "POST"   | "T/mcp-connections"
         "PUT"    | "T/mcp-connections/1/pass-through"
+        "PUT"    | "T/mcp-connections/1/resources"
         "PUT"    | "T/mcp-connections/1/prompts/1"
         "GET"    | "T/file-stores"
         "POST"   | "T/file-stores"

@@ -26,6 +26,11 @@ Nothing in `.env` or `/api/v1` needs a hand; the new settings have defaults.
 
 ### Added
 
+- **Resources of your own software for MCP clients**: switched "Ressourcen an MCP-Clients" on the page "Software"
+  (off for every software), an MCP key that gets the software directly also lists and reads its resources - files,
+  logs, attachments. Their addresses start with the software's name and a dot, e.g.
+  `ticketsystem.ticket://4711/log`.
+
 - **Changing tools of your own software for MCP clients**: an MCP key may now also call the changing tools of a
   connected software that goes directly to MCP clients - e.g. create a ticket or file a document - where a tenant
   admin chose it under "Darf ändern in" in the key's dialog. Off for every key. Whether a person is asked before
@@ -38,7 +43,8 @@ Nothing in `.env` or `/api/v1` needs a hand; the new settings have defaults.
   name and icon.
 - **Files a connected software hands out as a link**: when a tool of an MCP server returns a file as a link (a
   temporary download, e.g. a document from a document management system), Zirmo fetches it at once - in the
-  chat, in a scheduled task's documents and for MCP clients alike. Up to 50 MB; an expired or refused link is named
+  chat and in a scheduled task's documents. For MCP clients a link to a web address goes on as a link, and a link to a
+  resource of the software's own is read and embedded (see "Changed"). Up to 50 MB; an expired or refused link is named
   to the assistant instead of failing the call. Your software's key goes only to its own host, never to another
   download address.
 - **Claude through Amazon Bedrock**: the model catalog takes Bedrock's chat models with an AWS account of your own -
@@ -136,6 +142,18 @@ Nothing in `.env` or `/api/v1` needs a hand; the new settings have defaults.
 
 ### Changed
 
+- **MCP clients get what your connected software sends, unchanged**: a software passed "Direkt an MCP-Clients" now
+  reaches Claude Code and the other MCP clients as it answers - long text whole (no longer cut at 100,000 characters),
+  an image as an image, files with the type the software names (an HTML page stays HTML), structured results, and
+  every message of a prompt. A link to a web address goes to the client as a link - Zirmo no longer fetches it for the
+  client; a link to the software's own resource is still read and embedded. Beyond 8 MB an answer is refused and says
+  so. The general chat over topic companies gets such web links as links too: it fetches them only where they are
+  reachable from its own installation without a key of the software.
+- **A tool's own statements reach MCP clients**: its title, all its annotations, its `_meta` and its output schema -
+  after "Werkzeuge neu laden" of the software on the page "Software"; until then a tool is listed as before.
+- **The MCP server names a key's connected software first**: its instructions now list every software passed to the
+  key in one line before the software's own texts, so a client that reads only the beginning still knows them.
+
 - **The name: Zirmo**, a product of Alpdesk. The installation's default name (`APP_BRANDING_NAME`) is now "Zirmo" -
   an installation that set its own name keeps it. The default logo is new - a Zirbe cone instead of "AD" (an
   installation's own logo stays); the colour stays. The public A2A card names Zirmo as its
@@ -188,6 +206,8 @@ Nothing in `.env` or `/api/v1` needs a hand; the new settings have defaults.
 
 ### Fixed
 
+- **A document uploaded right after a restart no longer waits behind every company's index check**: on an
+  installation with many companies the first uploads after a start stayed "pending" until all of them were checked.
 - **The embeddings image for ARM**: announced with 1.8.0, `ghcr.io/xprojects-de/alpdesk-ai-embeddings:latest` was
   still published for `linux/amd64` only - on an ARM server it ran emulated, minutes per document. It now carries
   `linux/arm64` as well; pull it again.

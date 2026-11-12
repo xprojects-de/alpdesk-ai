@@ -858,7 +858,10 @@ conversation; the client software has the same as the users.
     when the table is created, on every start for every tenant and after a change of the language
     (`DocumentIndexer.ensureTextIndex`: in the background on the indexing executor, under the tenant's lock, which the
     indexer creating the table takes too; on start after the server's start, so no index build delays it - the
-    search runs without the index meanwhile, right and slower; afterwards a look at the catalog). It is application
+    search runs without the index meanwhile, right and slower; afterwards a look at the catalog; **on start one tenant
+    after the other**, the job queueing itself again for the next (`ensureTextIndexes`, 12 November 2026): a job per
+    tenant at once filled the executor's queue, and a document uploaded right after a start waited behind all of them
+    - found by the full suite, where a start meets a thousand tenants). It is application
     code, not a tenant migration: the index depends on a setting, and a name is checked more simply than an index
     definition.
   - `CREATE INDEX CONCURRENTLY`: a change comes while the tenant's people chat; nothing waits for a lock. It waits

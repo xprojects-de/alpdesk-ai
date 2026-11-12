@@ -305,8 +305,15 @@ MCP, size limits), `Backend/podman/**` (Caddyfile, compose files, `.env.example`
      are fetched, none of a failed call; a refusal's reason reaches the model as a note and names no internal address
      or resolved host beyond what `McpAddresses` says for a connection; a uri of another scheme only through
      `resources/read` in the same session; the fetched file handled like an embedded one (the returned-file rules -
-     a type from the fixed list, offered as a download only); the same way in the chat, a task's documents source
-     and the proxy, which hands a client the content, never the link (SECURITY.md names the rule); - the reranker's TEI
+     a type from the fixed list, offered as a download only); the same way in the chat and a task's documents source;
+     the proxy passes a web link to a client unchanged and fetches nothing for it; it embeds only a link to the
+     software's own resource, within 20 links and 8 MB, and passes the software's results, entries and `_meta`
+     unchanged but for the keys MCP reserves (SECURITY.md names the rule); resources only with the connection's switch
+     `passes_resources` (`PUT .../mcp-connections/{id}/resources`, off by default) and only of the key's software that
+     passes through (`SoftwareResources`; `resources/*` at `/mcp` answered in `BrandedMcpServer`): the switch opens all
+     of a software's resources - any address a client names goes to the software as the connection's one account,
+     which alone decides -, another key's or tenant's prefix is "not found", nothing of the software's address or key
+     in an error; - the reranker's TEI
      server too (`TeiScoringModel` through `AiModels`, a catalog entry like Ollama:
      no redirect followed, plain HTTP only to `app.ai.plain-http-hosts`; it gets the question and only the candidates
      of the asker's scope, answers scores only - no text of it reaches the model).

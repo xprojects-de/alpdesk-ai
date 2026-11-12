@@ -293,7 +293,10 @@ Base paths: `Backend/src/main/java/de/alpdesk/` (below `…/`), tests in
        is switched off, a log line per changing call, "the change may have been made" after a call that failed once
        sent); names within 32
        characters keeping "__", list and call agree, an unknown name a tool error (the transport's HTTP 400 ends an SDK
-       client's session), calls off the event loop, files by the returned-file rules and 8 MB, instructions cut to 2,000
+       client's session), calls off the event loop, the result passed on unchanged (mcp.md "Connected software through
+       to MCP clients": a web link as a link, an own resource's link embedded within 20 links and 8 MB, the tool's
+       whole entry from `mcp_tool.definition`, the reserved `_meta` keys kept back, resources through
+       `SoftwareResources` with the connection in front of the address), instructions cut to 2,000
      - the MCP client (`McpClient`, MCP Java SDK): no redirects, the key only to its origin, timeouts, result size,
        failures naming the connection, never the address; a file a tool returns as a link (`LinkDownloads`): the
        address rules before the request and after every redirect (followed by hand, at most 3), the bearer only on

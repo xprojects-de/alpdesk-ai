@@ -17,7 +17,8 @@
 #      prompts; and the tenant's software is connected through its MCP server (the same fake answers as one): its tools
 #      are read, and in the chat of a tenant user whose group may read the software the model calls one (the MCP Java SDK's
 #      client and its JSON under AOT), and - switched "Direkt an MCP-Clients" and given to an MCP key - passed through: its
-#      tool listed for the key and called by the client itself, its instructions after ours. Knowledge areas: a key of an area pushes into it, a member of the area's group
+#      tool listed for the key with its own entry (title, annotations, _meta) and called by the client itself, its
+#      instructions after ours, its resources listed and read with the connection in front once switched on. Knowledge areas: a key of an area pushes into it, a member of the area's group
 #      finds its document in the chat and a user
 #      without it does not (the searches' own SQL with the area filter and pgvector's iterative scan), the keys list
 #      what they find, and the company knowledge's uploads are deleted at once while the pushed documents stay. A
@@ -163,7 +164,8 @@ import json, sys
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 SOFTWARE_TOOLS = [
-    {"name": "find_invoice", "description": "Finds an invoice by its number", "annotations": {"readOnlyHint": True},
+    {"name": "find_invoice", "title": "Find an invoice", "description": "Finds an invoice by its number",
+     "annotations": {"readOnlyHint": True, "idempotentHint": True}, "_meta": {"com.example/category": "smoke"},
      "inputSchema": {"type": "object", "properties": {"number": {"type": "string"}}, "required": ["number"]}},
     {"name": "cancel_invoice", "description": "Cancels an invoice",
      "inputSchema": {"type": "object", "properties": {"number": {"type": "string"}}, "required": ["number"]}}]
@@ -210,7 +212,7 @@ class FakeOllama(BaseHTTPRequestHandler):
             return
         method = message["method"]
         if method == "initialize":
-            result = {"protocolVersion": message["params"]["protocolVersion"], "capabilities": {"tools": {}},
+            result = {"protocolVersion": message["params"]["protocolVersion"], "capabilities": {"tools": {}, "resources": {}},
                       "serverInfo": {"name": "smoke-software", "version": "1"},
                       "instructions": "Call find_invoice with the invoice's number."}
         elif method == "tools/list":
@@ -218,6 +220,11 @@ class FakeOllama(BaseHTTPRequestHandler):
         elif method == "tools/call":
             number = message["params"]["arguments"]["number"]
             result = {"content": [{"type": "text", "text": "Invoice " + number + " paid"}], "isError": False}
+        elif method == "resources/list":
+            result = {"resources": [{"uri": "invoice://4711/receipt.txt", "name": "receipt.txt"}]}
+        elif method == "resources/read" and message["params"]["uri"] == "invoice://4711/receipt.txt":
+            result = {"contents": [{"uri": "invoice://4711/receipt.txt", "mimeType": "text/plain",
+                                    "text": "Receipt of invoice 4711"}]}
         else:
             self.answer({"jsonrpc": "2.0", "id": message["id"], "error": {"code": -32601, "message": "Unknown method"}})
             return
@@ -373,7 +380,8 @@ client_answer=$(curl -sS -X POST -H "Authorization: Bearer $key" -H "Content-Typ
   -d "{\"modelId\":$chat_id,\"message\":\"smoke software question\"}" "http://127.0.0.1:$PORT/api/v1/chat") || true
 grep -q 'Invoice 4711 paid' <<< "$client_answer" || fail "the client software's chat calling the software's tool answered: $client_answer"
 # Passed through to MCP clients (roadmap point 41): switched "Direkt an MCP-Clients" and given to a key, the software's
-# tool is in the key's tools/list and the client calls it itself through the AOT jar; its instructions follow ours.
+# tool is in the key's tools/list - its entry as the software listed it - and the client calls it itself through the
+# AOT jar; its instructions follow ours; its resources are listed and read once switched on.
 curl -sS -o /dev/null -X PUT -H "Authorization: Bearer $token" -H "Content-Type: application/json" \
   -d '{"passesThrough":true}' "$connections/pass-through" || true
 proxy_created=$(curl -sS -X POST -H "Authorization: Bearer $token" -H "Content-Type: application/json" \
@@ -388,11 +396,36 @@ proxy_call=$(curl -sS -X POST -H "Authorization: Bearer $proxy_key" -H "Content-
   -d '{"jsonrpc":"2.0","id":7,"method":"tools/call","params":{"name":"Software__find_invoice","arguments":{"number":"4711"}}}' \
   "http://127.0.0.1:$PORT/mcp") || true
 grep -q 'Invoice 4711 paid' <<< "$proxy_call" || fail "the passed-through tool answered: $proxy_call"
+# The tool's entry as the software listed it (kept as JSON when the tools were read, read back through the AOT jar).
+grep -q '"title":"Find an invoice"' <<< "$proxy_tools" && grep -q '"idempotentHint":true' <<< "$proxy_tools" \
+  && grep -q '"com.example/category":"smoke"' <<< "$proxy_tools" \
+  || fail "the MCP server's tools/list does not pass the tool's own entry on: $proxy_tools"
+# The software's resources: none until switched "Ressourcen an MCP-Clients", then listed and read with the connection
+# in front of the address.
+proxy_no_resources=$(curl -sS -X POST -H "Authorization: Bearer $proxy_key" -H "Content-Type: application/json" \
+  -d '{"jsonrpc":"2.0","id":9,"method":"resources/list"}' "http://127.0.0.1:$PORT/mcp") || true
+grep -q '"code":-32601' <<< "$proxy_no_resources" || fail "resources/list without the switch answered: $proxy_no_resources"
+curl -sS -o /dev/null -X PUT -H "Authorization: Bearer $token" -H "Content-Type: application/json" \
+  -d '{"passesResources":true}' "$connections/resources" || true
+proxy_resources=$(curl -sS -X POST -H "Authorization: Bearer $proxy_key" -H "Content-Type: application/json" \
+  -d '{"jsonrpc":"2.0","id":10,"method":"resources/list"}' "http://127.0.0.1:$PORT/mcp") || true
+grep -q '"uri":"software.invoice://4711/receipt.txt"' <<< "$proxy_resources" \
+  || fail "the MCP server's resources/list does not pass the software's resource through: $proxy_resources"
+proxy_read=$(curl -sS -X POST -H "Authorization: Bearer $proxy_key" -H "Content-Type: application/json" \
+  -d '{"jsonrpc":"2.0","id":11,"method":"resources/read","params":{"uri":"software.invoice://4711/receipt.txt"}}' \
+  "http://127.0.0.1:$PORT/mcp") || true
+grep -q 'Receipt of invoice 4711' <<< "$proxy_read" || fail "reading the passed-through resource answered: $proxy_read"
+proxy_not_found=$(curl -sS -X POST -H "Authorization: Bearer $proxy_key" -H "Content-Type: application/json" \
+  -d '{"jsonrpc":"2.0","id":12,"method":"resources/read","params":{"uri":"invoice://4711/receipt.txt"}}' \
+  "http://127.0.0.1:$PORT/mcp") || true
+grep -q '"code":-32002' <<< "$proxy_not_found" || fail "reading an address without the connection answered: $proxy_not_found"
 proxy_initialized=$(curl -sS -X POST -H "Authorization: Bearer $proxy_key" -H "Content-Type: application/json" \
   -d '{"jsonrpc":"2.0","id":8,"method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"smoke","version":"1"}}}' \
   "http://127.0.0.1:$PORT/mcp") || true
 grep -q "Software Software (its tools' descriptions start with \[Software\]): Call find_invoice" <<< "$proxy_initialized" \
   || fail "the MCP server's initialize does not pass the software's instructions on: $proxy_initialized"
+grep -q "Connected software: Software - " <<< "$proxy_initialized" \
+  || fail "the MCP server's initialize does not name the key's software first: $proxy_initialized"
 ZIP="$(mktemp).zip"
 python3 - "$DOCX" "$ZIP" <<'PYTHON'
 import sys, zipfile

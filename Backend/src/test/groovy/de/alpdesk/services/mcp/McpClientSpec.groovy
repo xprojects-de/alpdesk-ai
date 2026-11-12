@@ -92,8 +92,26 @@ class McpClientSpec extends Specification {
         "too many tools"      | (1..McpClient.MAX_TOOLS + 1).collect { tool("tool_$it") }   || "Buchhaltung offers more than 500 tools"
         "a too long name"     | [tool("t" * (McpClient.MAX_TOOL_NAME + 1))]                 || "Buchhaltung offers a tool with a name longer than 128 characters"
         "a too large schema"  | [tool("find", [type: "string", description: "x" * McpClient.MAX_SCHEMA])] || "Buchhaltung offers a tool with an input schema longer than 20000 characters"
+        "a too large entry"   | [tool("find", null, "d" * McpClient.MAX_DEFINITION)]       || "Buchhaltung offers a tool whose entry is longer than 50000 characters"
         "a too large message" | (1..3).collect { tool("tool_$it", null, "y" * 3_000_000) } || "Buchhaltung sent an answer larger than 8 MB"
         "a name twice"        | [tool("find"), tool("list"), tool("find")]                 || "Buchhaltung offers the tool find twice"
+    }
+
+    def "a tool's whole entry is kept as the server listed it - for the MCP clients it is passed through to"() {
+        given:
+        software.tools = [[name: "find", title: "Finden", description: "d" * 5_000, inputSchema: [type: "object"],
+                           outputSchema: [type: "object", properties: [hit: [type: "string"]]],
+                           annotations: [readOnlyHint: true, openWorldHint: false], _meta: ["com.example/v": 1]]]
+
+        when:
+        def tool = client.listTools(NO_TENANT, "Buchhaltung", software.url(), null)[0]
+        def definition = io.micronaut.serde.ObjectMapper.getDefault().readValue(tool.definition(), Map)
+
+        then:
+        tool.description() == "d" * McpClient.MAX_DESCRIPTION + " [cut off]"
+        definition == [name: "find", title: "Finden", description: "d" * 5_000, inputSchema: [type: "object"],
+                       outputSchema: [type: "object", properties: [hit: [type: "string"]]],
+                       annotations: [readOnlyHint: true, openWorldHint: false], _meta: ["com.example/v": 1]]
     }
 
     def "a long tool description is cut, the tools up to the limit are read"() {

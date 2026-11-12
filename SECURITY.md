@@ -260,7 +260,16 @@ So nobody has to find it out the hard way:
 - **Connected software passed through to MCP clients.** An MCP key reaches only the connected software a tenant admin
   gave it - through `ask_assistant` and, where a connection is switched "Directly to MCP clients" (off by default),
   directly: the client's model then calls its reading tools and prompts itself and reads their raw results, which
-  leave the installation for the client (with claude.ai or Cowork, Anthropic). The software's address and key stay in
+  leave the installation for the client (with claude.ai or Cowork, Anthropic). **What the software sends goes on
+  unchanged** (decided 11 November 2026): text in full length, files with the type the software names (an HTML page as
+  HTML - the client decides how to show it), images, structured content, its tools' whole entries and `_meta` - unfiltered
+  but for the keys MCP reserves for the protocol, so also a statement such as `anthropic/requiresUserInteraction`. A
+  link to a web address goes to the client as it came: the client fetches it with its user's rights, Zirmo no longer
+  fetches it for the client. A link to a resource of the software's own is read by Zirmo and embedded; with
+  "Ressourcen an MCP-Clients" (off by default) the client also lists and reads the software's resources, their
+  addresses with the connection in front. The switch opens all of them: whatever address a client asks for goes to the
+  software as the connection's one account, and the software alone decides what it hands out - there is no choice per
+  resource as there is per tool. The software's address and key stay in
   the installation. Its changing tools are passed through only to a key a tenant admin let change in that software
   ("Darf ändern in", off by default), marked as not read-only. **Whether a person is asked before such a call is the
   MCP client's matter, not ours**: Claude Code asks at a tool's first use, lets its user allow the tool for good, and
@@ -271,7 +280,7 @@ So nobody has to find it out the hard way:
   to keys whose clients you know. Whoever holds the key may change what it may change - as the
   connection's one account in the software, not as a person. Every changing call is logged (key, tool, software). The software's tool descriptions, prompts and the
   instructions it gives (at most 2,000 characters, after ours) are text of another server that the client's and our
-  model read - enter only software you trust, and leave a module whose knowledge must not leave answer-only: its raw
+  model read - enter only software you trust (what it sends is passed on, not checked), and leave a module whose knowledge must not leave answer-only: its raw
   results and the files its tools return then stay in the installation, an MCP client gets the assistant's answer.
 - **MCP clients that act on the computer read the company's documents as text.** What `search_knowledge`,
   `read_document` and `ask_assistant` hand to an MCP client reaches an agent that may write files or run commands

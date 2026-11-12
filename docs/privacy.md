@@ -136,9 +136,13 @@ Every model call sends data to the provider of the model in use:
   Anthropic under the plan of whoever added the connector. Only the search query is embedded (by the tenant's
   embedding model); nothing of it is stored but the usage.
 - **Connected software passed through to an MCP client** (a connection switched "Direkt an MCP-Clients", given to
-  the MCP key): the client's arguments go to that software, and its results - text, the files it returns, a prompt's
-  text - go unchanged to the MCP client, whose own model reads them (with claude.ai, Claude Desktop or Cowork under the
-  plan of whoever added the connector). Nothing of the call is stored. The instructions the software gives about its
+  the MCP key): the client's arguments go to that software, and its results - text in full length, images, audio, the
+  files it returns or links to a resource of its own (Zirmo reads them from the software and passes them on), structured
+  content, `_meta`, every message of a prompt, and its tools' whole entries - go unchanged to the MCP client, whose own
+  model reads them; with "Ressourcen an MCP-Clients" also the resources the client lists and reads. A link to a web
+  address goes to the client as a link, which the client fetches itself - Zirmo fetches nothing for it. With claude.ai,
+  Claude Desktop or Cowork all of it reaches Anthropic under the plan of whoever added the connector. Nothing of a call
+  is stored; the tools' entries are kept as last read, until the tools are read again or the connection is deleted. The instructions the software gives about its
   tools are kept on the connection (at most 2,000 characters, until its address changes or it is deleted) and go to
   every MCP client of a key given it and into the assistant's prompt when the software's tools are offered.
 

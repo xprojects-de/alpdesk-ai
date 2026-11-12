@@ -52,7 +52,9 @@ take the release that follows without being set up again.
   software switched "Directly to MCP clients" ("Direkt an MCP-Clients") reaches them directly: its reading tools and
   prompts appear among the server's tools (`<software>__<tool>`), while its address and key stay in the installation -
   and its changing tools too, for a key the tenant admin lets change in it ("Darf ändern in"); whether its user
-  is asked before such a call is the client's matter (SECURITY.md).
+  is asked before such a call is the client's matter (SECURITY.md). What the software sends reaches the client
+  unchanged - long text, images, files with their own type, links to a web address as links - and, switched
+  "Ressourcen an MCP-Clients", its resources too, their addresses starting with the software's name and a dot.
 - **Single sign-on** through a WAM proxy that passes the signed-in person on in a header (optional).
 - **Branding** per installation and per tenant: name, colour and logo - with a login page of its own for every tenant.
 

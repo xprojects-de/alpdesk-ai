@@ -33,8 +33,8 @@ class McpToolsSpec extends Specification {
     def "a decided call's stored result is without the software's name the chat's results start with: #reason"() {
         given:
         def connection = new McpConnection(1L, 1L, "Buchhaltung", "http://example.com/mcp", null, null, null,
-                false, null, McpConnectionProtocol.MCP, false, Instant.now(), Instant.now())
-        def tool = new McpTool(1L, 1L, "book_invoice", "Books an invoice", "{}", true, true, true, true)
+                false, false, null, McpConnectionProtocol.MCP, false, Instant.now(), Instant.now())
+        def tool = new McpTool(1L, 1L, "book_invoice", "Books an invoice", "{}", true, true, true, true, null)
         def offered = new McpTools.Offered(ToolSpecification.builder().name("Buchhaltung__book_invoice").build(),
                 connection, tool)
 

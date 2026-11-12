@@ -40,6 +40,11 @@ podman rm -f alpdesk-mcp-test                                  # stop
 | `broken_file` | a blob and an image with broken base64 | broken content |
 | `file_with_error` | `isError` with `error.log` | a file with a failed call |
 | `file_link` | a `resource_link` to `test://files/report.csv` (read with `resources/read`) | links instead of content |
+| `ticket_link(number)` | a `resource_link` to `test://tickets/<number>/log` - the resource template `test://tickets/{number}/log` | a resource that exists only at run time |
+| `web_link` | a `resource_link` to `https://files.example.com/handbuch.pdf` (does not exist) | a link the client fetches itself |
+| `long_text(characters)` | text of the given length (150,000 by default), ending in `END` | limits of text |
+| `structured_invoice(number)` | structured content with an output schema, and the same as text; a title | structured results |
+| `with_meta` | text; `_meta` on the tool's entry and on its result | statements beyond the text |
 | `cancel_order(number)` | text; **no `readOnlyHint`** | a changing tool - the client asks first |
 | `list_invoices(since)` | a JSON array of invented invoices written since the date | a task's `call_tool` source of rows |
 | `list_incoming_documents(since)` | a JSON array of `{id}` | a `call_tool` source of documents |
@@ -92,8 +97,13 @@ if one was set), turns the tools on and gives a user a level. A backend in a con
 The test server as a tenant's connected software switched "Direkt an MCP-Clients", reached through Zirmo's own
 MCP server: `proxy_check.py` connects with the SDK's client twice - with an MCP key given the software and with one
 not - and checks the instructions, the passed-through tools (`<connection>__<tool>`, at most 32 characters, read-only,
-never `cancel_order` for a key that only reads), text, files, the software's errors, an unknown name as a tool error,
-and the prompts. With a third key that may change in the software ("Darf ändern in", `cancel_order` turned on at the
+never `cancel_order` for a key that only reads), and that what the software sends arrives unchanged: the tools'
+annotations, titles, output schemas and `_meta`, long text whole, an image as an image, audio, files with their own
+type, structured content, a web link as a link, a link to its own resource embedded; the software's errors, an
+unknown name as a tool error, every prompt message - and, with "Ressourcen an MCP-Clients" on, its resources and
+templates with the connection in front (`testserver.test://...`), a read by such an address and "not found" with the
+hint for one without it (asked on its own: the transport sends it with HTTP 500, on which this SDK's client ends its
+session). With a third key that may change in the software ("Darf ändern in", `cancel_order` turned on at the
 connection) it checks the changing tool too: listed, marked as not read-only, called. On a backend of your own (never
 the dev database): enter the test server at a test tenant (its address as seen from the backend, the host in
 `APP_AI_PLAIN_HTTP_HOSTS`), read its tools, switch it on, create the keys, then

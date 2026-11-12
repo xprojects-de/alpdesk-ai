@@ -2456,7 +2456,8 @@ the plugins are MCP servers, Zirmo keeps the rules.
   instructions and prompts.
 
 **Not built now, on purpose**: resources (`resources/list`, `resources/read` - raw content, own rules; when a
-module offers some); a catalog of the connected software at the admin (a module is entered per tenant as connected
+module offers some - **built 11 November 2026**: with a switch per connection, the addresses with the connection in
+front, mcp.md "Resources of the software"); a catalog of the connected software at the admin (a module is entered per tenant as connected
 software); usage per call of a connected software (only the AI providers are counted); changing tools passed through (Cowork would ask before each call -
 later: point 68); elicitation (point 30).
 
@@ -3382,7 +3383,9 @@ the result's text is no standard and stays text - nothing can tell a file's link
 - the chat: a link of the server's own and an `https` link each become a file of the answer, read like an upload (a
   PDF's text, an image), the model told it was created;
 - a task's `call_tool` source of documents whose file tool answers with a link: the document extracted;
-- the MCP proxy passes the resolved file on as an embedded resource;
+- the MCP proxy passes the resolved file on as an embedded resource (**changed 11 November 2026**: for MCP clients a
+  web link goes on as a link and only a link to the software's own resource is embedded - mcp.md "Connected software
+  through to MCP clients");
 - `where:` table of refusals, each a note and no file: expired (410), larger than 50 MB (the body cut while read), an
   internal address, a redirect to an internal address, plain `http` to a public host, a timeout, an unknown scheme
   that `resources/read` refuses;
@@ -3600,7 +3603,9 @@ are the case; mcp.md "What the client does".
   connection passes through, and the service refuses it otherwise.
 - **Marked as changing**: `readOnlyHint: false` and nothing else - so Claude Code neither repeats the call by itself
   nor runs it in parallel (it does both for a read-only tool). The software's own `destructiveHint` is not stored (`mcp_tool` keeps `readOnlyHint` and
-  `changes`); no column for it until a client makes a difference of it.
+  `changes`); no column for it until a client makes a difference of it. **Changed 11 November 2026**: the tool's whole
+  entry is kept (`mcp_tool.definition`, `V19`) and its annotations go on as the software listed them, `readOnlyHint`
+  from the admin's mark.
 - **`ask_assistant` and `/a2a` stay reading** (`McpTools.forMcpKey`): there the tenant's model would decide and no
   person sees the call before it runs. The client software's API keys stay reading too.
 - **A call that failed after it was sent may have run** (no answer in time, an answer without content or too large):
@@ -3639,7 +3644,7 @@ line (0.5), the key card (0.5), specs (1), docs, SECURITY.md, the test server (0
 
 **Not built, on purpose**: changing tools for `ask_assistant`, `/a2a` or the client software's API keys; a record of
 the changing calls in the database (the log line until someone must look them up); the software's `destructiveHint`
-and `idempotentHint` passed on; elicitation (point 30); rights per person (point 67, OAuth per person).
+and `idempotentHint` passed on (passed on since 11 November 2026, with the whole entry); elicitation (point 30); rights per person (point 67, OAuth per person).
 
 **Noted for later - a question back over A2A** (11 November 2026, left out for now): `/a2a` could offer changing
 tools the way the chat does, with the calling agent in the user's place - the task goes to `input-required` naming
