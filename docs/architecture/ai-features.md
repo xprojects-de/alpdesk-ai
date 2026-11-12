@@ -132,6 +132,7 @@ Ollama with Qwen or Devstral, Mistral - next to the three big providers.
     Backend/podman/public/README.md "Own model servers"), never a switch that skips the check (decided 11 October
     2026).
   - An address with user info, a query or a fragment is refused - credentials would show in the catalog and the logs.
+    One with an empty part in its path (`//`) too: such a path can name another host than the one checked.
   - **The key stays with its host**: an address with another scheme, host or port drops the stored key unless a new
     one comes with it - a typo or a taken-over admin account cannot quietly send a company's key elsewhere.
   - **No redirect is followed** (`JdkHttpClientBuilder` with `Redirect.NEVER`): key and data go to the entered address

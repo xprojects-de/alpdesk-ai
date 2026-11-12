@@ -587,8 +587,11 @@ call - is not built: when a module needs it.
   as when it stops passing through; which keys and groups use the connection, and that it passes through, stay. Only
   the name or the key changed, everything stays.
 - **Addresses** (`services.mcp.McpAddresses`): HTTPS, plain HTTP only to the hosts in `APP_AI_PLAIN_HTTP_HOSTS`; no
-  user, query or fragment; a host that resolves to an internal address (loopback, private, link-local, `fc00::/7`,
-  `100.64/10`) is refused unless it is one of those hosts - checked when saved and again before every call. An unknown
+  user, query or fragment, no empty part in the path (`//`); a host that resolves to an internal address (loopback,
+  private, link-local, `fc00::/7`, `100.64/10`) is refused unless it is one of those hosts - checked when saved and
+  again before every call. The host that is checked is the host that is called: the client gives the SDK the whole
+  address as its endpoint, never the path alone - a path like `//other.host/mcp`, resolved against the origin, would
+  name another host, which would get the request and the key (security review 12 November 2026). An unknown
   host is named when the address is saved; at a call the refusal reaches the model, the user and an MCP client, and
   names the connection only ("the host of its address is not known").
 - **The client** (`services.mcp.McpClient`): the SDK's `McpSyncClient` over `HttpClientStreamableHttpTransport`, one

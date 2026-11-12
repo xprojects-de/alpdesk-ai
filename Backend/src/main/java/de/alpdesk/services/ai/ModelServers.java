@@ -49,7 +49,7 @@ public class ModelServers {
         }
         URI uri = parse(address);
         if (uri.getHost() == null || uri.getRawUserInfo() != null || uri.getRawQuery() != null
-                || uri.getRawFragment() != null) {
+                || uri.getRawFragment() != null || hasEmptyPathPart(uri)) {
             throw ServiceException.badRequest("modelServer.addressForm",
                     "The server address must be like https://host[:port][/path], without user, query or fragment");
         }
@@ -88,6 +88,14 @@ public class ModelServers {
     /** Whether the installation names the host in app.ai.plain-http-hosts - a server it runs itself or trusts. */
     public boolean isPlainHttpHost(String host) {
         return plainHttpHosts.contains(host.toLowerCase(Locale.ROOT));
+    }
+
+    /**
+     * A path like //other.host/mcp: resolved against the server's address it names another host, which no check here
+     * has seen - so an empty part is no path of a server.
+     */
+    private static boolean hasEmptyPathPart(URI uri) {
+        return uri.getRawPath() != null && uri.getRawPath().contains("//");
     }
 
     private static URI parse(String address) {

@@ -731,13 +731,18 @@ public class McpClient {
         }
     }
 
-    /** The SDK takes the server's origin and the path apart; no redirects, the bearer only to this server. */
+    /**
+     * The SDK takes the server's origin and the endpoint apart; no redirects, the bearer only to this server. The
+     * endpoint is the whole address, never the path alone: the SDK resolves it against the origin, and a path like
+     * //other.host/mcp would name another host there - one no check has seen, which would get the bearer.
+     */
     private HttpClientStreamableHttpTransport transport(String url, @Nullable String token) {
         URI uri = URI.create(url);
+        String origin = uri.getScheme() + "://" + uri.getRawAuthority();
         String path = uri.getRawPath() == null || uri.getRawPath().isEmpty() ? "/" : uri.getRawPath();
         HttpClientStreamableHttpTransport.Builder builder = HttpClientStreamableHttpTransport
-                .builder(uri.getScheme() + "://" + uri.getRawAuthority())
-                .endpoint(path)
+                .builder(origin)
+                .endpoint(origin + path)
                 .clientBuilder(HttpClient.newBuilder().followRedirects(HttpClient.Redirect.NEVER))
                 .connectTimeout(Duration.ofSeconds(10))
                 .maxResponseSize(MAX_MESSAGE_BYTES)

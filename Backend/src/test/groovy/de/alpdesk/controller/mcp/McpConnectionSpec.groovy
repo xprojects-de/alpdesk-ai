@@ -301,6 +301,7 @@ class McpConnectionSpec extends Specification {
         "plain HTTP elsewhere" | { s -> [name: "Buchhaltung", baseUrl: "http://software.example.com/mcp"] }
         "an internal address"  | { s -> [name: "Buchhaltung", baseUrl: "https://10.1.2.3/mcp"] }
         "credentials in it"    | { s -> [name: "Buchhaltung", baseUrl: "https://user:pw@software.example.com/mcp"] }
+        "a host in its path"   | { s -> [name: "Buchhaltung", baseUrl: s.url().replace("/mcp", "//software.example.com/mcp")] }
         "a key with blanks"    | { s -> [name: "Buchhaltung", baseUrl: s.url(), apiKey: "a key"] }
     }
 

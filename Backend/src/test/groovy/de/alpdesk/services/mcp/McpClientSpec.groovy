@@ -521,6 +521,35 @@ class McpClientSpec extends Specification {
         "an unknown host"    | { FakeMcpSoftware s -> }                        | "https://erp.invalid/mcp"   | null    || "Buchhaltung: The host of its address is not known"
     }
 
+    def "an address whose path begins with // reaches its own host only - never the host the path names, nor with the key"() {
+        given: "another server, named by the path of the software's address"
+        def other = new FakeMcpSoftware()
+        def address = software.url().replace("/mcp", "//127.0.0.1:${other.http.address.port}/mcp")
+
+        when:
+        client.listTools(NO_TENANT, "Buchhaltung", address, Credential.key("secret-key-1"))
+
+        then: "the software has no such path - and the other server is never asked"
+        def e = thrown(ServiceException)
+        e.message == "Buchhaltung did not answer as an MCP server"
+        other.received.isEmpty()
+
+        cleanup:
+        other.stop()
+    }
+
+    def "an address with an empty part in its path is refused when it is saved: #address"() {
+        when:
+        new ModelServers("").normalize(address)
+
+        then:
+        def e = thrown(ServiceException)
+        e.code() == "modelServer.addressForm"
+
+        where:
+        address << ["https://software.example.com//other.example.com/mcp", "https://software.example.com/api//mcp"]
+    }
+
     def "an unknown host is named when the address is saved - to the admin who typed it"() {
         when:
         new McpAddresses(new ModelServers("")).normalize("https://erp.invalid/mcp")

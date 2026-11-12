@@ -281,6 +281,10 @@ Nothing in `.env` or `/api/v1` needs a hand; the new settings have defaults.
 - A spreadsheet that unpacks into an excessive size is refused: a part of an Office file that unpacks into more than
   200 MB is refused before it is read.
 - Reading certain HTML mails no longer slows down the knowledge sources.
+- **A connected software's address reaches its own host only.** An address whose path began with `//` followed by
+  another host (`https://software.example.com//other.example.com/mcp`) sent the requests - and the connection's key -
+  to that other host, past the check for internal addresses. Such an address is refused now when it is saved (a model
+  server's too), and a connection saved with one before no longer reaches the other host: check its address.
 - **A sign-in to connected software belongs to its address.** After a connection's address was changed and signed in
   anew, a call still open to the old address could be given the new sign-in's token. A call now gets the token of
   the address it was started for only.
