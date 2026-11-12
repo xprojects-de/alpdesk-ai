@@ -11,8 +11,6 @@ import de.alpdesk.repositories.mcp.McpConnectionRepository;
 import de.alpdesk.repositories.mcp.McpPromptRepository;
 import de.alpdesk.repositories.mcp.McpToolRepository;
 import de.alpdesk.repositories.mcp.TenantMcpKeyRepository;
-import de.alpdesk.services.chat.ChatFileService;
-import de.alpdesk.services.chat.ChatService;
 import de.alpdesk.services.common.ServiceException;
 import io.micronaut.core.annotation.Nullable;
 import io.micronaut.json.JsonMapper;
@@ -22,7 +20,10 @@ import jakarta.inject.Singleton;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -41,6 +42,11 @@ import java.util.regex.Pattern;
  * in initialize, their turned-on prompts its prompts/list. {@link BrandedMcpServer} answers all of it; the SDK never
  * sees these tools and prompts.
  * <p>
+ * What the software says goes on unchanged (decided 11 November 2026): a tool's entry as it listed it, a call's result,
+ * a prompt's messages - Zirmo decides rights only. It changes a tool's name (the connection in front), the start of its
+ * description and its readOnlyHint (the tenant admin's mark), resolves a link to a resource of the software's own -
+ * only Zirmo is connected to it - and keeps the protocol's own _meta keys to itself.
+ * <p>
  * The names are the chat's (`<connection>__<tool>`) but shorter: a client puts the server's name before them
  * (`mcp__muster-ai__Buchhaltung__find_invoice`) and the model's API takes at most 64 characters. They are computed anew
  * for every list and call, each from its own tool alone - so a later call reaches the tool listed, or none.
@@ -55,13 +61,14 @@ public class SoftwareMcpProxy {
      */
     static final int MAX_NAME = 32;
     private static final Pattern PLAIN_PART = Pattern.compile("[A-Za-z0-9-]+(_[A-Za-z0-9-]+)*");
-    private static final McpSchema.ToolAnnotations READ_ONLY = new McpSchema.ToolAnnotations(null, true, false, null, null, null);
     /**
-     * Not read-only and nothing more: Claude Code repeats a read-only tool by itself after a dropped connection and
-     * runs it in parallel - never a changing one. The software's own destructiveHint is not kept (mcp_tool keeps
-     * readOnlyHint only).
+     * A tool not read again since V19 (no definition): read-only, or not read-only and nothing more - Claude Code repeats
+     * a read-only tool by itself after a dropped connection and runs it in parallel, never a changing one.
      */
+    private static final McpSchema.ToolAnnotations READ_ONLY = new McpSchema.ToolAnnotations(null, true, false, null, null, null);
     private static final McpSchema.ToolAnnotations CHANGING = new McpSchema.ToolAnnotations(null, false, null, null, null, null);
+    /** The second label of a _meta key's prefix that MCP reserves for itself ("io.modelcontextprotocol/..."). */
+    private static final Set<String> RESERVED_META_LABELS = Set.of("modelcontextprotocol", "mcp");
     private static final Logger LOG = LoggerFactory.getLogger(SoftwareMcpProxy.class);
     /** How a call fails after the software got it (McpClient's codes). */
     private static final Set<String> MAY_HAVE_RUN = Set.of("mcpServer.timeout", "mcpServer.requestFailed",
@@ -173,27 +180,83 @@ public class SoftwareMcpProxy {
         return connection.substring(0, connectionLength) + "__" + tool.substring(0, toolLength);
     }
 
-    /** The key's passed-through tools as tools/list shows them: description and input schema as the software gives them. */
+    /** The key's passed-through tools as tools/list shows them. */
     public List<McpSchema.Tool> tools(Long tenantId, Long mcpKeyId) {
         List<McpSchema.Tool> listed = new ArrayList<>();
         for (Passed passed : passed(tenantId, mcpKeyId)) {
-            listed.add(McpSchema.Tool.builder()
-                    .name(passed.name())
-                    .description(description(passed))
-                    .inputSchema(json, passed.tool().inputSchema())
-                    .annotations(passed.tool().changes() ? CHANGING : READ_ONLY)
-                    .build());
+            listed.add(passed.tool().definition() == null ? asBefore(passed) : asListed(passed));
         }
         return listed;
     }
 
     /**
+     * The tool's entry as the software listed it - title, annotations, _meta, output schema -, with our name, the
+     * description after "[connection] " and readOnlyHint from the tenant admin's mark (else the software's own, which is
+     * the same). Only the protocol's own _meta keys stay back.
+     */
+    private McpSchema.Tool asListed(Passed passed) {
+        McpSchema.Tool own;
+        try {
+            own = json.readValue(passed.tool().definition(), McpSchema.Tool.class);
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+        boolean readOnly = !passed.tool().changes();
+        McpSchema.ToolAnnotations given = own.annotations();
+        McpSchema.ToolAnnotations annotations = given == null
+                ? new McpSchema.ToolAnnotations(null, readOnly, null, null, null, null)
+                : new McpSchema.ToolAnnotations(given.title(), readOnly, given.destructiveHint(), given.idempotentHint(),
+                given.openWorldHint(), given.returnDirect());
+        return new McpSchema.Tool(passed.name(), own.title(), described(passed.connection(), own.description()),
+                own.inputSchema(), own.outputSchema(), annotations, passedMeta(own.meta()), own.icons());
+    }
+
+    /** A tool not read again since its entry is kept: its description and input schema, read-only or not. */
+    private McpSchema.Tool asBefore(Passed passed) {
+        return McpSchema.Tool.builder()
+                .name(passed.name())
+                .description(described(passed.connection(), passed.tool().description()))
+                .inputSchema(json, passed.tool().inputSchema())
+                .annotations(passed.tool().changes() ? CHANGING : READ_ONLY)
+                .build();
+    }
+
+    /**
+     * The _meta the software gave, without the keys MCP reserves for itself - a prefix whose second label is
+     * "modelcontextprotocol" or "mcp" (io.modelcontextprotocol/...): they belong to the hop that sends them (decided 11
+     * November 2026). Every other key goes on - anthropic/..., the software's own. Null stays null.
+     */
+    static @Nullable Map<String, Object> passedMeta(@Nullable Map<String, Object> meta) {
+        if (meta == null) {
+            return null;
+        }
+        Map<String, Object> passed = new LinkedHashMap<>();
+        meta.forEach((key, value) -> {
+            if (!isReservedMetaKey(key)) {
+                passed.put(key, value);
+            }
+        });
+        return passed;
+    }
+
+    private static boolean isReservedMetaKey(String key) {
+        int slash = key.indexOf('/');
+        if (slash < 0) {
+            return false;
+        }
+        String[] labels = key.substring(0, slash).split("\\.");
+        return labels.length >= 2 && RESERVED_META_LABELS.contains(labels[1]);
+    }
+
+    /**
      * Calls the passed-through tool at its software with the client's arguments - the software checks them, as it does
-     * for the chat. Its text and its files go back as they are (files as embedded resources by the rules of
-     * ask_assistant's: types from the list, text as text, at most 8 MB together); its error stays an error the client's
-     * model reads, and so does a software out of reach. Empty for a name the key does not have (another key's tool, a
-     * connection no longer passing through, a tool turned off, a changing tool the key may no longer use, a connection
-     * renamed - the client lists again). A changing call is logged - the chat keeps who decided what, this is its trace.
+     * for the chat. Its result goes back as the software sent it (McpClient.passTool: a link to a resource of its own
+     * embedded as its file); a link left that names a resource of the software's own gets the connection in front where
+     * the client may read the software's resources (decided 11 November 2026). A failure on the way is an error the
+     * client's model reads, and so is a software out of reach. Empty for a name the key does not have (another key's
+     * tool, a connection no longer passing through, a tool turned off, a changing tool the key may no longer use, a
+     * connection renamed - the client lists again). A changing call is logged - the chat keeps who decided what, this is
+     * its trace.
      */
     public Optional<McpSchema.CallToolResult> call(Long tenantId, Long mcpKeyId, String name,
                                                    Map<String, Object> arguments) {
@@ -207,18 +270,37 @@ public class SoftwareMcpProxy {
             LOG.info("MCP key {} of tenant {} calls the changing tool {} of {}", mcpKeyId, tenantId,
                     logged(tool.name()), logged(connection.name()));
         }
-        McpClient.CallResult result;
+        McpSchema.CallToolResult result;
         try {
-            result = client.callTool(connection.tenantId(), connection.name(), connection.baseUrl(),
+            result = client.passTool(connection.tenantId(), connection.name(), connection.baseUrl(),
                     connectionService.credential(connection), tool.name(), arguments);
         } catch (ServiceException e) {
             return Optional.of(McpSchema.CallToolResult.builder().addTextContent(failure(e, tool.changes()))
                     .isError(true).build());
         }
-        if (result.error()) {
-            return Optional.of(McpSchema.CallToolResult.builder().addTextContent(result.text()).isError(true).build());
+        return Optional.of(new McpSchema.CallToolResult(linksReadable(result.content(), connection), result.isError(),
+                result.structuredContent(), passedMeta(result.meta())));
+    }
+
+    /**
+     * The result's content, its links to resources of the software's own (those Zirmo did not embed) with the
+     * connection in front where the client may read the software's resources - otherwise as it came. A link to a web
+     * address is never touched.
+     */
+    private List<McpSchema.Content> linksReadable(List<McpSchema.Content> content, McpConnection connection) {
+        if (!connection.passesResources() || content.stream().noneMatch(McpSchema.ResourceLink.class::isInstance)) {
+            return content;
         }
-        return Optional.of(AssistantMcpTools.withFiles(result.text(), delivered(result.files())));
+        String part = SoftwareResources.parts(connections.findByTenantIdOrderByName(connection.tenantId()))
+                .get(connection.id());
+        List<McpSchema.Content> readable = new ArrayList<>();
+        for (McpSchema.Content item : content) {
+            readable.add(item instanceof McpSchema.ResourceLink link && link.uri() != null
+                    ? new McpSchema.ResourceLink(link.name(), link.title(), SoftwareResources.prefixed(part, link.uri()),
+                    link.description(), link.mimeType(), link.size(), link.annotations(), link.meta())
+                    : item);
+        }
+        return readable;
     }
 
     /**
@@ -240,13 +322,22 @@ public class SoftwareMcpProxy {
     }
 
     /**
-     * What the key's passed-through software says about its tools, to follow the server's own instructions in
-     * initialize - each capped when read (2,000 characters); empty without any. The client may cut the whole (Claude
-     * Code reads 4,096 characters): ours come first.
+     * What follows the server's own instructions in initialize for the key's passed-through software: one line naming
+     * every one of them, then what each software says about its tools - each capped when read (2,000 characters); empty
+     * without any software. The client may cut the whole (Claude Code reads 4,096 characters): ours come first, and the
+     * line tells the client's model what exists and what to search for even where the software's own texts are cut
+     * off - with many software it sees one or two of them only.
      */
     public String instructions(Long tenantId, Long mcpKeyId) {
-        StringBuilder text = new StringBuilder();
-        for (McpConnection connection : connectionsOf(tenantId, mcpKeyId)) {
+        List<McpConnection> passing = connectionsOf(tenantId, mcpKeyId);
+        if (passing.isEmpty()) {
+            return "";
+        }
+        StringBuilder text = new StringBuilder("\n\nConnected software: ");
+        text.append(String.join(", ", passing.stream().map(McpConnection::name).toList()))
+                .append(" - their tools' names start with the software's name and \"__\", their descriptions with "
+                        + "[<software>].");
+        for (McpConnection connection : passing) {
             if (connection.instructions() != null) {
                 text.append("\n\nSoftware ").append(connection.name()).append(" (its tools' descriptions start with [")
                         .append(connection.name()).append("]): ").append(connection.instructions());
@@ -282,9 +373,9 @@ public class SoftwareMcpProxy {
     }
 
     /**
-     * The software's text of the prompt with the client's values - as the chat's form gets it (SoftwarePrompts), a
-     * user message for the client's model. Empty for a name the key does not have; 400 for a missing required value or
-     * one too long, 502 when the software fails.
+     * The software's prompt with the client's values as given - the software checks them - and its answer as it is:
+     * every message, whatever its role or content (decided 11 November 2026; the chat's form keeps its own check,
+     * SoftwarePrompts). Empty for a name the key does not have; 502 when the software fails.
      */
     public Optional<McpSchema.GetPromptResult> prompt(Long tenantId, Long mcpKeyId, String name,
                                                       @Nullable Map<String, Object> arguments) {
@@ -293,43 +384,19 @@ public class SoftwareMcpProxy {
         if (found.isEmpty()) {
             return Optional.empty();
         }
-        Map<String, String> given = new HashMap<>();
-        if (arguments != null) {
-            arguments.forEach((key, value) -> given.put(key, value == null ? null : String.valueOf(value)));
-        }
-        McpPrompt prompt = found.get().prompt();
-        Map<String, Object> values = SoftwarePrompts.values(McpPromptResponse.arguments(prompt.arguments(), storedJson), given);
         McpConnection connection = found.get().connection();
-        String text = client.getPrompt(connection.tenantId(), connection.name(), connection.baseUrl(),
-                connectionService.credential(connection), prompt.name(), values);
-        return Optional.of(new McpSchema.GetPromptResult(promptDescription(found.get()),
-                List.of(new McpSchema.PromptMessage(McpSchema.Role.USER, new McpSchema.TextContent(text)))));
+        McpSchema.GetPromptResult result = client.passPrompt(connection.tenantId(), connection.name(),
+                connection.baseUrl(), connectionService.credential(connection), found.get().prompt().name(), arguments);
+        return Optional.of(new McpSchema.GetPromptResult(result.description(), result.messages(),
+                passedMeta(result.meta())));
     }
 
     private static String promptDescription(PassedPrompt passed) {
-        String own = passed.prompt().description() == null ? "" : passed.prompt().description().strip();
-        return "[" + passed.connection().name() + "] " + own;
-    }
-
-    /** The returned files as ask_assistant delivers them: a file beyond 8 MB together comes without content, named. */
-    private static List<ChatService.DeliveredFile> delivered(List<McpClient.ReturnedFile> returned) {
-        List<ChatService.DeliveredFile> delivered = new ArrayList<>();
-        long total = 0;
-        for (McpClient.ReturnedFile file : returned) {
-            ChatService.DeliveredFile passedOn = ChatFileService.passedOn(file.name(), file.content(), file.mimeType());
-            if (total + file.content().length > ChatService.MAX_DELIVERED_BYTES) {
-                delivered.add(new ChatService.DeliveredFile(passedOn.name(), passedOn.contentType(), null, null));
-                continue;
-            }
-            total += file.content().length;
-            delivered.add(passedOn);
-        }
-        return delivered;
+        return described(passed.connection(), passed.prompt().description());
     }
 
     /** The software's own description, after the name of the software it comes from - the client's model tells them apart. */
-    private static String description(Passed passed) {
-        String own = passed.tool().description() == null ? "" : passed.tool().description().strip();
-        return "[" + passed.connection().name() + "] " + own;
+    static String described(McpConnection connection, @Nullable String own) {
+        return "[" + connection.name() + "] " + (own == null ? "" : own.strip());
     }
 }

@@ -1,5 +1,6 @@
 package de.alpdesk.entities.mcp;
 
+import io.micronaut.core.annotation.Nullable;
 import io.micronaut.data.annotation.GeneratedValue;
 import io.micronaut.data.annotation.Id;
 import io.micronaut.data.annotation.MappedEntity;
@@ -31,6 +32,13 @@ public record McpTool(
         boolean enabled,
 
         /** The server still lists it. */
-        boolean offered
+        boolean offered,
+
+        /**
+         * Its whole entry as the server listed it (JSON: title, annotations, _meta, output schema) - what tools/list
+         * passes on to MCP clients. Null until the tools are read again after V19, and for an A2A agent's skill.
+         */
+        @Nullable
+        String definition
 ) {
 }

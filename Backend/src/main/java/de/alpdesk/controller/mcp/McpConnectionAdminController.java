@@ -8,6 +8,7 @@ import de.alpdesk.security.RequestOrigin;
 import de.alpdesk.dto.mcp.McpConnectionRequest;
 import de.alpdesk.dto.mcp.McpConnectionCheckResponse;
 import de.alpdesk.dto.mcp.McpConnectionResponse;
+import de.alpdesk.dto.mcp.McpPassResourcesRequest;
 import de.alpdesk.dto.mcp.McpPassThroughRequest;
 import de.alpdesk.dto.mcp.McpPromptRequest;
 import de.alpdesk.dto.mcp.McpPromptResponse;
@@ -146,6 +147,17 @@ public class McpConnectionAdminController {
     public HttpResponse<McpConnectionResponse> setPassThrough(@PathVariable Long tenantId, @PathVariable Long connectionId,
                                                               @Body McpPassThroughRequest request) {
         return service.setPassThrough(tenantId, connectionId, request.passesThrough())
+                .map(HttpResponse::ok).orElseGet(HttpResponse::notFound);
+    }
+
+    /** Whether MCP keys that pass the connection through read its resources too: {passesResources: true}. */
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Put("/{connectionId}/resources")
+    public HttpResponse<McpConnectionResponse> setPassResources(@PathVariable Long tenantId,
+                                                                @PathVariable Long connectionId,
+                                                                @Body McpPassResourcesRequest request) {
+        return service.setPassResources(tenantId, connectionId, request.passesResources())
                 .map(HttpResponse::ok).orElseGet(HttpResponse::notFound);
     }
 }

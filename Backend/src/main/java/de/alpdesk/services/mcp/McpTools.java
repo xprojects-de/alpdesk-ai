@@ -322,7 +322,7 @@ public class McpTools {
                 .parameters(parameters.build())
                 .build();
         return new Offered(specification, connection,
-                new McpTool(null, connection.id(), ASK, text, "{}", false, true, true, true));
+                new McpTool(null, connection.id(), ASK, text, "{}", false, true, true, true, null));
     }
 
     /** Who asks goes with the question as at an answering agent - the user, the key or the task - its skill the one named. */

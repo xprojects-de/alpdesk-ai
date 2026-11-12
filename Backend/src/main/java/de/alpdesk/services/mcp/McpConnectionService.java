@@ -130,7 +130,7 @@ public class McpConnectionService {
             }
             return connections.save(new McpConnection(null, tenantId, name,
                 baseUrl, key == null ? null : cipher.encrypt(checkedKey(key)), key == null ? null : hint(key), null, false,
-                null, protocol, answersChat, now, now));
+                false, null, protocol, answersChat, now, now));
         });
         return load(saved);
     }
@@ -203,7 +203,7 @@ public class McpConnectionService {
         }
         McpConnection updated = connections.update(new McpConnection(connectionId, tenantId, name, baseUrl, storedKey,
                 keyHint, newAddress ? null : connection.toolsLoadedAt(), connection.passesThrough(),
-                newAddress ? null : connection.instructions(), connection.protocol(), answersChat, connection.createdAt(),
+                connection.passesResources(), newAddress ? null : connection.instructions(), connection.protocol(), answersChat, connection.createdAt(),
                 Instant.now()));
         return Optional.of(new Updated(updated, newAddress));
     }
@@ -236,7 +236,7 @@ public class McpConnectionService {
         return tools.findByIdAndConnectionId(toolId, connectionId).map(tool -> McpToolResponse.from(tools.update(
                 new McpTool(tool.id(), tool.connectionId(), tool.name(), tool.description(), tool.inputSchema(),
                         changes != null ? changes : tool.changes(), tool.readOnlyHint(),
-                        enabled != null ? enabled : tool.enabled(), tool.offered()))));
+                        enabled != null ? enabled : tool.enabled(), tool.offered(), tool.definition()))));
     }
 
     /** Turns a prompt on or off; empty for another tenant's. */
@@ -289,8 +289,33 @@ public class McpConnectionService {
             }
             return response(connections.update(new McpConnection(connection.id(), connection.tenantId(),
                     connection.name(), connection.baseUrl(), connection.apiKey(), connection.keyHint(),
-                    connection.toolsLoadedAt(), passesThrough, connection.instructions(), connection.protocol(),
+                    connection.toolsLoadedAt(), passesThrough, connection.passesResources(), connection.instructions(),
+                    connection.protocol(),
                     connection.answersChat(), connection.createdAt(), Instant.now())), null);
+        });
+    }
+
+    /**
+     * Whether MCP keys that pass the connection through read its resources too ("Ressourcen an MCP-Clients", decided 11
+     * November 2026) - off by default; in force only while it passes through, so it is kept when that is switched off.
+     * 400 without a value, 409 for an A2A agent, empty for another tenant's connection.
+     */
+    @Transactional
+    public Optional<McpConnectionResponse> setPassResources(Long tenantId, Long connectionId,
+                                                           @Nullable Boolean passesResources) {
+        if (passesResources == null) {
+            throw ServiceException.badRequest("mcpConnection.passResourcesRequired",
+                    "Whether the connection's resources are passed on to MCP clients is required");
+        }
+        return connections.findByIdAndTenantIdForNoKeyUpdate(connectionId, tenantId).map(connection -> {
+            if (connection.protocol() == McpConnectionProtocol.A2A) {
+                throw ServiceException.conflict("mcpConnection.notForA2a",
+                        "An A2A agent has no resources to pass on to MCP clients");
+            }
+            return response(connections.update(new McpConnection(connection.id(), connection.tenantId(),
+                    connection.name(), connection.baseUrl(), connection.apiKey(), connection.keyHint(),
+                    connection.toolsLoadedAt(), connection.passesThrough(), passesResources, connection.instructions(),
+                    connection.protocol(), connection.answersChat(), connection.createdAt(), Instant.now())), null);
         });
     }
 
@@ -491,7 +516,7 @@ public class McpConnectionService {
                 .findByIdAndTenantIdForNoKeyUpdate(connectionId, tenantId).map(connection -> connections.update(
                         new McpConnection(connection.id(), connection.tenantId(), connection.name(),
                                 connection.baseUrl(), null, null, connection.toolsLoadedAt(), connection.passesThrough(),
-                                connection.instructions(), connection.protocol(), connection.answersChat(),
+                                connection.passesResources(), connection.instructions(), connection.protocol(), connection.answersChat(),
                                 connection.createdAt(), Instant.now()))));
         return keyless.map(this::load);
     }
@@ -706,16 +731,17 @@ public class McpConnectionService {
             String description = McpClient.cut(skill.name() + ": " + skill.description(), McpClient.MAX_DESCRIPTION);
             McpTool tool = known.remove(skill.id());
             if (tool == null) {
-                tools.save(new McpTool(null, connection.id(), skill.id(), description, "{}", false, true, true, true));
+                tools.save(new McpTool(null, connection.id(), skill.id(), description, "{}", false, true, true, true,
+                        null));
             } else {
                 tools.update(new McpTool(tool.id(), tool.connectionId(), tool.name(), description, "{}", false, true,
-                        true, true));
+                        true, true, null));
             }
         }
         known.values().forEach(dropped -> tools.delete(dropped));
         return connections.update(new McpConnection(connection.id(), connection.tenantId(), connection.name(),
                 connection.baseUrl(), connection.apiKey(), connection.keyHint(), Instant.now(),
-                connection.passesThrough(), keptInstructions(card.name() + "\n" + card.description()),
+                connection.passesThrough(), connection.passesResources(), keptInstructions(card.name() + "\n" + card.description()),
                 connection.protocol(), connection.answersChat(), connection.createdAt(), Instant.now()));
     }
 
@@ -873,19 +899,20 @@ public class McpConnectionService {
             String schema = write(remote.inputSchema());
             if (tool == null) {
                 tools.save(new McpTool(null, connection.id(), remote.name(), remote.description(), schema,
-                        !remote.readOnly(), remote.readOnly(), false, true));
+                        !remote.readOnly(), remote.readOnly(), false, true, remote.definition()));
             } else {
                 tools.update(new McpTool(tool.id(), tool.connectionId(), tool.name(), remote.description(), schema,
-                        changesAfterReload(tool, remote), remote.readOnly(), tool.enabled(), true));
+                        changesAfterReload(tool, remote), remote.readOnly(), tool.enabled(), true, remote.definition()));
             }
         }
         for (McpTool dropped : known.values()) {
             tools.update(new McpTool(dropped.id(), dropped.connectionId(), dropped.name(), dropped.description(),
-                    dropped.inputSchema(), dropped.changes(), dropped.readOnlyHint(), dropped.enabled(), false));
+                    dropped.inputSchema(), dropped.changes(), dropped.readOnlyHint(), dropped.enabled(), false,
+                    dropped.definition()));
         }
         return connections.update(new McpConnection(connection.id(), connection.tenantId(), connection.name(),
                 connection.baseUrl(), connection.apiKey(), connection.keyHint(), Instant.now(),
-                connection.passesThrough(), keptInstructions(instructions),
+                connection.passesThrough(), connection.passesResources(), keptInstructions(instructions),
                 connection.protocol(), connection.answersChat(), connection.createdAt(), Instant.now()));
     }
 
@@ -913,7 +940,8 @@ public class McpConnectionService {
     private McpConnectionResponse response(McpConnection connection, @Nullable String toolsError,
                                            @Nullable String promptsError) {
         return new McpConnectionResponse(connection.id(), connection.name(), connection.baseUrl(), connection.keyHint(),
-                connection.toolsLoadedAt(), toolsError, promptsError, connection.passesThrough(), connection.instructions(),
+                connection.toolsLoadedAt(), toolsError, promptsError, connection.passesThrough(),
+                connection.passesResources(), connection.instructions(),
                 connection.protocol(), connection.answersChat(),
                 tools.findByConnectionIdOrderByName(connection.id()).stream().map(McpToolResponse::from).toList(),
                 prompts.findByConnectionIdOrderByName(connection.id()).stream()

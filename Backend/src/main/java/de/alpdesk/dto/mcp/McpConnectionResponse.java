@@ -27,6 +27,11 @@ public record McpConnectionResponse(
          * through ask_assistant only. Which keys may use it is the keys' choice.
          */
         boolean passesThrough,
+        /**
+         * MCP keys that pass it through read its resources too, their addresses with the connection in front
+         * ("Ressourcen an MCP-Clients") - in force only while it passes through.
+         */
+        boolean passesResources,
         /** The instructions its server gave, cut to 2,000 characters; null: none. */
         String instructions,
         /** MCP or A2A; an A2A agent's tools are its card's skills, it has no prompts. */
