@@ -330,12 +330,19 @@ if full:
             status, _, extended = stack.request(stack.APP_HOST, "POST", "/a2a",
                                                 {"jsonrpc": "2.0", "id": 1, "method": "GetExtendedAgentCard",
                                                  "params": {}}, bearer | {"A2A-Version": "1.0"})
-            skills = [skill["id"] for skill in ((extended or {}).get("result") or {}).get("skills", [])]
+            listed = ((extended or {}).get("result") or {}).get("skills", [])
+            skills = [skill["id"] for skill in listed]
             task_id = (state.get("stores") or {}).get("taskId") if name == "Wartung" else None
             wanted = ["answer", f"template:{equipped['templateId']}"] + ([f"task:{task_id}"] if task_id else [])
             check(f"{name}: its extended agent card offers the answer, the template"
                   + (" and the task assigned to the key" if task_id else "") + " - through the proxy, with the key",
                   status == 200 and skills == wanted, f"{status} {extended}")
+            described = {skill["id"]: skill["description"] for skill in listed}
+            what = next(t for t in setup.TOPICS if t["connection"] == name)["full"]["what"]
+            check(f"{name}: the template's skill says what it is for, then how to ask - never its instructions",
+                  described.get(f"template:{equipped['templateId']}", "").startswith(what + "\n\nA template of ")
+                  and (not task_id or described.get(f"task:{task_id}", "").startswith(setup.TASK_DESCRIPTION + "\n\n"))
+                  and "Write a short fault report" not in str(extended), described)
         else:
             status, _, listed = stack.request(stack.APP_HOST, "POST", "/mcp",
                                               {"jsonrpc": "2.0", "id": 2, "method": "tools/list", "params": {}},
@@ -549,8 +556,10 @@ if machines:
     status, _, models = stack.with_key(wartung["key"], "GET", "/api/v1/models")
     check("the key lists the chat models", status == 200 and isinstance(models, list), f"{status} {models}")
     if full:
-        templates = [t["name"] for t in stack.with_key(wartung["key"], "GET", "/api/v1/templates")[2]]
-        check("the key lists the tenant's templates", "Störungsbericht" in templates, templates)
+        templates = {t["name"]: t.get("description")
+                     for t in stack.with_key(wartung["key"], "GET", "/api/v1/templates")[2]}
+        check("the key lists the tenant's templates, each with what it is for",
+              (templates.get("Störungsbericht") or "").startswith("A fault report for a machine"), templates)
 
     # --- An MCP client searching and reading itself ---------------------------------------------------------------------
 
@@ -611,10 +620,12 @@ if machines:
     check("the MCP server offers its own tools to the key",
           {"ask_assistant", "list_templates", "search_knowledge", "read_document"} <= names, sorted(names))
     templates, error = stack.tool(mcp_key, "list_templates", {})
-    check("list_templates answers", not error and (not full or "Störungsbericht" in templates), templates[:300])
+    check("list_templates answers - a template with what it is for",
+          not error and (not full or "- Störungsbericht: A fault report for a machine" in templates), templates[:300])
     if (stores or {}).get("taskId"):
         listed, error = stack.tool(mcp_key, "list_tasks", {})
-        check("list_tasks names the task assigned to the key", not error and setup.TASK_NAME in listed, listed[:300])
+        check("list_tasks names the task assigned to the key and what it is for",
+              not error and f"- {setup.TASK_NAME}: {setup.TASK_DESCRIPTION}" in listed, listed[:300])
     status, _, _ = stack.with_key(key, "POST", "/mcp", {"jsonrpc": "2.0", "id": 1, "method": "tools/list"}, raw=True)
     check("the client software's key is no MCP key (403)", status == 403, status)
     status, _, _ = stack.with_key(mcp_key, "GET", "/api/v1/me", raw=True)
