@@ -208,6 +208,8 @@ Nothing in `.env` or `/api/v1` needs a hand; the new settings have defaults.
 
 ### Fixed
 
+- **Downloading a large file of the chat over a slow line** no longer ends with a timeout after 30 seconds: the
+  download goes on as long as data arrives - also for a clip or image shown below an answer.
 - **A scheduled task's assistant prompt finds the knowledge again.** A `prompt` step with `assistant: true` searched
   the company knowledge and its areas but never got a passage back - it answered without the documents.
 - **A connected software moved to another address** no longer keeps what was chosen for the old one: its resources

@@ -227,7 +227,9 @@ every request up to 30 days. The provider stays a US company, so the US CLOUD Ac
   storage `APP_CHAT_FILE_RETENTION_DAYS` (14) after it was stored, an uploaded video `APP_CHAT_VIDEO_RETENTION_HOURS`
   (8) after its upload - by an hourly job, together with its text in the tenant database (extracted on upload, a
   transcript). The conversation keeps its name, type and size, marked expired; its messages stay. A file that cannot be
-  deleted at that moment is tried again at the next run. Set empty, a retention is off.
+  deleted at that moment is tried again at the next run. Set empty, a retention is off. A file an answer had created when the
+  app was stopped before the answer was stored (a restart, an update) stays in the file storage unreachable - no
+  conversation shows it, no retention finds it - and goes with the tenant.
 - **A document or a conversation** is deleted with its chunks or messages and files. What of a document cannot be
   removed at that moment stays behind unreachable and is logged: its chunks go with the next change of the embedding
   model or with the tenant, its file with the tenant. Every document uploaded into the company knowledge or a

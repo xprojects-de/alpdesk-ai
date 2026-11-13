@@ -642,7 +642,8 @@ call - is not built: when a module needs it.
   the excluded connections' tools from what `McpTools` offers the asker. An id the asker does not reach (unknown,
   another tenant's, not in the user's groups, not the API key's) is 400 `chat.unknownConnection` - never ignored, so a
   stale choice shows. **Kept with the conversation** (tenant `conversation.excluded_connection_ids`, `V8__release_2_0_0
-  .sql`, written with every question that names the list) and returned with it (`ConversationResponse
+  .sql`, written with every question that names the list - not by a stopped answer stored after a newer question,
+  whose choice stays) and returned with it (`ConversationResponse
   .excludedConnectionIds`), so a frontend - ours or a tenant's own - opens it with its last choice; a connection
   deleted or no longer reached since is dropped where it is read, never an error. A key without history takes it per
   question; a decided changing call goes on with the conversation's choice. **The list to choose from**: `GET
