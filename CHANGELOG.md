@@ -208,6 +208,8 @@ Nothing in `.env` or `/api/v1` needs a hand; the new settings have defaults.
 
 ### Fixed
 
+- **An S3 file store that refuses says why**: a wrong secret or another refusal of the S3 server ended in "An
+  unexpected error occurred" instead of the check's answer - two versions of the AWS library met in one installation.
 - **Embedding, replacing and deleting documents stays fast in a large knowledge**: removing a document's previous
   pieces read the tenant's whole store each time - noticeable in a large import or after a change of the embedding
   model. An index now finds them; a tenant gets it with the first document embedded after the update.

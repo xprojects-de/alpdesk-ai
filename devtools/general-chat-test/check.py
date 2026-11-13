@@ -214,13 +214,20 @@ check("the switched token is Thema Einkauf's", bernd.app("GET", "/tenant/account
 
 # --- The language follows the person ---------------------------------------------------------------------------------
 
+# With WAM the choice is the person's, every user of it; without WAM it is the one user's (tenancy.md "Password login").
+general_account = stack.Person("bernd")
+general_account.token = in_general
+general_before = general_account.app("GET", "/tenant/account")[2].get("language")
 for language in ("de", "en"):
     bernd.app("PUT", "/tenant/account/language", {"language": language})
     in_einkauf = bernd.app("GET", "/tenant/account")[2].get("language")
-    general_account = stack.Person("bernd")
-    general_account.token = in_general
-    check(f"his choice of '{language}' in Thema Einkauf holds in the general chat too",
-          in_einkauf == language and general_account.app("GET", "/tenant/account")[2].get("language") == language)
+    in_general_chat = general_account.app("GET", "/tenant/account")[2].get("language")
+    if stack.WAM:
+        check(f"his choice of '{language}' in Thema Einkauf holds in the general chat too",
+              in_einkauf == language and in_general_chat == language, f"{in_einkauf} {in_general_chat}")
+    else:
+        check(f"his choice of '{language}' in Thema Einkauf holds there only - the general chat keeps its own",
+              in_einkauf == language and in_general_chat == general_before, f"{in_einkauf} {in_general_chat}")
 
 clara = stack.Person("clara")
 if stack.WAM:
