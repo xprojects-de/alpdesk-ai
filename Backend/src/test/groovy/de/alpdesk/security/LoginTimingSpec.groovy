@@ -11,7 +11,8 @@ import spock.lang.Specification
 
 /**
  * docs/architecture/tenancy.md: an unknown username takes as long as a wrong password - and so does a user without a
- * password (signed in through WAM before, added from another tenant), or the answer's time tells the name exists.
+ * password (signed in through WAM before, added from another tenant), or the answer's time tells the name exists, and
+ * a locked account, or it tells the lock.
  */
 @MicronautTest(transactional = false)
 class LoginTimingSpec extends Specification {
@@ -44,6 +45,23 @@ class LoginTimingSpec extends Specification {
 
         then:
         noPassword >= wrongPassword / 4
+    }
+
+    def "a locked account is refused in the time a wrong password takes - the time does not tell the lock"() {
+        given:
+        def tenant = api.tenant()
+        def withPassword = api.user(tenant.id)
+        def locked = api.user(tenant.id)
+        5.times { users.authenticate(locked.username as String, "falsch", null) }
+        users.authenticate(withPassword.username as String, "falsch", null)
+
+        when:
+        long wrongPassword = millis { users.authenticate(withPassword.username as String, "falsch", null) }
+        long whileLocked = millis { users.authenticate(locked.username as String, AiApi.USER_PASSWORD, null) }
+
+        then:
+        users.authenticate(locked.username as String, AiApi.USER_PASSWORD, null).isEmpty()
+        whileLocked >= wrongPassword / 4
     }
 
     private static long millis(Closure work) {

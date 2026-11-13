@@ -19,6 +19,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.sql.Connection;
+import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
@@ -64,10 +65,14 @@ public class TenantUserService {
     private final String adminUsername;
     private final WamProxy wam;
     private final UserGroupService groups;
+    private final int maxLoginAttempts;
+    private final Duration lockTime;
 
     public TenantUserService(TenantUserRepository repository, TenantRepository tenantRepository, ChatService chats,
                              TransactionOperations<Connection> transactions,
-                             @Value("${app.username}") String adminUsername, WamProxy wam, UserGroupService groups) {
+                             @Value("${app.username}") String adminUsername, WamProxy wam, UserGroupService groups,
+                             @Value("${app.login.max-attempts}") int maxLoginAttempts,
+                             @Value("${app.login.lock-minutes}") int lockMinutes) {
         this.repository = repository;
         this.tenantRepository = tenantRepository;
         this.chats = chats;
@@ -75,6 +80,8 @@ public class TenantUserService {
         this.adminUsername = adminUsername;
         this.wam = wam;
         this.groups = groups;
+        this.maxLoginAttempts = maxLoginAttempts;
+        this.lockTime = Duration.ofMinutes(lockMinutes);
     }
 
     public List<TenantUser> findByTenant(Long tenantId) {
@@ -167,6 +174,10 @@ public class TenantUserService {
         refusePasswordWithWam(request.password());
         assertUsernameAvailable(tenantId, username, userId);
         groups.assignUser(tenantId, userId, request.groupIds());
+        if (request.password() != null) {
+            // A new password from an admin: the person gets in with it at once.
+            repository.clearLoginAttempts(userId);
+        }
         boolean endSessions = request.password() != null || !username.equalsIgnoreCase(user.username());
         return Optional.of(repository.update(new TenantUser(user.id(), tenantId, username, displayName,
                 request.password() != null ? hash(request.password()) : user.passwordHash(),
@@ -207,6 +218,8 @@ public class TenantUserService {
      * at a shift's start would hold the pool's connections meanwhile - only the last login is written, on its own.
      * A right password of a user who only lacks a group is told so (409 {@code user.noGroup}, as at the WAM sign-in):
      * after the password, it gives nothing away, and "wrong password" would send the tenant admin to the wrong place.
+     * A wrong password counts on the user; a locked one is refused like a wrong password, in the same time
+     * ({@link #passwordAccepted}).
      */
     public Optional<TenantUser> authenticate(String username, String password, @Nullable String loginKey) {
         Optional<TenantUser> user = username == null || wam.enabled() ? Optional.empty()
@@ -217,7 +230,7 @@ public class TenantUserService {
             PasswordHasher.matchNothing(password);
             return Optional.empty();
         }
-        if (!PasswordHasher.matches(password, user.get().passwordHash())) {
+        if (!passwordAccepted(user.get(), password)) {
             return Optional.empty();
         }
         if (!mayLogIn(user.get())) {
@@ -328,7 +341,7 @@ public class TenantUserService {
                 throw ServiceException.badRequest("account.passwordRequired",
                         "The password of your user in that tenant is required");
             }
-            if (!PasswordHasher.matches(password, target.passwordHash())) {
+            if (!passwordAccepted(target, password)) {
                 throw ServiceException.badRequest("account.switchPasswordWrong",
                         "The password of your user in that tenant is wrong");
             }
@@ -358,6 +371,31 @@ public class TenantUserService {
             repository.updatePerson(added.id(), person);
             return repository.findById(added.id()).orElseThrow();
         });
+    }
+
+    /**
+     * Whether the user's password is this one and its account not locked. Every attempt is counted before the password
+     * is checked (so attempts sent at once cannot outrun the count); the one reaching app.login.max-attempts locks the
+     * account for app.login.lock-minutes, the right password starts the count anew. While it is locked every password
+     * is refused, after the same hashing, so neither the answer nor its time tells the lock - and refused attempts do
+     * not prolong it.
+     */
+    private boolean passwordAccepted(TenantUser user, String password) {
+        Instant now = Instant.now();
+        boolean counted = transactions.executeWrite(_ ->
+                repository.countLoginAttempt(user.id(), maxLoginAttempts, now, now.plus(lockTime)) > 0);
+        if (!counted) {
+            PasswordHasher.matchNothing(password);
+            return false;
+        }
+        if (!PasswordHasher.matches(password, user.passwordHash())) {
+            return false;
+        }
+        transactions.executeWrite(_ -> {
+            repository.clearLoginAttempts(user.id());
+            return null;
+        });
+        return true;
     }
 
     private void writeLastLogin(TenantUser user) {

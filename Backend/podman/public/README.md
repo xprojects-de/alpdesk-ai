@@ -182,6 +182,7 @@ The app's environment variables, set through the file `.env` next to `docker-com
 |---|---|
 | `APP_DOMAIN` | The domain Caddy serves and fetches the certificate for, without `https://` |
 | `APP_USERNAME` / `APP_PASSWORD` | The admin login - the password at least 12 characters |
+| `APP_LOGIN_MAX_ATTEMPTS` / `APP_LOGIN_LOCK_MINUTES` | Optional: after this many wrong passwords in a row (default 5) a tenant user's account takes no password for this many minutes (default 15) - also the right one, answered like a wrong one. A password an admin sets lifts it. The admin's account is never locked |
 | `APP_SECRET_KEY` | AES key encrypting the stored AI provider keys - `openssl rand -base64 32`. **Back it up**: losing or changing it makes every stored key unreadable (they must be entered again) |
 | `JWT_GENERATOR_SIGNATURE_SECRET` | JWT signing secret (at least 32 characters) - `openssl rand -base64 48`; changing it logs everyone out - change it together with a leaked `APP_PASSWORD`, whose admin sessions a new password alone does not end |
 | `DB_PASSWORD` | The database password - `openssl rand -base64 48` |

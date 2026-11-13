@@ -46,6 +46,9 @@ services:
     environment:
       APP_USERNAME: "${APP_USERNAME:?set APP_USERNAME in .env}"
       APP_PASSWORD: "${APP_PASSWORD:?set APP_PASSWORD in .env}"
+      # Wrong passwords in a row that lock a tenant user's account, and for how many minutes.
+      APP_LOGIN_MAX_ATTEMPTS: "${APP_LOGIN_MAX_ATTEMPTS:-5}"
+      APP_LOGIN_LOCK_MINUTES: "${APP_LOGIN_LOCK_MINUTES:-15}"
       JWT_GENERATOR_SIGNATURE_SECRET: "${JWT_GENERATOR_SIGNATURE_SECRET:?set JWT_GENERATOR_SIGNATURE_SECRET in .env}"
       APP_SECRET_KEY: "${APP_SECRET_KEY:?set APP_SECRET_KEY in .env}"
       # The database: the pod's own by default; a PostgreSQL server of its own through .env (README "Sizing PostgreSQL").

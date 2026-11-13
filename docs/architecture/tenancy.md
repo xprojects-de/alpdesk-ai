@@ -105,6 +105,16 @@ tenants is a new token.
   `AuthenticationProviderUserPassword`, in the CORS allowed headers; ignored with WAM on). A wrong key is refused like
   a wrong password. The neutral `/login` says after a refused attempt - any refused attempt, so the answer tells
   nothing of which usernames exist - that a name in several companies signs in on the company's own login page.
+  **Wrong passwords lock the account for a while** (decided 13 November 2026, roadmap point 70): counted per account
+  (`tenant_user.failed_logins`), not per address - behind the reverse proxy every request has the proxy's. The one
+  reaching `app.login.max-attempts` (5) sets `locked_until` to now plus `app.login.lock-minutes` (15); until then every
+  password is refused, the right one too, after the same hashing - the answer and its time those of a wrong password,
+  the frontend shows its usual message. Every attempt is counted before its password is checked, in one statement
+  (`TenantUserRepository.countLoginAttempt`): attempts sent at once cannot outrun the count, so no more than the limit
+  are ever tried. Refused attempts while locked do not count (nobody prolongs the lock). Counted
+  at the login and at the switch (on the user switched to); an unknown name or a wrong login key counts on nobody. The
+  right password resets the count with the last login, a password an admin sets lifts the lock. Not for the admin's
+  account (no row, and it would lock out the operator) nor with WAM (no passwords).
 - **The switch** (`POST /tenant/account/switch {tenantId, password?}`, `AccountController`): a new token - the same
   answer as a login - for the user of the same username in that tenant, who must be allowed to log in (404
   `account.switchTenantNotFound` otherwise). The account's `tenants` carry the tenants' login keys only with WAM

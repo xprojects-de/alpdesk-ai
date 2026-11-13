@@ -686,8 +686,9 @@ password login; every tenant user's request is checked against the header. The a
 proxy strips it from outside requests, and the app is reachable through the proxy only.
 `AuthenticationProviderUserPassword`: one `/login` for the admin account from config/env and then the tenant users
 (PBKDF2 hashes, `PasswordHasher`; the JWT carries `tenantId` and `userId`, a tenant admin's also `ROLE_TENANT_ADMIN`),
-no lockout (behind the reverse proxy every
-request has the proxy's address). `ActiveTenantUserRule` rejects every request of a tenant user who or whose tenant was
+no lockout by address (behind the reverse proxy every
+request has the proxy's address) - a tenant user's account is locked after `app.login.max-attempts` wrong passwords
+for `app.login.lock-minutes` instead (tenancy.md "Password login"). `ActiveTenantUserRule` rejects every request of a tenant user who or whose tenant was
 deactivated or deleted, with a token older than a password an admin set, or of a former tenant admin to
 `/tenant/admin/**` - although the JWT is still valid - see [tenancy.md](docs/architecture/tenancy.md). `ApiKeyTokenValidator`: accepts `ai_` bearer tokens next to
 JWTs, looks the key up by SHA-256 hash (`ApiKeyService`, off the event loop) and yields `ROLE_TENANT` with the tenant id

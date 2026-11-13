@@ -3,7 +3,8 @@
 `setup.py a2a` with the demo agent running (TEST_AGENT_DEMO=1). In the mode of mode.sh: with WAM as below; plain -
 password login at the common page and a tenant's own (its login key for a name in several tenants), a wrong password,
 the switch only with the other user's password and only between a person's users (a user created under another
-tenant's user's name sees nothing of that tenant), clara in no group refused, the WAM headers ignored:
+tenant's user's name sees nothing of that tenant), five wrong passwords locking an account until the admin sets a
+new one, clara in no group refused, the WAM headers ignored; in both modes the admin's account is never locked:
 
   - the sign-in through Authelia: a person in one IDM group gets its user there and is signed in at once,
   - a person in two IDM groups gets a user in both tenants and the choice, chooses, sees the topics, switches,
@@ -70,7 +71,19 @@ def users_of(admin, tenant_id):
     return {user["username"]: user for user in admin.app("GET", f"/admin/tenants/{tenant_id}/users")[2]}
 
 
+def left_over(admin, tenant_id, username):
+    """Deletes a user a check creates for itself, should a run that broke off have left it."""
+    user = users_of(admin, tenant_id).get(username)
+    if user:
+        admin.app("DELETE", f"/admin/tenants/{tenant_id}/users/{user['id']}")
+
+
 admin = stack.admin()
+wrong_admin = stack.Person(stack.ADMIN_PERSON)
+refused = [wrong_admin.app("POST", "/login", {"username": stack.ADMIN_USER, "password": "Falsch-2026-Falsch"})[0]
+           for _ in range(6)]
+check("six wrong passwords for the admin are refused - and its account is not locked by them",
+      refused == [401] * 6 and stack.admin().token, refused)
 
 # --- The sign-in ----------------------------------------------------------------------------------------------------
 
@@ -154,6 +167,7 @@ else:
           switched)
     # A user created by name is nobody else's: Thema Einkauf gets an "anna" of its own, as its tenant admin could
     # create one under a guessed name - she must learn nothing of Thema Wartung, where the name is another user's.
+    left_over(admin, tenant_of["Einkauf"], "anna")
     status, _, namesake = admin.app("POST", f"/admin/tenants/{tenant_of['Einkauf']}/users",
                                     {"username": "anna", "displayName": "Anna Namensgleich",
                                      "password": stack.PERSON_PASSWORD})
@@ -172,6 +186,28 @@ else:
     finally:
         if isinstance(namesake, dict) and namesake.get("id"):
             admin.app("DELETE", f"/admin/tenants/{tenant_of['Einkauf']}/users/{namesake['id']}")
+    # Wrong passwords lock the account for a while (the stack keeps the defaults: 5 in a row, 15 minutes) - a user of
+    # its own, so nobody else of the stack is locked, deleted again.
+    left_over(admin, tenant_of["Wartung"], "sperre")
+    status, _, locked = admin.app("POST", f"/admin/tenants/{tenant_of['Wartung']}/users",
+                                  {"username": "sperre", "displayName": "Sigrid Sperre",
+                                   "password": stack.PERSON_PASSWORD})
+    check("Thema Wartung gets a user to lock", status == 201, f"{status} {locked}")
+    try:
+        check("she signs in with her password", stack.Person("sperre").sign_in()[0] == 200)
+        refused = [stack.Person("sperre", "Falsch-2026").sign_in()[0] for _ in range(5)]
+        check("five wrong passwords are each refused like any wrong password", refused == [401] * 5, refused)
+        status, body = stack.Person("sperre").sign_in()
+        check("her right password is refused now - answered like a wrong one, nothing tells the lock",
+              status == 401 and "lock" not in str(body).lower(), f"{status} {body}")
+        status, _, _ = admin.app("PUT", f"/admin/tenants/{tenant_of['Wartung']}/users/{locked.get('id')}",
+                                 {"username": "sperre", "displayName": "Sigrid Sperre", "password": "Neu-und-lang-2026"})
+        check("the admin sets her a new password", status == 200, status)
+        check("the new password gets her in at once - it lifts the lock",
+              stack.Person("sperre", "Neu-und-lang-2026").sign_in()[0] == 200)
+    finally:
+        if isinstance(locked, dict) and locked.get("id"):
+            admin.app("DELETE", f"/admin/tenants/{tenant_of['Wartung']}/users/{locked['id']}")
 bernd.token = switched["access_token"]
 check("the switched token is Thema Einkauf's", bernd.app("GET", "/tenant/account")[2].get("tenantId") ==
       tenant_of["Einkauf"])

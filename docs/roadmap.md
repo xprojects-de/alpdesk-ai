@@ -63,7 +63,7 @@ the user agrees to - no code before that. Then the implementation with its specs
 | 53 | A frontend of the tenant's own for the users: signing in, the account and the chat published in Swagger next to `/api/v1` and kept compatible like it, `APP_CORS_ORIGINS` for another origin, CORS without credentials - the admin's and tenant admins' pages stay in Alpdesk AI | S (about 1 day) | **built** 6 Nov 2026 on `feature/orchestrator` (2.0.0) - decided the same day; the README's "A frontend of your own for the users" |
 | 54 | A2A client: an A2A agent as connected software of a tenant - a workflow engine of the tenant's own (the LangGraph Python library in a container per tenant, never shipped by us), a foreign agent, or our own topics over A2A. Package A: a connection of protocol A2A (address rules as MCP, the agent card with its skills read on reload), one tool `<connection>__ask` for the chat's model by the groups' level; package B: a tenant answering **every** question through its agent (the orchestrator's case - the stream mapped onto the chat's events, the context kept with the conversation, a question back answered by the next question, the asker's tenant, language, user or key, groups and IDM groups in `message.metadata.alpdesk`, the way back over the topics' MCP keys in the container); package C: the agent's skills deselectable like the topics of 51; package D: the step `call_agent` of the scheduled tasks (rows to an agent as `call_tool` sends them to a tool, a target only); package E: a `prompt` step answered by the assistant (`assistant: true` with areas, software - A2A agents included -, web search and a template: the prompt chain with the company's knowledge); `devtools/a2a-test-agent/` - an agent on the official Python SDK to try the client against by hand, the template for an adapter of one's own | M (about 13-15 days) | **built in the night of 6/7 Nov 2026** (2.0.0, `feature/a2a`, its plan's "Built") - decided 6 Nov 2026 (workflows: A2A, not MCP or a REST API of our own; the engine the tenant's own; the orchestrator always through the workflow; groups in the metadata) - **2.0.0, before the server (52)**; the way back from the workflow over `/mcp` or `/a2a` with the topics' standard MCP keys (decided 6 Nov 2026 - no token per asker, see 55); operations: a log line per agent call, the check button, the admin's switch per tenant; the skills filtered by group later - a separate plan (kept outside the repository) |
 | 55 | A signed short-lived assertion per asker for the way back from a workflow: the person resolved to its own user in every topic (rights, usage and audit per person, no fixed keys in the engine), JWKS of the installation, accepted at `/mcp` and `/a2a` | M (about 3-4 days) | idea - designed 6 Nov 2026 with 54 and put aside as too much to explain; taken up when the person must be visible in the topics |
-| 56 | A second factor for the password login (TOTP): set up in the account (QR code, recovery codes), asked as a second step of `/login`, mandatory per tenant as the admin's switch, reset by the admin or a tenant admin; the admin account's from the environment; passkeys later. In the same package: an account is locked for a while after five wrong passwords, and the tenant switch without WAM counts like a login | M-L (about 5 days) | agreed 8 Nov 2026, extended 13 Nov 2026 - proposal first; the first of the three points taken from a comparison with a hosted assistant (the product stays as it is) |
+| 56 | A second factor for the password login (TOTP): set up in the account (QR code, recovery codes), asked as a second step of `/login`, mandatory per tenant as the admin's switch, reset by the admin or a tenant admin; the admin account's from the environment; passkeys later; a wrong code counts like a wrong password on the lock of point 70 | M (about 3-4 days) | agreed 8 Nov 2026 - proposal first; the first of the three points taken from a comparison with a hosted assistant (the product stays as it is) |
 | 57 | A budget per tenant and month: the admin sets an amount, every provider call is checked against the month's usage, over it the chat, the API and the MCP server answer 409 with a clear message, the usage pages show it, the daily report warns at 80 % | S-M (about 2-3 days) | agreed 8 Nov 2026 - proposal first; the safety an operator billing global keys has no equivalent of today |
 | 58 | Retention of chat histories per tenant: days or unlimited, set by the admin, a nightly job deletes a tenant's conversations older than that with their files; the installation's file and video retention stays | S (about 1 day) | agreed 8 Nov 2026 - proposal first; after 56 and 57 |
 | 59 | Custom sandboxes: an operator builds a tenant's sandbox image on ours with the tenant's own programs (a test framework, a simulator, a CLI) and writes one README into it; the sandbox hands the README to the app, the chat's model gets it with the code rules - nothing else in the core | S (about 1 day) | **built** 8 Nov 2026 (2.0.0) - the README through `/health` into the code rules, the admin's check, `sandbox-example/`; selftest and the example image checked by hand |
@@ -77,6 +77,7 @@ the user agrees to - no code before that. Then the implementation with its specs
 | 67 | A user's own connections to software: a tenant user connects an MCP server or an A2A agent on the account page with their own address and sign-in (a token, or OAuth) - the tools are read for that user and used in that user's chat only, with the person's rights in the software; the tenant's connections stay as they are, shared and the tenant admin's; nothing of an issue tracker or a wiki in the core | M (about 3-4 days) | **plan agreed** 10 Nov 2026 for 2.1.0, the user's shape (replaces the modes on a tenant's connection agreed earlier that day): a tenant admin's switch, off by default, and any address the rules allow; not started - after 2.0.0 is released |
 | 68 | Changing tools of the connected software through to MCP clients: a company's own MCP server behind ours offers tools that change something (a ticket created in an issue tracker, a document filed on another server) and Claude Code, Cowork or Copilot call them directly - a level per MCP key and software (none, read, read and change) where the key card has a tick per software today, the tool marked as changing - whether its user is asked is the client's matter; `ask_assistant` and `/a2a` stay reading | S (about 2-3 days) | **built** 11 Nov 2026 (2.0.0, migration `V18` - the release candidate is out) - [architecture/mcp.md](architecture/mcp.md) "Changing tools passed through"; the "later" of point 41 |
 | 69 | MCP 2026-07-28: the tenant's MCP server and the clients to connected software move to the protocol's next revision - questions back, progress, long runs and subscriptions become possible; what the proxy has to do for it is listed | L | open - waits for the MCP Java SDK's client and Micronaut MCP; no date known (12 Nov 2026) |
+| 70 | Wrong passwords lock the account for a while: after 5 wrong passwords in a row (`APP_LOGIN_MAX_ATTEMPTS`) a tenant user's account takes no password for 15 minutes (`APP_LOGIN_LOCK_MINUTES`), counted per account at the login and the tenant switch, answered like a wrong password | S | built 13 Nov 2026 (2.0.0) - [architecture/tenancy.md](architecture/tenancy.md) "Password login" |
 
 ## Target architecture
 
@@ -2982,43 +2983,13 @@ the tenant dialog (the switch); en.json, de.json; [SECURITY.md](../SECURITY.md),
 setup needs a first right code; the duty leads a user without a factor to the setup and nowhere else; the reset by
 admin and tenant admin, another tenant's user 404; WAM users untouched; the admin's factor from the environment.
 
-**In the same package: wrong passwords lock the account for a while** (decided 13 November 2026, after the security
-review of 12 November). Without a WAM proxy nothing stops a password from being tried at `/login` but the reverse
-proxy's limits. The review's finding at the tenant switch (a user created under a guessed name saw another tenant's
-name and could try its user's password there without the login key) is closed already: without WAM the account and
-the switch go by the person the admin set ([architecture/tenancy.md](architecture/tenancy.md) "One person, users in
-several tenants"). What stays is guessing at the login itself.
-
-- **A lockout per account, not per address**: behind the reverse proxy every request has the proxy's address
-  ([SECURITY.md](../SECURITY.md) "No lockout and no rate limiting"), so the address cannot be counted - the account
-  can. After five wrong passwords in a row a tenant user's account takes no password for a while; a right one resets
-  the count. Counted wherever a password is checked: `/login` (with and without the login key), the switch, the change
-  of one's own password - and the second step above (a wrong code counts like a wrong password, or anyone holding
-  the password could try codes).
-- **For a while, never for good**: who knows a username can lock its account by typing wrong passwords - also a
-  tenant admin of another tenant through the switch. So the lock ends by itself (15 minutes proposed) and a tenant
-  admin or the admin lifts it at once; a lock for good would hand every stranger a way to keep a person out.
-- **The answer tells nothing**: a locked account answers like a wrong password and takes the same time
-  (`LoginTimingSpec`); the switch answers 400 as today, never 401. That the account is locked is shown to the tenant
-  admin in the user list, not to whoever tries.
-- **Not for WAM users** (no password) and **not for the admin's account from the environment** in the first step: it
-  has no row to count on, and a lock would keep the operator out of the installation - its protection is the second
-  factor from the environment and the reverse proxy.
-- With it [SECURITY.md](../SECURITY.md) says what holds: "No lockout" becomes the lockout per account;
-  [architecture/tenancy.md](architecture/tenancy.md) "One person, users in several tenants" names it, and that a user
-  created under a name of another tenant sends that tenant's user to its own login page.
-
-**Layers** of the lockout: management migration (the count and the time of the lock on `tenant_user`);
-`TenantUserService.authenticate` and `switchTenant` (count, lock, reset - written outside the password check's
-transaction, as the last login is); the admin's and tenant admin's "unlock" in the user lists; en.json, de.json.
-**Specs**: five wrong passwords lock, the sixth right one is refused, the lock ends by itself and by the unlock; the
-switch counts on the target user, not on the one who tries; the same answer and time for a locked and a wrong
-password; another tenant's user cannot be unlocked (404); WAM users and the admin untouched.
+**With the lock of point 70** (built 13 November 2026): a wrong code of the second step counts like a wrong password,
+or anyone holding the password could try codes; the hint "locked" and an "unlock" in the user lists may come with
+this point's user-list changes.
 
 **Open questions**: the challenge as a short-lived JWT of its own or a row; how many recovery codes (8 or 10); whether
 a tenant admin may switch the duty for their own tenant or only the admin; the frontend's QR code library (a license
-check, [THIRD-PARTY.md](../THIRD-PARTY.md)); the lock's length (15 minutes proposed) and whether it grows with
-repeated locks; whether a locked user is told by mail once a tenant has a sender.
+check, [THIRD-PARTY.md](../THIRD-PARTY.md)).
 
 ## 57 A budget per tenant and month
 
@@ -3741,3 +3712,20 @@ design blocks it):
   authorization specification of 2026-07-28 already - point 61).
 
 **Size**: L, and not to be estimated before the SDK's client exists. As every point: a written proposal first.
+
+## 70 Wrong passwords lock the account for a while
+
+**Goal** (13 November 2026, after the security review of 12 November): without a WAM proxy a tenant user's password
+could be tried without end - an address-based limit cannot work behind the reverse proxy, where every request has the
+proxy's address. Built in its smallest form the same day.
+
+**Built**: two columns on `tenant_user` (`failed_logins`, `locked_until`, migration V20) and two settings
+(`app.login.max-attempts` 5, `app.login.lock-minutes` 15 - `APP_LOGIN_MAX_ATTEMPTS`, `APP_LOGIN_LOCK_MINUTES` in both
+compose files). The wrong password reaching the limit locks the account; while locked every password is refused after
+the same hashing, so neither the answer nor its time tells the lock, and the frontend shows its usual message.
+Counted at the login and at the tenant switch (on the user switched to); the right password resets the count, a
+password an admin sets lifts the lock. Not for the admin's account nor with WAM. The rules:
+[architecture/tenancy.md](architecture/tenancy.md) "Password login"; spec `security.LoginLockoutSpec`.
+
+**Not built (later, with point 56 if asked)**: a hint "locked" and an "unlock" in the user lists, a message to the
+person, a lock that grows with repeated locks, the second factor's code counted the same way.

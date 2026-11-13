@@ -188,9 +188,14 @@ protected by the software:
 
 So nobody has to find it out the hard way:
 
-- **No lockout and no rate limiting of logins.** Behind the reverse proxy every request has the proxy's address, so an
-  address-based lockout would lock out everyone. Passwords are hashed with PBKDF2-HMAC-SHA256 (600 000 iterations) and
-  must have at least 12 characters. If you need rate limiting, add it in the reverse proxy.
+- **No rate limiting of logins by address, a lock per account instead.** Behind the reverse proxy every request has
+  the proxy's address, so an address-based lockout would lock out everyone. A tenant user's account is locked instead:
+  after `APP_LOGIN_MAX_ATTEMPTS` (5) wrong passwords in a row - at the login and at the tenant switch - it takes no
+  password for `APP_LOGIN_LOCK_MINUTES` (15), the right one neither; the answer and its time are those of a wrong
+  password. Whoever knows a username can lock its account this way for that while - the price of the lock; a
+  password an admin sets lifts it. The admin's account from the environment is never locked (it would lock out the
+  operator). Passwords are hashed with PBKDF2-HMAC-SHA256 (600 000 iterations) and must have at least 12 characters.
+  If you need rate limiting by address, add it in the reverse proxy.
 - **The recent warnings in the app can be pushed out.** The admin's page "Application log" and the daily report show
   the last 1,000 warnings and errors, kept in memory. Anonymous requests with invalid JSON each write a WARN line, so
   enough of them push older warnings out of that list. The list is bounded to keep the memory bounded; the container's

@@ -105,7 +105,8 @@ Base paths: `Backend/src/main/java/de/alpdesk/` (below `…/`), tests in
        in `TenantApiKeySpec`, tags "Users - sign-in" / "Users", `UserAuth`); nothing of `/admin`, `/tenant/admin`,
        `/tenant/ai`
      - one person with users in several tenants (2.0.0): a token one user's of one tenant, the switch
-       (`/tenant/account/switch`: with WAM the header, without the target's password - 400, never 401), `X-Login-Key`
+       (`/tenant/account/switch`: with WAM the header, without the target's password - 400, never 401 - and only
+       between users the admin marked as one person's, `tenant_user.person` set by `users/from-tenant`), `X-Login-Key`
        at `POST /login` (a wrong key like a wrong password, ignored with WAM), `POST /login/wam` with the choice and
        `{tenantId}`, `users/from-tenant` the admin's only; CORS `APP_CORS_ORIGINS` exact origins and
        `allow-credentials` false
@@ -127,7 +128,8 @@ Base paths: `Backend/src/main/java/de/alpdesk/` (below `…/`), tests in
      - users: password hashing, sessions after a password change, the last tenant admin, deleting a user with its
        chats; a username unique per tenant (`tenant_user_tenant_username_ci_uq`, the admin's taken everywhere),
        `loginAccounts` (active user, active tenant, without WAM a password, a tenant admin or a user in a group),
-       `switchTenant`, `addFromOtherTenant`
+       `switchableAccounts`, `switchTenant`, `addFromOtherTenant` (the person's mark); wrong passwords lock the account
+       for a while (`countLoginAttempt` before the password check, `app.login.*`, `LoginLockoutSpec`)
      - user groups (`UserGroupService`, tenancy.md "User groups"): a group with a WAM group takes its members from the
        IDM alone (`GROUPS_OF_USER`, every right through it), members sent 400, assigned rows dropped when the WAM group
        is set, only the admin sets a WAM group under WAM (409); `AccessRequestService.signIn` gives a person listed in

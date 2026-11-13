@@ -39,6 +39,7 @@ so the gap is seen.
 | AUTH-19 | Another open tab of the same browser reloads when the shared token changes (logout, switch, another person's sign-in) | both | walk D3 |
 | AUTH-20 | Wrong role redirected to its own area (admin to `/dashboard`, tenant user to `/app`; non-admin kept off tenant-admin pages) | both | walk C1 |
 | AUTH-21 | Unknown username / user without password refused in the time of a wrong password | plain | **specs only** - no step yet |
+| AUTH-22 | Wrong passwords lock the account for a while (5 in a row, 15 minutes; answered like a wrong password; a password an admin sets lifts it; the admin's account never) | plain (the admin: both) | `check.py`; the lock ending by itself and the switch: **specs only** (`LoginLockoutSpec`) |
 
 ## Admin: tenants
 

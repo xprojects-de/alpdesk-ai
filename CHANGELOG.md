@@ -280,6 +280,10 @@ Nothing in `.env` or `/api/v1` needs a hand; the new settings have defaults.
 
 ### Security
 
+- **Wrong passwords lock a user's account for a while.** After 5 wrong passwords in a row a user's account takes no
+  password for 15 minutes - at the login and at the switch to another company - and the login page shows its usual
+  message. A password an admin sets lifts it; the admin's own account is never locked. Optional settings
+  `APP_LOGIN_MAX_ATTEMPTS` and `APP_LOGIN_LOCK_MINUTES` (in both compose files).
 - **Without a WAM proxy, the tenant switch goes by the person, no longer by the username.** A user of the same name in
   another tenant - one another company's admin may create under any name - was listed in the account's tenants with
   its company's name, and the switch asked for its password. Now only the users the admin added with "Benutzer aus

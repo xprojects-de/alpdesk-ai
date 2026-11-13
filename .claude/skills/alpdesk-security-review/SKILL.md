@@ -22,7 +22,8 @@ paths, the checklist and its own report sections.
 Security is in scope in full depth (review base section 4) - but a finding still needs a concrete attack: who, with
 which access, sends what, and gets which data or effect. "Should use a stronger hash" without a weakness of the one in
 use is no finding. Defense in depth for a threat SECURITY.md declares out of scope (e.g. the WAM proxy being bypassed,
-the decided missing lockout behind the reverse proxy) is a decision, not a finding - unless its premise no longer holds.
+no rate limit by address behind the reverse proxy - the lock is per account) is a decision, not a finding - unless its
+premise no longer holds.
 
 ## Step A - choose the parts
 
@@ -67,7 +68,12 @@ MCP, size limits), `Backend/podman/**` (Caddyfile, compose files, `.env.example`
      (`TenantUserClaims`), the switch `POST /tenant/account/switch` a new token for the same username's user who may
      log in (with WAM the header proves the person - `ActiveTenantUserRule` holds after the switch -, without WAM the
      target user's password, 400 never 401), the account's `tenants` list only users with a password without WAM and
-     their login keys with WAM only; `POST /login` with `X-Login-Key` picks the tenant of a name in several (a wrong key,
+     their login keys with WAM only; **without WAM a username proves no person** (security review 12 November 2026): a
+     tenant admin may create a user under any name, so the list and the switch go by `tenant_user.person` - set only by
+     the admin's `users/from-tenant`, on the source and the new user; a user created by name (also by the admin) is
+     nobody else's - it lists no other tenant and the switch to one answers the 404 of a tenant without the name (no
+     oracle), a rename or a new password never loses or gains the mark (`TenantUserService.switchableAccounts`,
+     `samePerson`); with WAM the mark is not read; `POST /login` with `X-Login-Key` picks the tenant of a name in several (a wrong key,
      a deactivated tenant, another tenant's page refused like a wrong password, the same timing), ignored with WAM;
      `POST /login/wam` with the choice (`tenants`) and `{tenantId}` (404 for a tenant where the person has no user);
      the admin's `POST /admin/tenants/{id}/users/from-tenant` (admin only - a tenant admin must not see another tenant's
@@ -77,7 +83,17 @@ MCP, size limits), `Backend/podman/**` (Caddyfile, compose files, `.env.example`
      `GroupAccessSpec` (no group, no access - at every door; a tenant admin gets in without one), `WamGroupsSpec` (out
      of the IDM group, out of the tenant), `StandardGroupMigrationSpec`, `controller.common.CorsSpec`; the smoke test's
      steps 7-9.
-   - Special care: the **admin login** (account from `APP_USERNAME`/`APP_PASSWORD`, the refused defaults, comparison of
+   - Special care: **wrong passwords lock the account for a while** (roadmap point 70, tenancy.md "Password login"):
+     per account, never per address; every attempt counted **before** the password is checked, in one statement
+     (`TenantUserRepository.countLoginAttempt` - a count after the check lets attempts sent at once all through), the
+     one reaching `app.login.max-attempts` (5) locks for `app.login.lock-minutes` (15); a locked account refused like a
+     wrong password after the same hashing (no `ACCOUNT_LOCKED`, no other status, the same time - nothing tells the
+     lock or that the name exists), refused attempts never prolonging it; counted at `/login` and at the switch (on
+     the user switched to, never on the one who tries), an unknown name or a wrong login key on nobody; the right
+     password and a password an admin sets start anew; the two columns outside the entity, so a whole-row update never
+     undoes a count; not the admin's account, not with WAM. Accepted (SECURITY.md): whoever knows a username locks it
+     for that while. Not counted: the change of one's own password.
+     The **admin login** (account from `APP_USERNAME`/`APP_PASSWORD`, the refused defaults, comparison of
      the password, the admin with WAM on); tenant-user login and the claims in the JWT (`tenantId`, `userId`,
      `ROLE_TENANT_ADMIN`) - can a token claim more than the database says, and does `ActiveTenantUserRule` catch
      deactivated users/tenants, a password set by the admin, a former tenant admin; **access needs a group** (2.0.0,
@@ -97,8 +113,8 @@ MCP, size limits), `Backend/podman/**` (Caddyfile, compose files, `.env.example`
      nofollow`, `X-Accel-Buffering: no` only on a streamed answer.
    - Specs: `security.AuthenticationProviderSpec`, `LoginModesSpec`, `LoginWithWamSpec`, `LoginWithoutWamSpec`,
      `WamLoginSpec`, `WamProxySpec`, `ProductionSecretsCheckSpec`, `TenantUserSpec`, `TenantAdminSpec`,
-     `ResponseHeadersSpec`, `LoginTimingSpec` (an unknown name, a wrong password and a user without a password take
-     the same time).
+     `ResponseHeadersSpec`, `LoginTimingSpec` (an unknown name, a wrong password, a user without a password and a
+     locked account take the same time), `LoginLockoutSpec` (the lock, its end, the switch, a password an admin sets).
 2. **Rechte & Mandantentrennung** (always)
    - read in full: every controller under `…/controller/**` (excluding the details of `api/v1` and `mcp`, which parts
      3 and 6 read), `…/security/TenantContext.java`, `…/services/tenant/TenantDatabases.java`
@@ -248,7 +264,9 @@ MCP, size limits), `Backend/podman/**` (Caddyfile, compose files, `.env.example`
      `utils/branding.util.ts`, `utils/doc-site.util.ts` (`isDocSiteUrl`), `components/shared/doc-sites-panel/doc-site-frame.component.ts`,
      `grep -rn "bypassSecurityTrust\|innerHTML" Frontend/src/app`
    - Special care: ZIP (path traversal `..`, absolute paths, entry and total size, entry count, nested archives),
-     limits checked **before** reading into memory; type recognised by content, not by name; the ffmpeg call (argument
+     limits checked **before** reading into memory; an Office file's parts counted while unpacked, before it is parsed
+     (`DocumentTextExtractor.requireModestParts`: 200 MB a part, 500 MB all together, 10,000 parts - one limit alone
+     leaves many parts just below it); type recognised by content, not by name; the ffmpeg call (argument
      list vs. shell, file names in arguments, timeouts, temporary files removed); storage keys never built from a user's
      file name (traversal); a downloaded file's name and content type in the response headers (header injection,
      HTML served inline from our origin); the logo (SVG with script, size, type); the context path written into
@@ -290,7 +308,12 @@ MCP, size limits), `Backend/podman/**` (Caddyfile, compose files, `.env.example`
      `…/services/common/InternalAddresses.java`,
      `…/controller/mcp/{TenantAdminMcpConnectionController,McpConnectionAdminController}.java`, `app.ai.*` in
      `application.properties`
-   - Special care: SSRF - a tenant admin's model-server, MCP or A2A address (internal addresses, DNS resolving to
+   - Special care: **the host that is checked is the host that is called** (security review 12 November 2026): an
+     address whose path begins with `//` names another host once it is resolved against its origin - the MCP SDK's
+     transport did so with the path alone; `McpClient.transport` gives it the whole address as the endpoint, and
+     `ModelServers.normalize` refuses an empty part in a path on save. Every client that takes an address apart
+     (origin and path, a base and a relative reference) is checked for it - also a new one.
+     SSRF - a tenant admin's model-server, MCP or A2A address (internal addresses, DNS resolving to
      internal ones, redirects, plain HTTP, user info/query/fragment) checked on save **and** before every call, the key
      sent only to its origin; an A2A agent's address and a connection's OAuth sign-in are part 11, what a
      software's or a web page's text can make the model do part 12; - **a file a tool returns as a link** (mcp.md "Files returned as
