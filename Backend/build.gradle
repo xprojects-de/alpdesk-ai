@@ -142,7 +142,7 @@ dependencies {
     // Fixes the Micronaut platform does not bring yet - each goes once micronautVersion manages the version or later.
     // Jackson 2 is langchain4j's (provider answers) and Tika's CAD module's; Micronaut Serde runs on Jackson 3.
     constraints {
-        implementation("com.fasterxml.jackson.core:jackson-core:2.22.4") {
+        implementation("com.fasterxml.jackson.core:jackson-core:2.23.0") {
             because("CVE-2026-89425, CVE-2026-89407 - fixed in 2.22.3, the platform 5.2.x manages 2.22.2")
         }
         implementation("com.fasterxml.jackson.core:jackson-databind:2.22.4") {
