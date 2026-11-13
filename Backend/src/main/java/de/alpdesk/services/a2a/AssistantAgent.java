@@ -310,7 +310,7 @@ public class AssistantAgent implements AgentExecutor {
         return text.toString();
     }
 
-    /** The files sent with the question: bytes of text only - a link is not fetched, another type not read. */
+    /** The files sent with the question: bytes of text only - a link is not fetched, a file that is no text not read. */
     private static List<SentFile> files(Message message) {
         List<SentFile> files = new ArrayList<>();
         for (Part<?> part : message.parts()) {
@@ -331,20 +331,42 @@ public class AssistantAgent implements AgentExecutor {
         return files;
     }
 
-    /** The file's text when it is one: a text type (or none) and valid UTF-8. */
+    /**
+     * The file's text when it is one: valid UTF-8 - under a type that does not say text (clients send source code as
+     * application/x-python or application/octet-stream) only without control characters, which a binary file has.
+     */
     private static @Nullable String text(FileWithBytes file) {
-        String type = file.mimeType() == null ? "" : file.mimeType().toLowerCase();
-        boolean textual = type.isBlank() || type.startsWith("text/") || type.contains("json") || type.contains("xml")
-                || type.contains("yaml") || type.contains("csv");
-        if (!textual) {
+        String text = utf8(file);
+        if (text == null) {
             return null;
         }
+        return saysText(file.mimeType()) || !hasControlCharacters(text) ? text : null;
+    }
+
+    private static boolean saysText(@Nullable String mimeType) {
+        String type = mimeType == null ? "" : mimeType.toLowerCase();
+        return type.isBlank() || type.startsWith("text/") || type.contains("json") || type.contains("xml")
+                || type.contains("yaml") || type.contains("csv");
+    }
+
+    private static @Nullable String utf8(FileWithBytes file) {
         try {
             byte[] content = java.util.Base64.getDecoder().decode(file.bytes());
             return StandardCharsets.UTF_8.newDecoder().decode(java.nio.ByteBuffer.wrap(content)).toString();
         } catch (IllegalArgumentException | CharacterCodingException e) {
             return null;
         }
+    }
+
+    /** Anything but tab, line feed, carriage return and form feed. */
+    private static boolean hasControlCharacters(String text) {
+        for (int i = 0; i < text.length(); i++) {
+            char c = text.charAt(i);
+            if (Character.isISOControl(c) && c != '\t' && c != '\n' && c != '\r' && c != '\f') {
+                return true;
+            }
+        }
+        return false;
     }
 
     private @Nullable Long templateId(Long tenantId, @Nullable String name) {

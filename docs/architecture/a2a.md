@@ -158,8 +158,13 @@ templates as prompts.
   artifacts, completed - or failed with our message. Stored for the key. A cancel or the timeout ends the model's
   answer before its next round. The timeout is twice `app.ai.timeout` for our model, and `app.a2a.timeout` and half a
   minute for a tenant answering through its agent - as long as the chat waits for it.
-- Text parts joined are the question; `raw` text files are sent files (`url` parts: `UnsupportedOperationError`, other
-  types `ContentTypeNotSupportedError`); `metadata["urn:alpdesk-ai:a2a:assistant:1"].template` picks a template.
+- Text parts joined are the question; `raw` text files are sent files (`url` parts: `UnsupportedOperationError`, a
+  file that is no text `ContentTypeNotSupportedError`); `metadata["urn:alpdesk-ai:a2a:assistant:1"].template` picks a
+  template. What a text file is: valid UTF-8 under a type that says text (`text/*`, JSON, XML, YAML, CSV, or none) -
+  and under any other type (clients send source code as `application/x-python`, `application/octet-stream`) when it
+  also has no control characters but tab and line ends, which a binary file has (decided 13 November 2026). The text
+  goes the way of `ask_assistant`'s and `/api/v1/chat`'s `files`, which name no type at all - same limits
+  (`SentFiles`).
 - `metadata[...].task` starts the **scheduled task** of that name assigned to the key (`TaskService.startByA2a`,
   `StartedBy.A2A`): a Task mirroring the run (polled every 2 s up to `app.task.a2a-subscribe`, 30 min), at its end the
   artifacts `report` (TaskMcpTools' text) and `findings` (data: findings, rows, handedOn). **After those 30 minutes

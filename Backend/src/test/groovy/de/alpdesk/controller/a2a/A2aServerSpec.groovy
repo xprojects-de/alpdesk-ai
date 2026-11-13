@@ -405,6 +405,27 @@ class A2aServerSpec extends Specification {
         fake.chats.last().messages.toString().contains("Inhalt der Notiz")
     }
 
+    def "a file under a type that does not say text is read when its content is text: #name as #type"() {
+        given:
+        def setup = answering()
+        def key = a2aKey(setup.admin)
+        def raw = Base64.encoder.encodeToString(bytes as byte[])
+
+        when:
+        def answer = rpc(key, send([[text: "Pruefe die Datei"], [raw: raw, filename: name, mediaType: type]]))
+
+        then:
+        read ? fake.chats.last().messages.toString().contains("def pruefe()") : answer.error.code == -32005
+
+        where:
+        name         | type                       | bytes                                        | read
+        "pruefe.py"  | "application/x-python"     | "def pruefe():\n\treturn 1\n".getBytes("UTF-8") | true
+        "pruefe.js"  | "application/javascript"   | "// def pruefe()\r\n".getBytes("UTF-8")       | true
+        "pruefe.bin" | "application/octet-stream" | "def pruefe()".getBytes("UTF-8")             | true
+        "scan.pdf"   | "application/pdf"          | [0x25, 0x50, 0x44, 0x46, 0xFF, 0xFE]         | false
+        "daten.bin"  | "application/octet-stream" | [0x64, 0x65, 0x66, 0x00, 0x01]               | false
+    }
+
     def "a scheduled task assigned to the key starts over A2A: a task following the run, its report and findings at its end"() {
         given:
         def setup = tasks.tenant()
