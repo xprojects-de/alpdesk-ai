@@ -145,7 +145,7 @@ dependencies {
         implementation("com.fasterxml.jackson.core:jackson-core:2.22.4") {
             because("CVE-2026-89425, CVE-2026-89407 - fixed in 2.22.3, the platform 5.2.x manages 2.22.2")
         }
-        implementation("com.fasterxml.jackson.core:jackson-databind:2.22.4") {
+        implementation("com.fasterxml.jackson.core:jackson-databind:2.23.0") {
             because("CVE-2026-91776, CVE-2026-91777 - fixed in 2.22.3, the platform 5.2.x manages 2.22.2")
         }
     }
