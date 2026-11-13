@@ -287,6 +287,10 @@ Nothing in `.env` or `/api/v1` needs a hand; the new settings have defaults.
   finds waiting.
 - A company answering through its A2A agent: an agent that returns nothing is now an error ("gave no answer")
   for the client software without history, the MCP server and A2A clients too - no longer an empty answer.
+- Small display fixes for tenant admins: after "Beantwortet den Chat" is switched for an A2A agent the own chat
+  follows at once (it showed the model and template pickers until a reload); after a knowledge source moves to
+  another area the document list shows the new area at once; "Bereich ändern" for a document of the company
+  knowledge opens with "Firmenwissen" shown instead of an empty field.
 
 ### Security
 

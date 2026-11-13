@@ -318,10 +318,11 @@ export class KnowledgeSourcesPanelComponent implements OnInit, OnDestroy {
                 takeUntilDestroyed(),
             )
             .subscribe(({source}) => this.running.add(source.id));
-        // A removed source's documents went with it, or became ordinary ones.
+        // A removed source's documents went with it, or became ordinary ones; a source moved to another area took its
+        // documents along.
         this.actions$
             .pipe(
-                ofType(SourceActions.deleteSourceSuccess),
+                ofType(SourceActions.deleteSourceSuccess, SourceActions.updateSourceSuccess),
                 filter(({scope}) => scope === this.scope()),
                 takeUntilDestroyed(),
             )
