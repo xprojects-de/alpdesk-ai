@@ -142,6 +142,8 @@ Nothing in `.env` or `/api/v1` needs a hand; the new settings have defaults.
 
 ### Changed
 
+- **The API documentation is called "Zirmo API" 2.0** (`/swagger`): it was "AI API" 1.0; its file is now
+  `/swagger/zirmo-api-2.0.yml` - a tool that fetched the old file name by heart needs the new one.
 - **Structured results of a connected software reach the assistant**: the structured data a tool returns was
   dropped; the assistant now reads it - beside the tool's text, or in its place where the tool sends no text.
 - **MCP clients get what your connected software sends, unchanged**: a software passed "Direkt an MCP-Clients" now
