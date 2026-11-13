@@ -153,7 +153,11 @@ step with an agent and for a tenant answering through its agent). Frontend:
    by one run, a task still running skipped; the client software only the tasks assigned to its key (404 for any
    other), the MCP server only the tasks assigned to the MCP key the call is made with
    (`tenant_mcp_key_task`, per key since 25 October 2026 - another key of the tenant gets none of them); what they get back is the findings and the answers handed on -
-   never the lines read.
+   never the lines read. What a key learns of a task before starting it is its name, state and **description** (the
+   optional `description` of its text, kept in the definition): in `GET /api/v1/tasks`, `list_tasks` and the A2A
+   card's skill - of its own tasks only, and nothing else of the text (no step, prompt, store or recipient). **A field
+   added to `TaskDefinition` must be nullable**: the scheduler (every minute), the runner (open runs at start) and the
+   service read definitions stored before it existed - one that fails to read stops every task of that tenant.
 8. **Does a store prove itself before the password goes out?** Without a confirmed fingerprint the check stops after
    the key exchange or the TLS handshake; a changed key or certificate gets no login; another type, host or port drops
    the fingerprint and needs the password again; the password encrypted and never in a response; a host in an internal
