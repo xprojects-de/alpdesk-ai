@@ -221,7 +221,7 @@ so the gap is seen.
 | ASST-04 | Number of search results (3-20) | both | walk B7 |
 | ASST-05 | Default model ("Standardmodell für Claude Code": MCP, A2A, API key without history, task drafts) | both | walk B7 |
 | ASST-06 | Image model choice | both | walk B7 |
-| ASST-07 | Chat templates CRUD: name, own instructions, any of the four settings | both | walk B7 |
+| ASST-07 | Chat templates CRUD: name, description, own instructions, any of the four settings | both | walk B7 |
 
 ## Connected software
 
@@ -255,10 +255,10 @@ so the gap is seen.
 | MCP-04 | `ask_assistant` with text files sent (`files`), large ones explored by the model | both | **specs only** - no step yet |
 | MCP-05 | `ask_assistant` returns files as embedded resources (text as text, others base64; max 8 MB, 5 files; only from pass-through software) | both | **specs only** - no step yet |
 | MCP-06 | `ask_assistant` using the key's connected software (reading tools), the tenant's sandbox and the web search where the key allows | both | `scenarios.py` |
-| MCP-07 | Tool `list_templates` | both | `check.py` |
+| MCP-07 | Tool `list_templates`: names, each with its description | both | `check.py` |
 | MCP-08 | Tool `search_knowledge(query)` (passages with path, document id, where to read on; no chat model) | both | `check.py` |
 | MCP-09 | Tool `read_document(document, offset?)` by id | both | `check.py` |
-| MCP-10 | Tools `list_tasks`, `run_task` (waits up to 60 s), `task_run` for the tasks assigned to the key | both | `scenarios.py` |
+| MCP-10 | Tools `list_tasks` (with each task's description), `run_task` (waits up to 60 s), `task_run` for the tasks assigned to the key | both | `scenarios.py` |
 | MCP-11 | Templates as MCP prompts (`prompts/list`, `prompts/get` with optional `question`; slash commands in the client) | both | `check.py` |
 | MCP-12 | Pass-through: reading tools of the key's software listed as `<connection>__<tool>` (max 32 chars) and called by the client; the result as the software sent it (long text, images, files with their type, web links as links, own resource links embedded); every failure a tool error | both | walk B12; `check.py` |
 | MCP-13 | Pass-through: software's prompts listed and fetched | both | **specs only** - no step yet |
@@ -273,7 +273,7 @@ so the gap is seen.
 |---|---|---|---|
 | A2A-01 | Neutral public agent card (streaming, push notifications, extended card, bearer scheme) | both | `check.py` |
 | A2A-02 | Extension descriptions | both | `check.py` |
-| A2A-03 | Extended card for the key: brand, key description, skills `answer`, `template:<id>`, `task:<id>` | both | `check.py` |
+| A2A-03 | Extended card for the key: brand, key description, skills `answer`, `template:<id>`, `task:<id>` (their descriptions first) | both | `check.py` |
 | A2A-04 | Blocking `SendMessage`: one Message with the answer, "Sources", files as raw parts; text files sent as raw parts; template via metadata | both | `scenarios.py` |
 | A2A-05 | `SendStreamingMessage` / `returnImmediately`: a stored Task with the answer as artifact, streamed as SSE | both | **specs only** - no step yet |
 | A2A-06 | Start a scheduled task assigned to the key via metadata `task`: Task mirroring the run (events for 30 min), artifacts `report` and `findings` | both | **specs only** - no step yet |

@@ -26,6 +26,10 @@ Nothing in `.env` or `/api/v1` needs a hand; the new settings have defaults.
 
 ### Added
 
+- **Descriptions for templates and scheduled tasks**: a template gets an optional description in its dialog, a task a
+  `description` in its text. They tell the client software, MCP clients (`list_templates`, `list_tasks`, the
+  templates' prompts) and A2A clients (the card's skills) what each one is for - so another agent can pick the right
+  one. A template's instructions still never go out; the description never reaches the model.
 - **Resources of your own software for MCP clients**: switched "Ressourcen an MCP-Clients" on the page "Software"
   (off for every software), an MCP key that gets the software directly also lists and reads its resources - files,
   logs, attachments. Their addresses start with the software's name and a dot, e.g.

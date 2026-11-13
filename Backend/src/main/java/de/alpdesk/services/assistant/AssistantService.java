@@ -35,6 +35,7 @@ public class AssistantService {
 
     public static final int MAX_INSTRUCTIONS = 4000;
     public static final int MAX_NAME = 80;
+    public static final int MAX_DESCRIPTION = 500;
     public static final int MIN_SEARCH_RESULTS = 3;
     public static final int MAX_SEARCH_RESULTS = 20;
     /** A tenant without settings of its own. */
@@ -162,7 +163,8 @@ public class AssistantService {
         validate(request);
         Instant now = Instant.now();
         return templates.save(new ChatTemplate(null, tenantId, request.name().strip(), instructions(request.instructions()),
-                request.answerSource(), request.creativity(), request.reasoning(), optionalSearchResults(request), now, now));
+                description(request.description()), request.answerSource(), request.creativity(), request.reasoning(),
+                optionalSearchResults(request), now, now));
     }
 
     /** Empty for another tenant's or an unknown template; else as {@link #createTemplate}. */
@@ -174,8 +176,9 @@ public class AssistantService {
         }
         validate(request);
         return Optional.of(templates.update(new ChatTemplate(templateId, tenantId, request.name().strip(),
-                instructions(request.instructions()), request.answerSource(), request.creativity(), request.reasoning(),
-                optionalSearchResults(request), existing.get().createdAt(), Instant.now())));
+                instructions(request.instructions()), description(request.description()), request.answerSource(),
+                request.creativity(), request.reasoning(), optionalSearchResults(request), existing.get().createdAt(),
+                Instant.now())));
     }
 
     /**
@@ -222,7 +225,22 @@ public class AssistantService {
                     Map.of("max", String.valueOf(MAX_NAME)));
         }
         instructions(request.instructions());
+        description(request.description());
         optionalSearchResults(request);
+    }
+
+    /** Stripped; blank is none. */
+    private static @Nullable String description(@Nullable String description) {
+        if (description == null || description.isBlank()) {
+            return null;
+        }
+        String text = description.strip();
+        if (text.length() > MAX_DESCRIPTION) {
+            throw ServiceException.badRequest("template.descriptionTooLong", "The description may have at most "
+                    + MAX_DESCRIPTION + " characters",
+                    Map.of("max", String.valueOf(MAX_DESCRIPTION)));
+        }
+        return text;
     }
 
     private static String instructions(@Nullable String instructions) {

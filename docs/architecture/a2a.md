@@ -145,7 +145,8 @@ templates as prompts.
   key's description (or "<brand> is the AI assistant of the company ...") followed by what the assistant offers beyond
   the documents - web search, code, the key's software (mcp.md "The brand", `McpKeyService.offerOf`) -, the skills
   `answer`, `template:<id>` per chat template (none for a tenant answering through its agent - it takes no template)
-  and `task:<id>` per task assigned to the key.
+  and `task:<id>` per task assigned to the key - each one's description (the template's, the task's `description`)
+  ahead of how to ask for it, so a client's model can tell what to delegate to which.
 
 ### Questions and tasks - `services.a2a.AssistantAgent`
 

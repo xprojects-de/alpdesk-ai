@@ -8,12 +8,13 @@ ignores them still gets correct A2A answers.
 Put the entries in `message.metadata["urn:alpdesk-ai:a2a:assistant:1"]` and name the URI in the header
 `A2A-Extensions` (and in `message.extensions`):
 
-- `template` - the name of one of the assistant's templates (listed in the extended card as skills `template:<id>`):
-  the question is answered with that template's instructions and settings.
-- `task` - the name of a scheduled task assigned to the key (listed as skills `task:<id>`): instead of answering, the
-  agent starts the task. The answer is a Task that follows the run: `TASK_STATE_SUBMITTED` while it waits,
-  `TASK_STATE_WORKING` while it runs, then `TASK_STATE_COMPLETED`, `TASK_STATE_FAILED` or `TASK_STATE_CANCELED`. The
-  text parts of such a message are ignored.
+- `template` - the name of one of the assistant's templates (listed in the extended card as skills `template:<id>`,
+  each with what it is for where the company wrote it): the question is answered with that template's instructions
+  and settings.
+- `task` - the name of a scheduled task assigned to the key (listed as skills `task:<id>`, with their description
+  too): instead of answering, the agent starts the task. The answer is a Task that follows the run:
+  `TASK_STATE_SUBMITTED` while it waits, `TASK_STATE_WORKING` while it runs, then `TASK_STATE_COMPLETED`,
+  `TASK_STATE_FAILED` or `TASK_STATE_CANCELED`. The text parts of such a message are ignored.
 
 ## Answers
 

@@ -36,6 +36,7 @@ its mistakes carry lines as well. It is stored twice in the management database 
 ```yaml
 version: 1
 name: Log check interfaces
+description: Checks the interfaces' logs   # optional: what it is for, for whoever may start it from outside
 notify: [it@example.com]          # failed and unclear runs, and send_mail without its own recipients
 steps:
   - id: logs
@@ -591,7 +592,7 @@ proved:
   computes the next time from now; switching a task off clears it. A single instance, no cluster: no locking.
 - **The client software** (`TaskApiController`, `/api/v1/tasks`, in Swagger): only the tasks assigned to its API key
   (`tenant_api_key_task`, `ApiKeyRequest.taskIds` like its knowledge areas - left out unchanged, 400
-  `apiKey.taskUnknown` for another tenant's task; decided 13 October 2026). `GET /api/v1/tasks` (id, name, active, the
+  `apiKey.taskUnknown` for another tenant's task; decided 13 October 2026). `GET /api/v1/tasks` (id, name, description, active, the
   last run's state and time), `POST /api/v1/tasks/{id}/runs` → **202** `{runId}` (409 `task.running`, `task.inactive`,
   `task.notAllowed`), `GET /api/v1/tasks/{id}/runs/{runId}` (state, error, **the findings** - the check points not ok of
   the last judging steps with their evidence lines - empty while the run is open, when an agent's findings are not yet
@@ -599,6 +600,10 @@ proved:
   off - they were never verified; not the lines read, not the steps). Any other task: 404. The run
   keeps the key (`task_run.started_by_key`). Not built (decided 21 October 2026): inputs handed to a run,
   the run as a stream of events - the software polls.
+- **The description** (`description`, optional, up to 500 characters; decided 13 November 2026): what the task is for,
+  for whoever may start it from outside - `GET /api/v1/tasks`, MCP `list_tasks` after the name, the A2A card's skill
+  `task:<id>` ahead of how to start it. Kept in the definition (`TaskDefinition.description`, no column of its own); a
+  definition stored before has none. Nothing of a run reads it.
 - **The tenant's MCP server** (`TaskMcpTools`, [mcp.md](mcp.md)): `list_tasks`, `run_task`, `task_run` for the tasks
   assigned to the MCP key the call is made with (`tenant_mcp_key_task`, per key since 25 October 2026 - before, one
   switch per task for every key); `task_run` reads any run of such a task, whoever started it, like the API key's. `run_task` waits up to `app.task.mcp-wait` (60 s, decided 21 October 2026) for the

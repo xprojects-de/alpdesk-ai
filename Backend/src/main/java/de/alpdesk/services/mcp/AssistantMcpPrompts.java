@@ -64,7 +64,8 @@ public class AssistantMcpPrompts {
     }
 
     private static String description(ChatTemplate template, String brand) {
-        return "Asks " + brand + " (the company's assistant) with its template \"" + template.name() + "\"";
+        String asks = "Asks " + brand + " (the company's assistant) with its template \"" + template.name() + "\"";
+        return template.description() == null ? asks : template.description() + "\n\n" + asks;
     }
 
     /**

@@ -55,8 +55,8 @@ describe("chat.util", () => {
 
     it("picks the conversation's template while the tenant still has it", () => {
         const templates = [
-            {id: 1, name: "Planer"},
-            {id: 2, name: "Nachschlagen"},
+            {id: 1, name: "Planer", description: null},
+            {id: 2, name: "Nachschlagen", description: null},
         ];
         expect(pickTemplate(templates, 2)).toBe(2);
         expect(pickTemplate(templates, 9)).toBeNull();
@@ -79,7 +79,7 @@ describe("chat.util", () => {
     });
 
     it("sends the typed text, or the template's name when nothing was typed", () => {
-        const template = {id: 2, name: "Videoanalyse"};
+        const template = {id: 2, name: "Videoanalyse", description: null};
         expect(questionToSend("  Wie?  ", template)).toBe("Wie?");
         expect(questionToSend("", template)).toBe("Videoanalyse");
         expect(questionToSend("", undefined)).toBe("");

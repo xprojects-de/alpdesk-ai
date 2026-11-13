@@ -157,6 +157,26 @@ class A2aServerSpec extends Specification {
         card.name() == (api.call(setup.admin, "GET", "/tenant/branding") as Map).name
         card.description() == "Das Wissen der Musterfirma"
         card.skills()*.id() == ["answer", "template:" + template.id]
+        card.skills()[1].description().startsWith("A template of ")
+    }
+
+    def "a template's and a task's description lead their skill in the card - what they are for, then how to ask"() {
+        given:
+        def setup = tasks.tenant()
+        def template = api.call(setup.token, "POST", "/tenant/admin/assistant/templates",
+                [name: "Code-Prüfung", instructions: "Prüfe den Code.", description: "Prüft Quellcode gegen die Regeln."]) as Map
+        def task = tasks.create(setup.token, TaskApi.logCheck(setup.model, "it@example.com",
+                [description: "Prüft die Logs der Schnittstellen."]))
+        def key = a2aKey(setup.token, [taskIds: [task.id]])
+
+        when:
+        AgentCard card = sdkClient(false, new LinkedBlockingQueue()).getExtendedAgentCard(auth(key))
+        def skills = card.skills().collectEntries { [(it.id()): it.description()] }
+
+        then:
+        (skills["template:" + template.id] as String).startsWith("Prüft Quellcode gegen die Regeln.\n\nA template of ")
+        (skills["task:" + task.id] as String).startsWith("Prüft die Logs der Schnittstellen.\n\nA scheduled task of ")
+        !card.toString().contains("Prüfe den Code.")
     }
 
     def "the extended card says what the assistant offers beyond the documents - here the key's software"() {

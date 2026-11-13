@@ -93,7 +93,8 @@ public class TaskCompiler {
     private static final Pattern STEP_ID = Pattern.compile("[a-z][a-z0-9_]{0,39}");
     private static final Pattern PLACEHOLDER = Pattern.compile("\\{([^{}]*)}");
     private static final Pattern DATE_LETTERS = Pattern.compile("[yMd._ -]+");
-    private static final Set<String> TASK_FIELDS = Set.of("version", "name", "notify", "triggers", "steps");
+    private static final Set<String> TASK_FIELDS = Set.of("version", "name", "description", "notify", "triggers",
+            "steps");
     private static final Set<String> TRIGGER_FIELDS = Set.of("type", "every", "cron");
     private static final Pattern EVERY = Pattern.compile("(\\d{1,5})\\s*([mhd])");
     static final int MAX_TRIGGERS = 10;
@@ -256,6 +257,7 @@ public class TaskCompiler {
                 errors.at(root, "task.fieldRequired", "The field version is required", Map.of("field", "version"));
             }
             String name = task.text("name", true, MAX_NAME);
+            String description = task.text("description", false, MAX_DESCRIPTION);
             List<String> notify = recipients(task, "notify", true);
             List<Trigger> triggers = triggers(task);
             List<Node> stepNodes = task.list("steps", true);
@@ -280,7 +282,7 @@ public class TaskCompiler {
             for (int i = 0; i < steps.size(); i++) {
                 withEdges.add(withEdges(steps.get(i), i, steps, nextNodes.get(i)));
             }
-            return new TaskDefinition(name, notify, triggers, withEdges);
+            return new TaskDefinition(name, description, notify, triggers, withEdges);
         }
 
         /** Schedules: type schedule with every (15m to 7d) or cron (six fields) - never more often than 15 minutes. */
@@ -1173,7 +1175,8 @@ public class TaskCompiler {
                     case SEND_MAIL -> step;
                 });
             }
-            return errors.isEmpty() ? new TaskDefinition(draft.name(), draft.notifyTo(), draft.triggers(), steps) : null;
+            return errors.isEmpty() ? new TaskDefinition(draft.name(), draft.description(), draft.notifyTo(),
+                    draft.triggers(), steps) : null;
         }
 
         private Step withStore(Step step) {

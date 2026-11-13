@@ -195,12 +195,14 @@ class AssistantSpec extends Specification {
 
         when:
         def planner = api.call(token, "POST", "/tenant/admin/assistant/templates",
-                [name: " Angebotsprüfung ", instructions: "Prüfe Angebote auf Preise und Fristen.", reasoning: "HIGH"]) as Map
+                [name       : " Angebotsprüfung ", instructions: "Prüfe Angebote auf Preise und Fristen.", reasoning: "HIGH",
+                 description: "  Prüft ein Angebot gegen die Lieferbedingungen. "]) as Map
         def lookup = api.admin("POST", "/admin/tenants/${tenant.id}/assistant/templates",
                 [name: "Nachschlagen", answerSource: "DOCUMENTS_ONLY", creativity: "LOW", searchResults: 3]) as Map
 
         then:
         planner.name == "Angebotsprüfung"
+        planner.description == "Prüft ein Angebot gegen die Lieferbedingungen."
         planner.reasoning == "HIGH"
         planner.creativity == null
         (api.call(token, "GET", "/tenant/admin/assistant/templates") as List)*.name == ["Angebotsprüfung", "Nachschlagen"]
@@ -216,6 +218,7 @@ class AssistantSpec extends Specification {
 
         then:
         changed.name == "Planer"
+        changed.description == null
         changed.reasoning == null
         changed.creativity == "HIGH"
 
@@ -240,6 +243,7 @@ class AssistantSpec extends Specification {
         "a blank name"            | [name: "  "]
         "a name too long"         | [name: "x" * 81]
         "instructions too long"   | [instructions: "x" * 4001]
+        "a description too long"  | [description: "x" * 501]
         "too few search results"  | [searchResults: 2]
         "too many search results" | [searchResults: 21]
     }
@@ -257,16 +261,19 @@ class AssistantSpec extends Specification {
         api.status(api.adminToken, "GET", "/admin/tenants/999999/assistant") == HttpStatus.NOT_FOUND
     }
 
-    def "users and the client software see the templates' names only"() {
+    def "users and the client software see the templates' names and descriptions, never their instructions"() {
         given:
         def tenant = api.tenant()
         def admin = api.tenantAdminToken(tenant.id)
-        def template = api.call(admin, "POST", "/tenant/admin/assistant/templates", [name: "Planer", instructions: "Geheim."]) as Map
+        def template = api.call(admin, "POST", "/tenant/admin/assistant/templates",
+                [name: "Planer", instructions: "Geheim.", description: "Plant die Woche."]) as Map
+        def bare = api.call(admin, "POST", "/tenant/admin/assistant/templates", [name: "Rohentwurf", description: "  "]) as Map
         def key = api.admin("POST", "/admin/tenants/${tenant.id}/api-keys", [name: "Software"]).plainKey as String
+        def listed = [[id: template.id, name: "Planer", description: "Plant die Woche."], [id: bare.id, name: "Rohentwurf", description: null]]
 
         expect:
-        api.call(api.userToken(tenant.id), "GET", "/tenant/chat/templates") == [[id: template.id, name: "Planer"]]
-        api.call(key, "GET", "/api/v1/templates") == [[id: template.id, name: "Planer"]]
+        api.call(api.userToken(tenant.id), "GET", "/tenant/chat/templates") == listed
+        api.call(key, "GET", "/api/v1/templates") == listed
         api.status(api.userToken(tenant.id), "GET", "/tenant/admin/assistant") == HttpStatus.FORBIDDEN
     }
 
@@ -403,6 +410,21 @@ class AssistantSpec extends Specification {
         def key = api.admin("POST", "/admin/tenants/${tenant.id}/api-keys", [name: "Software"]).plainKey as String
         api.error(key, "POST", "/api/v1/chat", [modelId: setup.chat.id, message: "x", templateId: foreign.id]) == "Unknown template"
         api.status(key, "POST", "/api/v1/chat", [modelId: setup.chat.id, message: "x", templateId: 999999]) == HttpStatus.BAD_REQUEST
+    }
+
+    def "a template's description is for whoever chooses it - it never reaches the model"() {
+        given:
+        def tenant = api.tenant()
+        def setup = chatSetup(tenant)
+        def template = api.call(setup.admin, "POST", "/tenant/admin/assistant/templates",
+                [name: "Planer", instructions: "Antworte als Wochenplan.", description: "Plant die Woche des Teams."]) as Map
+
+        when:
+        api.ask(setup.user, [modelId: setup.chat.id, message: "Frage", templateId: template.id])
+
+        then:
+        systemPrompt().contains("Antworte als Wochenplan.")
+        !fake.chats.last().messages.toString().contains("Plant die Woche des Teams.")
     }
 
     def "the client software asks with a template"() {

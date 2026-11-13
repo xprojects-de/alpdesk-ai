@@ -103,6 +103,10 @@ public class TaskMcpTools {
         StringBuilder text = new StringBuilder("Tasks:");
         for (Task task : opened) {
             text.append("\n- ").append(task.name()).append(task.active() ? "" : " (switched off)");
+            String description = tasks.description(task);
+            if (description != null) {
+                text.append(": ").append(description);
+            }
             tasks.lastRun(tenantId, task.id()).ifPresent(run -> text.append(" - last run ").append(run.state().name())
                     .append(" at ").append(run.createdAt()));
         }

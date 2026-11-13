@@ -79,18 +79,24 @@ public class A2aCards {
                 : assistants.templates(tenantId);
         for (ChatTemplate template : templates) {
             skills.add(AgentSkill.builder().id("template:" + template.id()).name(template.name())
-                    .description("A template of " + brand + " - ask with metadata[\"" + ASSISTANT_EXTENSION
-                            + "\"].template = \"" + template.name() + "\"")
+                    .description(described(template.description()) + "A template of " + brand + " - ask with metadata[\""
+                            + ASSISTANT_EXTENSION + "\"].template = \"" + template.name() + "\"")
                     .tags(List.of("template")).build());
         }
         for (Task task : tasks.tasksOfMcpKey(tenantId, mcpKeyId)) {
             skills.add(AgentSkill.builder().id("task:" + task.id()).name(task.name())
-                    .description("A scheduled task of " + brand + " - start it with metadata[\"" + ASSISTANT_EXTENSION
+                    .description(described(tasks.description(task)) + "A scheduled task of " + brand
+                            + " - start it with metadata[\"" + ASSISTANT_EXTENSION
                             + "\"].task = \"" + task.name() + "\": the answer is a task whose artifacts are its "
                             + "report and its findings")
                     .tags(List.of("task")).build());
         }
         return card(origin, brand, description, new AgentProvider(brand, origin), skills);
+    }
+
+    /** What a tenant admin wrote it is for, ahead of how to ask for it; empty without. */
+    private static String described(@Nullable String description) {
+        return description == null ? "" : description + "\n\n";
     }
 
     /** The absolute address under the context path. */

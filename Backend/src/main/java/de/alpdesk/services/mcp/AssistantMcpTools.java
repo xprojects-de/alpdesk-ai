@@ -104,7 +104,7 @@ public class AssistantMcpTools {
                 .build();
         return SyncToolSpecification.builder()
                 .tool(tool)
-                .callHandler(guarded(LIST_TEMPLATES, (context, request) -> text(templateNames(tenantId(context)), false)))
+                .callHandler(guarded(LIST_TEMPLATES, (context, request) -> text(templateList(tenantId(context)), false)))
                 .build();
     }
 
@@ -270,8 +270,8 @@ public class AssistantMcpTools {
     }
 
     private static String listDescription(String assistant) {
-        return "Lists the names of the templates of " + assistant + " - kinds of questions it answers in a way of "
-                + "their own (e.g. a short lookup, a plan, a code review).";
+        return "Lists the templates of " + assistant + " with what each is for - kinds of questions it answers in a "
+                + "way of their own (e.g. a short lookup, a plan, a code review).";
     }
 
     static Long tenantId(McpTransportContext context) {
@@ -303,6 +303,22 @@ public class AssistantMcpTools {
                 .findFirst()
                 .orElseThrow(() -> ServiceException.badRequest("mcp.templateUnknown",
                         "Unknown template \"" + name + "\" - " + templateNames(tenantId), Map.of("name", name)));
+    }
+
+    /** Every template's name, with what it is for where a tenant admin wrote it. */
+    private String templateList(Long tenantId) {
+        List<ChatTemplate> all = assistants.templates(tenantId);
+        if (all.isEmpty()) {
+            return "The assistant has no templates.";
+        }
+        StringBuilder text = new StringBuilder("Templates:");
+        for (ChatTemplate template : all) {
+            text.append("\n- ").append(template.name());
+            if (template.description() != null) {
+                text.append(": ").append(template.description());
+            }
+        }
+        return text.toString();
     }
 
     private String templateNames(Long tenantId) {

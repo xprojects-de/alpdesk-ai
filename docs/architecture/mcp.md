@@ -131,7 +131,7 @@ API: Claude Code brings its own model and takes extra knowledge through MCP tool
     ([ai-features.md](ai-features.md) "Files sent with a question"); a file that cannot come is a tool error. Text only:
     binary files would have to come as Base64, which the client's model writes out character by character; they come
     when a real case asks for them. The default model's context must hold them (an own Ollama server: `num_ctx`).
-  - `list_templates()`: the templates' names, as a user sees them.
+  - `list_templates()`: the templates' names, each with its description where a tenant admin wrote one.
 - **Templates as prompts** (roadmap point 29, decided 14 October 2026): the tenant's chat templates are the server's
   MCP prompts, which clients offer as slash commands - Copilot `/mcp.muster-ai.code-review`, Claude Code
   `/mcp__muster-ai__code-review`. The server's part of the command (`muster-ai`) is the name the client was given
@@ -139,7 +139,7 @@ API: Claude Code brings its own model and takes extra knowledge through MCP tool
   (`AssistantMcpPrompts.promptName`: "Code-Review" → `code-review`, "Prüfung" → `pruefung`, at most 40 characters;
   a name taken twice stays the oldest template's, a later one gets its id, `code-review-17` - not a number by position,
   which a template added later would move to another one), its title the template's name, its description "Asks Muster AI (the company's
-  assistant) with its template ...". One optional argument, `question`. `prompts/get` gives the client's model one
+  assistant) with its template ..." - after the template's own description, where it has one. One optional argument, `question`. `prompts/get` gives the client's model one
   user message: "Ask Muster AI with the tool ask_assistant and the template "Code-Review". The question: ..." - without
   a question, "what I am working on right now", with the full context and the files. The templates' instructions never
   go out. Each tenant has its own templates, so `BrandedMcpServer` answers `prompts/list` and `prompts/get` itself

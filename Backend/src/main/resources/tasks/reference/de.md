@@ -8,6 +8,7 @@ per E-Mail - nur wenn etwas nicht stimmt, oder wenn ein Lauf fehlschlug oder unk
 |---|---|
 | `version` | immer `1` |
 | `name` | der Name der Aufgabe, eindeutig im Mandanten |
+| `description` | optional, bis 500 Zeichen: wofür die Aufgabe da ist - angezeigt der angebundenen Software, MCP- und A2A-Clients, die sie starten dürfen |
 | `notify` | E-Mail-Adressen, die von einem fehlgeschlagenen oder unklaren Lauf erfahren (und ein `send_mail` ohne `to` bekommen) |
 | `triggers` | wann sie von selbst läuft - weggelassen: nur von Hand, durch die angebundene Software oder MCP |
 | `steps` | die Schritte, von oben nach unten |

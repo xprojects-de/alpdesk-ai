@@ -151,7 +151,8 @@ class TaskStartSpec extends Specification {
         def setup = tasks.tenant()
         String mail = "it-" + UUID.randomUUID() + "@example.com"
         store.write(log(), "ERROR Timeout to interface X\n")
-        def task = tasks.create(setup.token, TaskApi.logCheck(setup.model, mail))
+        def task = tasks.create(setup.token, TaskApi.logCheck(setup.model, mail,
+                [description: "Prüft die Logs der Schnittstellen auf Zeitüberschreitungen."]))
         def other = tasks.create(setup.token, TaskApi.logCheck(setup.model, mail))
         def key = api.call(setup.token, "POST", "/tenant/admin/api-keys", [name: "Software", taskIds: [task.id]]) as Map
         String apiKey = key.plainKey
@@ -159,6 +160,8 @@ class TaskStartSpec extends Specification {
         expect: "the key lists its task"
         (key.key as Map).taskIds == [task.id]
         (api.call(apiKey, "GET", "/api/v1/tasks") as List<Map>)*.name == [task.name]
+        (api.call(apiKey, "GET", "/api/v1/tasks") as List<Map>)*.description ==
+                ["Prüft die Logs der Schnittstellen auf Zeitüberschreitungen."]
         api.status(apiKey, "POST", "/api/v1/tasks/${other.id}/runs").code == 404
 
         when:
@@ -296,7 +299,8 @@ class TaskStartSpec extends Specification {
         given:
         def setup = tasks.tenant()
         store.write(log(), "ERROR Timeout to interface X\n")
-        def opened = tasks.create(setup.token, TaskApi.logCheck(setup.model, "it@example.com", [name: "Offene Prüfung"]))
+        def opened = tasks.create(setup.token, TaskApi.logCheck(setup.model, "it@example.com",
+                [name: "Offene Prüfung", description: "Prüft die Logs der Schnittstellen."]))
         tasks.create(setup.token, TaskApi.logCheck(setup.model, "it@example.com", [name: "Geschlossen"]))
         String key = (api.call(setup.token, "POST", "/tenant/admin/mcp-keys", [name: "Claude", taskIds: [opened.id]]) as Map).plainKey
 
@@ -306,7 +310,7 @@ class TaskStartSpec extends Specification {
         Map closed = tool(key, "run_task", [task: "Geschlossen"])
 
         then:
-        list.contains("Offene Prüfung")
+        list.contains("- Offene Prüfung: Prüft die Logs der Schnittstellen.")
         !list.contains("Geschlossen")
         !started.isError
         (started.content[0].text as String).contains("ended DONE")
