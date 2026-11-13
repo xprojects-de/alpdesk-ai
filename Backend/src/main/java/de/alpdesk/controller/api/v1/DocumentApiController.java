@@ -80,9 +80,9 @@ public class DocumentApiController {
             + "area a known document moves there", security = @SecurityRequirement(name = "BearerAuth"))
     @ApiResponse(responseCode = "201", description = "Stored as a new document, waiting to be embedded", content = @Content(schema = @Schema(implementation = DocumentResponse.class)))
     @ApiResponse(responseCode = "200", description = "The document with this externalId: replaced and waiting to be embedded again, or unchanged", content = @Content(schema = @Schema(implementation = DocumentResponse.class)))
-    @ApiResponse(responseCode = "400", description = "Empty, unreadable or password-protected document, one without text, an invalid externalId, an unknown area or one the key is not assigned to", content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
-    @ApiResponse(responseCode = "409", description = "No embedding model chosen, no API key for its provider, or the document with this externalId is in an area the key is not assigned to", content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
-    @ApiResponse(responseCode = "413", description = "The document exceeds the size limit")
+    @ApiResponse(responseCode = "400", description = "Empty, unreadable or password-protected document, one without text or larger than 50 MB, an invalid externalId, an unknown area or one the key is not assigned to", content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+    @ApiResponse(responseCode = "409", description = "No embedding model chosen, no API key for its provider, an image while the tenant has no model reading images, the document with this externalId is in an area the key is not assigned to, or it was changed by another push at the same moment - push again", content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+    @ApiResponse(responseCode = "413", description = "The request exceeds the server's request size limit - a document over 50 MB is answered 400")
     @ApiResponse(responseCode = "415", description = "The file type is not supported", content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     public HttpResponse<DocumentResponse> upload(Authentication authentication, @Part("file") CompletedFileUpload file,
                                                  @Nullable @Part("externalId") String externalId,

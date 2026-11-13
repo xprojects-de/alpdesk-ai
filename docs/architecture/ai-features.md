@@ -827,6 +827,11 @@ conversation; the client software has the same as the users.
   and the dimension is asked of the provider (OpenAI `dimensions`, Gemini `outputDimensionality`) - a model offering
   more, like `gemini-embedding-001` with 3072, is entered with 1536. A model entered with more before that limit is
   searched without the index (logged). On a small table PostgreSQL rightly scans instead of using the index.
+- The table also has an **index on a chunk's document** (`embedding_document_idx`, on
+  `(metadata->>'document_id')::bigint` - the expression langchain4j's `removeAll` and our own delete write), created
+  with the others: every embedding run removes the document's previous chunks first and every delete removes them,
+  and without it each read the tenant's whole table. An installation from before gets it with the first document a
+  tenant embeds after the update.
 - **Only the indexer creates the table** (`TenantEmbeddings.storeForIndexing`), with the first document it embeds,
   under the tenant's lock - which a change of the embedding model takes too. The search and the removal of a document's
   chunks never create it: before the first document there is no table, the search finds nothing and there is nothing to

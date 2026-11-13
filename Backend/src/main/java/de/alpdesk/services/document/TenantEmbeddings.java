@@ -48,6 +48,12 @@ public class TenantEmbeddings {
      */
     private static final String JOIN_DOCUMENT = "JOIN document d ON d.id = (e.metadata->>'" + DOCUMENT_ID + "')::bigint "
             + "AND d.status = 'READY'";
+    /**
+     * A chunk's document as the deletes ask for it - ours and langchain4j's removeAll, whose filter on a Long writes
+     * exactly this. The index on it ({@link #DOCUMENT_INDEX}) must use the same expression to be hit.
+     */
+    private static final String CHUNK_DOCUMENT = "(metadata->>'" + DOCUMENT_ID + "')::bigint";
+    private static final String DOCUMENT_INDEX = "embedding_document_idx";
     /** The full-text index's name starts with it - one index of this kind per table, for the tenant's language. */
     private static final String TEXT_INDEX_PREFIX = "embedding_text_";
     /**
@@ -69,11 +75,12 @@ public class TenantEmbeddings {
 
     /**
      * The store the indexer writes into: its table is created on first use with the vector length of the tenant's
-     * embedding model (the tenant migrations created the extension), with its indexes: the full-text index and an HNSW
-     * index for the vector search. Without the HNSW index every chunk is compared with the query - fine for a few thousand
-     * chunks, too slow for a tenant with tens of thousands; with it the search stays in milliseconds, approximate but at
-     * our numbers of results practically exact. pgvector's HNSW takes at most 2000 dimensions
-     * (AiModelService.MAX_DIMENSION); a model entered with more before that limit is searched without.
+     * embedding model (the tenant migrations created the extension), with its indexes: the full-text index, the index
+     * on a chunk's document for removing its chunks, and an HNSW index for the vector search. Without the HNSW index
+     * every chunk is compared with the query - fine for a few thousand chunks, too slow for a tenant with tens of
+     * thousands; with it the search stays in milliseconds, approximate but at our numbers of results practically
+     * exact. pgvector's HNSW takes at most 2000 dimensions (AiModelService.MAX_DIMENSION); a model entered with more
+     * before that limit is searched without.
      * <p>
      * Only the indexer calls it, under the tenant's lock (DocumentIndexer.withTenantLock), which a change of the
      * embedding model takes too: two CREATE TABLE IF NOT EXISTS at the same moment fail on PostgreSQL's catalog
@@ -231,7 +238,7 @@ public class TenantEmbeddings {
         if (documentIds.isEmpty()) {
             return;
         }
-        String sql = "DELETE FROM " + TABLE + " WHERE (metadata->>'" + DOCUMENT_ID + "')::bigint = ANY(?)";
+        String sql = "DELETE FROM " + TABLE + " WHERE " + CHUNK_DOCUMENT + " = ANY(?)";
         try (Connection connection = databases.dataSource(databaseName).getConnection();
              PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setArray(1, connection.createArrayOf("bigint", documentIds.toArray()));
@@ -364,6 +371,10 @@ public class TenantEmbeddings {
 
     private void createIndexes(String databaseName, int dimension, SearchLanguage language) {
         ensureTextIndex(databaseName, language);
+        // Every embedding run removes the document's previous chunks first, and so does every delete: without this
+        // index each of them reads the tenant's whole table - an import of thousands of files once per file.
+        // The expression in parentheses of its own: PostgreSQL takes a cast in an index only so.
+        execute(databaseName, "CREATE INDEX IF NOT EXISTS " + DOCUMENT_INDEX + " ON " + TABLE + " ((" + CHUNK_DOCUMENT + "))");
         if (dimension > AiModelService.MAX_DIMENSION) {
             LOG.warn("Embeddings of {} have {} dimensions - more than an HNSW index takes; searched without one",
                     databaseName, dimension);

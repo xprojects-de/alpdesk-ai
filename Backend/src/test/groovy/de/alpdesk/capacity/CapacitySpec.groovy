@@ -260,7 +260,7 @@ class CapacitySpec extends Specification {
                 "Admin (alles)"           : KnowledgeScope.everything(),
                 "Firmenwissen (5 %)"      : KnowledgeScope.companyKnowledgeAnd([]),
                 "Firmenwissen + Bereich A": KnowledgeScope.companyKnowledgeAnd([areaA])]
-        def store = embeddings.storeForIndexing(tenant.databaseName(), DIMENSION)
+        def store = embeddings.storeForIndexing(tenant.databaseName(), DIMENSION, SearchLanguage.GERMAN)
         List<String> queries = (0..<SEARCHES).collect { query(new Random(1_000_000 + it)) }
 
         when: "the chunks are written in steps, each step measured by searching like the chat and by each side alone"
@@ -280,7 +280,7 @@ class CapacitySpec extends Specification {
             }
             double writeSeconds = seconds(start)
             def sizes = tenantRow(tenant.databaseName(), "SELECT pg_total_relation_size('embedding') AS total, "
-                    + "pg_relation_size('embedding_vector_idx') AS vector, pg_relation_size('embedding_text_idx') AS text")
+                    + "pg_relation_size('embedding_vector_idx') AS vector, pg_relation_size('" + TenantEmbeddings.textIndexName(SearchLanguage.GERMAN) + "') AS text")
             queries.take(10).each { search(tenant, it) }
             List<Long> sequential = queries.collect { q -> timed { search(tenant, q) } }
             List<Long> vectorSide = queries.collect { q -> timed { searchVectors(tenant, q) } }
@@ -403,7 +403,7 @@ class CapacitySpec extends Specification {
     }
 
     private void searchText(Tenant tenant, String query) {
-        embeddings.searchText(tenant.databaseName(), query, CANDIDATES, KnowledgeScope.everything())
+        embeddings.searchText(tenant.databaseName(), SearchLanguage.GERMAN, query, CANDIDATES, KnowledgeScope.everything())
     }
 
     /**

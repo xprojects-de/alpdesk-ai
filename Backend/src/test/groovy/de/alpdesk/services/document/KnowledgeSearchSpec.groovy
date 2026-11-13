@@ -206,6 +206,18 @@ class KnowledgeSearchSpec extends Specification {
                 .contains("embedding_vector_idx")
     }
 
+    def "removing a document's chunks uses the index on a chunk's document - one document's and several at once: #condition"() {
+        given:
+        def tenant = tenantWith(["a.txt": "Text"])
+
+        expect: "the conditions langchain4j's removeAll and our own delete write"
+        explain(tenant, "DELETE FROM embedding WHERE " + condition).contains("embedding_document_idx")
+
+        where:
+        condition << ["(metadata->>'document_id')::bigint is not null and (metadata->>'document_id')::bigint = 1",
+                      "(metadata->>'document_id')::bigint = ANY('{1,2}')"]
+    }
+
     def "the full-text search uses its index - the search's own statement, its expression exactly the index's"() {
         given:
         def tenant = tenantWith(["a.txt": "Text"])

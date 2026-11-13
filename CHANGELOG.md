@@ -208,6 +208,12 @@ Nothing in `.env` or `/api/v1` needs a hand; the new settings have defaults.
 
 ### Fixed
 
+- **Embedding, replacing and deleting documents stays fast in a large knowledge**: removing a document's previous
+  pieces read the tenant's whole store each time - noticeable in a large import or after a change of the embedding
+  model. An index now finds them; a tenant gets it with the first document embedded after the update.
+- **The API documentation of `POST /api/v1/documents` names the answers as they are**: a document over 50 MB is
+  answered 400 (not 413, which only a request over the server's limit gets), and 409 also for an image without an
+  image model and for a push changed by another at the same moment. The answers themselves are unchanged.
 - **Downloading a large file of the chat over a slow line** no longer ends with a timeout after 30 seconds: the
   download goes on as long as data arrives - also for a clip or image shown below an answer.
 - **A scheduled task's assistant prompt finds the knowledge again.** A `prompt` step with `assistant: true` searched
