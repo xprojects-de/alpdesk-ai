@@ -53,6 +53,10 @@ services:
       APP_MONITORING_MAIL_TO: "betrieb@example.com"
       # The web search goes to the Tavily fake below (devtools/tavily-fake) - no Tavily account, invented pages.
       APP_WEB_SEARCH_ADDRESS: "http://tavily-fake:8000"
+      # The stack's own origin as a CORS origin: since micronaut-http-server 5.2.23 the drive-by-localhost guard counts
+      # every *.localhost host as local, but only localhost itself as a local Origin - the browser's module scripts and
+      # fonts (sent with an Origin) were refused with 403. An installation with a real domain is not affected.
+      APP_CORS_ORIGINS: "https://ai.general-chat.localhost:8443"
       # The mode's switch (.env of mode.sh): with WAM the people sign in through Authelia, without it with a password.
       APP_WAM_ENABLED: "${APP_WAM_ENABLED:-true}"
       APP_WAM_USER_HEADER: "Remote-User"
