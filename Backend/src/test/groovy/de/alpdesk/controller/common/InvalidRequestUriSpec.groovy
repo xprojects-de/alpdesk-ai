@@ -19,13 +19,15 @@ class InvalidRequestUriSpec extends Specification {
     @Inject
     EmbeddedServer server
 
-    def "GET // is a 400, not a 500"() {
+    def "GET // is no 500 - it answers as / does"() {
+        // Micronaut before 5.2.6 refused the target (400); since 5.2.6 it routes it as "/". Either is fine - what must
+        // not come back is the 500 with an ERROR stack trace.
         when:
         def statusLine = send("GET // HTTP/1.1\r\nHost: localhost\r\nConnection: close\r\n\r\n")
 
         then:
-        statusLine.startsWith("HTTP/1.1 400")
-
+        !statusLine.startsWith("HTTP/1.1 5")
+        statusLine == send("GET / HTTP/1.1\r\nHost: localhost\r\nConnection: close\r\n\r\n")
     }
 
     private String send(String request) {
