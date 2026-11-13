@@ -135,7 +135,7 @@ class WamLoginSpec extends Specification {
         when:
         users.update(users.findAllByUsernameIgnoreCaseOrderByTenantId(user.username).first().with { u ->
             new TenantUser(u.id(), u.tenantId(), u.username(), u.displayName(), u.passwordHash(), false, u.admin(),
-                    u.createdAt(), u.updatedAt(), u.lastLoginAt(), u.sessionsValidFrom(), u.language())
+                    u.createdAt(), u.updatedAt(), u.lastLoginAt(), u.sessionsValidFrom(), u.language(), u.person())
         })
 
         then:
@@ -144,7 +144,7 @@ class WamLoginSpec extends Specification {
         when:
         users.update(users.findAllByUsernameIgnoreCaseOrderByTenantId(user.username).first().with { u ->
             new TenantUser(u.id(), u.tenantId(), u.username(), u.displayName(), u.passwordHash(), true, u.admin(),
-                    u.createdAt(), u.updatedAt(), u.lastLoginAt(), u.sessionsValidFrom(), u.language())
+                    u.createdAt(), u.updatedAt(), u.lastLoginAt(), u.sessionsValidFrom(), u.language(), u.person())
         })
         admin("PUT", "/admin/tenants/${tenant.id}", [name: tenant.name, active: false])
 
@@ -159,7 +159,7 @@ class WamLoginSpec extends Specification {
         def username = unique("alt")
         def now = Instant.now()
         def old = users.save(new TenantUser(null, tenant.id as Long, username, "Alt", PasswordHasher.hash("geheim-genug-123"),
-                true, false, now, now, null, null, "en"))
+                true, false, now, now, null, null, "en", null))
         groups.joinStandard(old.tenantId(), old.id())
 
         expect: "the password no longer signs in - the WAM proxy does"

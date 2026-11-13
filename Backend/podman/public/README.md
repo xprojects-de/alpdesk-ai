@@ -662,8 +662,10 @@ APP_WAM_NAME_HEADER=X-Remote-Name    # optional: the person's name for a new use
 - **One person in several tenants**: a username is unique per tenant, so the admin can give the same person a user in
   several tenants (page **Users** of the tenant, "User from another tenant" - "Benutzer aus anderem Mandanten"). At
   the sign-in the person chooses the tenant once (the browser remembers it) and switches in the user menu - with WAM
-  without a password. Without WAM the switch asks for the password of the user in the other tenant, and a username in
-  several tenants signs in on the tenant's own login page (`/login/<key>`, shown on the tenant's tab "Branding").
+  without a password. Without WAM the switch asks for the password of the user in the other tenant and is offered
+  only between users added that way - a user created by name is nobody else's, also when its name exists in another
+  tenant -, and a username in several tenants signs in on the tenant's own login page (`/login/<key>`, shown on the
+  tenant's tab "Branding").
 - **The app trusts the header completely**: the proxy must remove `APP_WAM_USER_HEADER` (and `APP_WAM_NAME_HEADER`,
   `APP_WAM_GROUPS_HEADER`) from every request coming from outside, and the app must be reachable through the proxy
   only - never publish its port anywhere else. Whoever reaches it past the proxy can sign in as anyone.

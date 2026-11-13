@@ -43,6 +43,9 @@ public interface TenantUserRepository extends CrudRepository<TenantUser, Long> {
 
     void updateLastLoginAt(@Id Long id, Instant lastLoginAt);
 
+    /** The person alone - set when the admin adds the person's user to another tenant. */
+    void updatePerson(@Id Long id, Long person);
+
     /**
      * The language alone: a whole row written back would undo what an admin changed meanwhile on a user the person has
      * in another tenant (deactivated, demoted, renamed).

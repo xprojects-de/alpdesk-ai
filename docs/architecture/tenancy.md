@@ -110,7 +110,11 @@ tenants is a new token.
   `account.switchTenantNotFound` otherwise). The account's `tenants` carry the tenants' login keys only with WAM
   (the switch then updates the remembered login page) - without WAM the same name may be another person's. With WAM the proxy's header proves the person (checked on every request,
   see below) - no password. Without WAM a username proves no person (the admin may create "meier" in two tenants for
-  two people), so the switch takes the **target user's password** (400 `account.passwordRequired` /
+  two people, and a tenant admin may create a user under any name its tenant does not have yet), so **only the users
+  of the same person count** - those the admin added from one another (`tenant_user.person`, below): the account lists
+  no other tenant and the switch answers 404 for any other, as for a tenant without the name, so nobody learns
+  through a user of a guessed name which companies use the installation (security review 12 November 2026). The
+  switch then takes the **target user's password** (400 `account.passwordRequired` /
   `account.switchPasswordWrong` - a 400, never a 401, which would log the person out): a login into the other tenant
   from the menu. Two accounts, two passwords. `GET /tenant/account` names the tenants with a user of this username
   who may log in (`tenants`, the current one included; without WAM only users with a password - a user the admin added
@@ -122,7 +126,9 @@ tenants is a new token.
 - **The admin** creates a user with a name that exists in another tenant, and adds a person's existing user to
   another tenant from the tenant's users (`POST /admin/tenants/{id}/users/from-tenant {userId, active?, admin?}`,
   "Benutzer aus anderem Mandanten": the same username, display name and language, no password - without WAM the
-  admin sets one; 404 for an unknown user, 409 for a name taken in the tenant). **The admin only**: a tenant admin
+  admin sets one; 404 for an unknown user, 409 for a name taken in the tenant). It marks both as **one person's**:
+  `tenant_user.person` - the id of the user first taken from, on every user of the person; NULL for a user created by
+  name, also when its name is another tenant's user's. With WAM it is not read (the proxy proves the person). **The admin only**: a tenant admin
   must not see another tenant's users. A tenant admin without WAM creates a user by name as before - allowed now that
   the name is unique per tenant only.
 - Not built (decided 5 November 2026): one person account with one password for all tenants; a default tenant set by

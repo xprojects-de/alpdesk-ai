@@ -280,6 +280,12 @@ Nothing in `.env` or `/api/v1` needs a hand; the new settings have defaults.
 
 ### Security
 
+- **Without a WAM proxy, the tenant switch goes by the person, no longer by the username.** A user of the same name in
+  another tenant - one another company's admin may create under any name - was listed in the account's tenants with
+  its company's name, and the switch asked for its password. Now only the users the admin added with "Benutzer aus
+  anderem Mandanten" count as one person's. Installations of the release candidate without WAM: a person's users in
+  several tenants from before this release - created by name or added that way - are no longer offered for the
+  switch; delete all but one and add them again from it.
 - A spreadsheet that unpacks into an excessive size is refused: a part of an Office file that unpacks into more than
   200 MB is refused before it is read, so is an Office file whose parts unpack into more than 500 MB together or that
   has more than 10,000 parts - a file made of many parts just below the limit kept the server busy for minutes.

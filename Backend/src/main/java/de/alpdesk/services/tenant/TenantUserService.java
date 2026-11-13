@@ -113,7 +113,7 @@ public class TenantUserService {
         TenantUser user = repository.save(new TenantUser(null, tenantId, username, displayName,
                 request.password() == null ? null : hash(request.password()),
                 request.active() == null || request.active(), Boolean.TRUE.equals(request.admin()), now, now, null, null,
-                language));
+                language, null));
         if (request.groupIds() == null) {
             // Left out: the tenant's "Standard" - without a group the new user would not get in.
             groups.joinStandard(tenantId, user.id());
@@ -135,7 +135,7 @@ public class TenantUserService {
         assertUsernameAvailable(tenantId, username, null);
         Instant now = Instant.now();
         return repository.save(new TenantUser(null, tenantId, username, displayName, null, active, admin, now, now,
-                null, null, checkedLanguage));
+                null, null, checkedLanguage, null));
     }
 
     /**
@@ -174,7 +174,7 @@ public class TenantUserService {
                 request.admin() != null ? request.admin() : user.admin(),
                 user.createdAt(), Instant.now(), user.lastLoginAt(),
                 endSessions ? Instant.now().truncatedTo(ChronoUnit.SECONDS) : user.sessionsValidFrom(),
-                language != null ? language : user.language())));
+                language != null ? language : user.language(), user.person())));
     }
 
     /**
@@ -286,18 +286,39 @@ public class TenantUserService {
     }
 
     /**
+     * The tenants the user may switch to, its own included: the users of its username who may log in - without the
+     * WAM proxy only those of the same person (the admin added them from one another), as a username proves no person
+     * there: another tenant's admin may create a user of the same name, and its tenant must stay unknown to this one.
+     */
+    public List<LoginAccount> switchableAccounts(TenantUser user) {
+        List<LoginAccount> accounts = loginAccounts(user.username());
+        if (wam.enabled()) {
+            return accounts;
+        }
+        return accounts.stream()
+                .filter(account -> account.user().id().equals(user.id()) || samePerson(user, account.user()))
+                .toList();
+    }
+
+    private static boolean samePerson(TenantUser one, TenantUser other) {
+        return one.person() != null && one.person().equals(other.person());
+    }
+
+    /**
      * The switch in the user menu: the user of the same username in another tenant, who must be allowed to log in
      * (404 for a tenant where there is none). With the WAM proxy on, its header proves the person (checked on every
      * request by security.ActiveTenantUserRule); without it a username proves no person - the admin may give the same
-     * name to two people in two tenants -, so the target account's password is asked like at a login (400 without
-     * one or with a wrong one: a 401 would log the person out of the account it is in). No transaction around the
-     * password check, as at {@link #authenticate}.
+     * name to two people in two tenants -, so only a user of the same person counts ({@link #switchableAccounts}, 404
+     * for any other, as for none) and its password is asked like at a login (400 without one or with a wrong one: a
+     * 401 would log the person out of the account it is in). No transaction around the password check, as at
+     * {@link #authenticate}.
      */
     public TenantUser switchTenant(Long tenantId, Long userId, Long targetTenantId, @Nullable String password) {
         TenantUser current = repository.findByIdAndTenantId(userId, tenantId)
                 .orElseThrow(() -> ServiceException.notFound("user.notFound", "User not found"));
         TenantUser target = targetTenantId == null ? null : repository
                 .findByTenantIdAndUsernameIgnoreCase(targetTenantId, current.username())
+                .filter(user -> wam.enabled() || samePerson(current, user))
                 .filter(this::mayLogIn).orElse(null);
         if (target == null) {
             throw ServiceException.notFound("account.switchTenantNotFound", "You have no user in this tenant");
@@ -319,8 +340,9 @@ public class TenantUserService {
     /**
      * The admin adds a person's user of one tenant to another: the same username, display name and language, no
      * password (with the WAM proxy the person signs in through it; without, the admin sets one), active or waiting
-     * for the tenant admin, tenant admin or not - in the tenant's group "Standard". Empty for an unknown user; 409 when
-     * the name is taken in the tenant.
+     * for the tenant admin, tenant admin or not - in the tenant's group "Standard" - and marked as the source's person
+     * (both get its person, the source's id when it had none). Empty for an unknown user; 409 when the name is taken in
+     * the tenant.
      */
     @Transactional
     public Optional<TenantUser> addFromOtherTenant(Long tenantId, Long sourceUserId, boolean active, boolean admin) {
@@ -328,7 +350,13 @@ public class TenantUserService {
             TenantUser added = createWithoutPassword(tenantId, source.username(), source.displayName(), active, admin,
                     source.language());
             groups.joinStandard(tenantId, added.id());
-            return added;
+            // The admin says both are one person's - the switch without WAM goes by it (tenancy.md).
+            Long person = source.person() != null ? source.person() : source.id();
+            if (source.person() == null) {
+                repository.updatePerson(source.id(), person);
+            }
+            repository.updatePerson(added.id(), person);
+            return repository.findById(added.id()).orElseThrow();
         });
     }
 
@@ -382,7 +410,7 @@ public class TenantUserService {
         }
         repository.update(new TenantUser(user.id(), user.tenantId(), user.username(), user.displayName(),
                 hash(newPassword), user.active(), user.admin(), user.createdAt(), Instant.now(), user.lastLoginAt(),
-                user.sessionsValidFrom(), user.language()));
+                user.sessionsValidFrom(), user.language(), user.person()));
     }
 
     /**

@@ -34,7 +34,7 @@ so the gap is seen.
 | AUTH-14 | Accounts from the IDM: person listed in a group's WAM group gets a user in that tenant at sign-in (active, no password) | WAM | walk B1, C1; `check.py` |
 | AUTH-15 | Every tenant-user request checked against the proxy header: another person at the same browser gets 403, forced logout, new person signed in | WAM | walk D3 |
 | AUTH-16 | Logout returns to the login page it came from (remembered tenant key) | both | walk C21, E5 |
-| AUTH-17 | Tenant switch in the user menu (shown with two or more tenants), new token, all state reset, queued uploads/deletions ended | both | walk D2; `check.py` |
+| AUTH-17 | Tenant switch in the user menu (shown with two or more tenants), new token, all state reset, queued uploads/deletions ended; plain: only between users the admin added from one another - a user created by name lists and reaches no other tenant | both | walk D2; `check.py` |
 | AUTH-18 | Sessions end at once: user or tenant deactivated/deleted, password set by an admin, username changed, tenant-admin right removed | both | walk D4, E3 |
 | AUTH-19 | Another open tab of the same browser reloads when the shared token changes (logout, switch, another person's sign-in) | both | walk D3 |
 | AUTH-20 | Wrong role redirected to its own area (admin to `/dashboard`, tenant user to `/app`; non-admin kept off tenant-admin pages) | both | walk C1 |

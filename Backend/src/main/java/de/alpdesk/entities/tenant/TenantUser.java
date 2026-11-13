@@ -46,6 +46,14 @@ public record TenantUser(
 
         /** The frontend's language (docs/architecture/i18n.md); null: from before the column - English. */
         @Nullable
-        String language
+        String language,
+
+        /**
+         * The person's users carry the same value, set when the admin adds the person's user to another tenant (the id
+         * of the user it was first taken from); null: created by name - nobody's but its own. Without the WAM proxy the
+         * account's tenants and the switch go by it, never by the username alone (docs/architecture/tenancy.md).
+         */
+        @Nullable
+        Long person
 ) {
 }

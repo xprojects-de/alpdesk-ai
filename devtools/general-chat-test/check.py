@@ -2,7 +2,8 @@
 """Checks what the test stack does without a model (README.md) - after `setup.py base`, the agent's part after
 `setup.py a2a` with the demo agent running (TEST_AGENT_DEMO=1). In the mode of mode.sh: with WAM as below; plain -
 password login at the common page and a tenant's own (its login key for a name in several tenants), a wrong password,
-the switch only with the other user's password, clara in no group refused, the WAM headers ignored:
+the switch only with the other user's password and only between a person's users (a user created under another
+tenant's user's name sees nothing of that tenant), clara in no group refused, the WAM headers ignored:
 
   - the sign-in through Authelia: a person in one IDM group gets its user there and is signed in at once,
   - a person in two IDM groups gets a user in both tenants and the choice, chooses, sees the topics, switches,
@@ -151,6 +152,26 @@ else:
                                     {"tenantId": tenant_of["Einkauf"], "password": stack.PERSON_PASSWORD})
     check("he switches to Thema Einkauf with his password there", status == 200 and switched.get("access_token"),
           switched)
+    # A user created by name is nobody else's: Thema Einkauf gets an "anna" of its own, as its tenant admin could
+    # create one under a guessed name - she must learn nothing of Thema Wartung, where the name is another user's.
+    status, _, namesake = admin.app("POST", f"/admin/tenants/{tenant_of['Einkauf']}/users",
+                                    {"username": "anna", "displayName": "Anna Namensgleich",
+                                     "password": stack.PERSON_PASSWORD})
+    check("Thema Einkauf gets a user of anna's name, created by name", status == 201, f"{status} {namesake}")
+    try:
+        other_anna = stack.Person("anna")
+        status, body = other_anna.sign_in(tenant_of["Einkauf"])
+        check("she signs in at Thema Einkauf's own login page", status == 200 and other_anna.token, f"{status} {body}")
+        tenants = {tenant["id"] for tenant in other_anna.app("GET", "/tenant/account")[2].get("tenants", [])}
+        check("her account lists Thema Einkauf alone - not Thema Wartung, where the name is another user's",
+              tenants == {tenant_of["Einkauf"]}, tenants)
+        status, _, refused = other_anna.app("POST", "/tenant/account/switch",
+                                            {"tenantId": tenant_of["Wartung"], "password": stack.PERSON_PASSWORD})
+        check("and she cannot switch there, although the password would be right - the name proves no person",
+              status == 404, f"{status} {refused}")
+    finally:
+        if isinstance(namesake, dict) and namesake.get("id"):
+            admin.app("DELETE", f"/admin/tenants/{tenant_of['Einkauf']}/users/{namesake['id']}")
 bernd.token = switched["access_token"]
 check("the switched token is Thema Einkauf's", bernd.app("GET", "/tenant/account")[2].get("tenantId") ==
       tenant_of["Einkauf"])

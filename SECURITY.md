@@ -66,8 +66,10 @@ protected by the software:
   several tenants of one installation and switches between them in the user menu. Each token belongs to one user of
   one tenant - a switch issues a new one. With WAM the proxy's header proves the person, at the sign-in (where it
   chooses among its tenants) and at the switch; without WAM a username proves no person (the admin may give the same
-  name to two people in two tenants), so the switch asks for the password of the user in the other tenant, like a
-  login. A username in several tenants signs in on the tenant's own login page only (`/login/<key>`, which sends the
+  name to two people in two tenants, and a tenant admin may create a user under any name its tenant does not have),
+  so only the users the admin added as the same person's ("Benutzer aus anderem Mandanten") are listed and switched
+  to - a user created under another tenant's user's name learns nothing of that tenant -, and the switch asks for the
+  password of the user in the other tenant, like a login. A username in several tenants signs in on the tenant's own login page only (`/login/<key>`, which sends the
   tenant's key with the login); on the neutral `/login` it is refused like a wrong password.
 - **Code execution runs in a container of the tenant's own, never in the app's and never in another tenant's.** The
   chat's model may run Python and shell commands (`run_python`, `run_shell`) for a tenant whose sandbox the admin

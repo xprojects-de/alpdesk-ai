@@ -284,15 +284,17 @@ abstract class LoginModesSpec extends Specification {
     }
 
     def "the switch to the same name's user in another tenant: without WAM with that user's password, with WAM by the proxy"() {
-        given: "a person with an admin user in A and a plain one in B; a deactivated one in C; none in D"
+        given: "a person with an admin user in A and a plain one in B (added by the admin from A); a deactivated one in C; none in D"
         def name = unique("wechsel")
         def a = createTenant()
         def b = createTenant()
         def c = createTenant()
         def d = createTenant()
         def inA = saveUser(a, PasswordHasher.hash(PASSWORD), true, name)
-        def inB = saveUser(b, PasswordHasher.hash(OTHER_PASSWORD), false, name)
-        saveUser(c, PasswordHasher.hash(PASSWORD), false, name, false)
+        def person = inA.id()
+        users.updatePerson(inA.id(), person)
+        def inB = saveUser(b, PasswordHasher.hash(OTHER_PASSWORD), false, name, true, person)
+        saveUser(c, PasswordHasher.hash(PASSWORD), false, name, false, person)
         saveUser(d, PasswordHasher.hash(PASSWORD), false, unique("jemand"))
         def token = tokenFor(inA)
         def proxy = wam() ? name : null
@@ -306,8 +308,15 @@ abstract class LoginModesSpec extends Specification {
 
         and: "a user of the name without a password (added by the admin, not handed over yet) is listed with WAM only"
         def e = createTenant()
-        saveUser(e, null as String, false, name)
+        saveUser(e, null as String, false, name, true, person)
         (request(token, proxy, "GET", "/tenant/account").body.tenants as List<Map>)*.id.contains(e.id) == wam()
+
+        and: "a user of the name created by name - by another tenant's admin, say - is the person's with WAM only"
+        def f = createTenant()
+        saveUser(f, PasswordHasher.hash(PASSWORD), false, name)
+        (request(token, proxy, "GET", "/tenant/account").body.tenants as List<Map>)*.id.contains(f.id) == wam()
+        request(token, proxy, "POST", "/tenant/account/switch", [tenantId: f.id, password: PASSWORD]).status ==
+                (wam() ? HttpStatus.OK : HttpStatus.NOT_FOUND)
 
         when:
         def switched = request(token, proxy, "POST", "/tenant/account/switch",
@@ -407,11 +416,12 @@ abstract class LoginModesSpec extends Specification {
         saveUser(tenant, null)
     }
 
+    /** person: the user the admin added it from another tenant like - null: created by name. */
     TenantUser saveUser(Map tenant, String passwordHash, boolean admin = false, String username = unique("user"),
-                                boolean active = true) {
+                                boolean active = true, Long person = null) {
         def now = Instant.now()
         def user = users.save(new TenantUser(null, tenant.id as Long, username, "Test", passwordHash, active, admin, now,
-                now, null, null, "en"))
+                now, null, null, "en", person))
         groups.joinStandard(user.tenantId(), user.id())
         user
     }
