@@ -372,6 +372,24 @@ import * as AuthSelectors from "../../../store/auth/auth.selectors";
                                                     />
                                                 </td>
                                             </tr>
+                                            <tr>
+                                                <td>
+                                                    <div>{{ "mcpConnections.access.passResources" | transloco }}</div>
+                                                    <div class="tool-description">
+                                                        {{ "mcpConnections.access.passResourcesText" | transloco }}
+                                                    </div>
+                                                </td>
+                                                <td class="level">
+                                                    <mat-slide-toggle
+                                                        [checked]="connection.passesResources"
+                                                        [disabled]="!connection.passesThrough"
+                                                        (change)="setPassResources(connection, $event)"
+                                                        [attr.aria-label]="
+                                                            'mcpConnections.access.passResources' | transloco
+                                                        "
+                                                    />
+                                                </td>
+                                            </tr>
                                         }
                                         @for (group of groups; track group.groupId) {
                                             <tr>
@@ -597,6 +615,7 @@ export class McpConnectionsPanelComponent implements OnInit {
             McpConnectionActions.updateToolFailure,
             McpConnectionActions.updatePromptFailure,
             McpConnectionActions.setPassThroughFailure,
+            McpConnectionActions.setPassResourcesFailure,
             McpConnectionActions.signInFailure,
             McpConnectionActions.completeSignInFailure,
             McpConnectionActions.removeSignInFailure,
@@ -742,6 +761,18 @@ export class McpConnectionsPanelComponent implements OnInit {
                 scope: this.scope(),
                 connectionId: connection.id,
                 passesThrough: change.checked,
+            }),
+        );
+    }
+
+    /** As the pass-through switch: the stored value until the backend has changed it. */
+    setPassResources(connection: McpConnection, change: MatSlideToggleChange): void {
+        change.source.checked = connection.passesResources;
+        this.store.dispatch(
+            McpConnectionActions.setPassResources({
+                scope: this.scope(),
+                connectionId: connection.id,
+                passesResources: change.checked,
             }),
         );
     }

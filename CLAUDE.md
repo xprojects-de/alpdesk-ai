@@ -44,7 +44,7 @@ file** - it is as binding as this one:
 | Management database, one database per tenant, how a tenant database is reached, who logs in | [tenancy.md](docs/architecture/tenancy.md) |
 | langchain4j, model catalog and prices, provider keys, documents and embeddings, chat, files in the chat, tools (agent loop), usage | [ai-features.md](docs/architecture/ai-features.md) |
 | Name, colour and logo of the installation and of each tenant, applied in Angular | [branding.md](docs/architecture/branding.md) |
-| The tenant's MCP server for Claude Code (MCP key, ask_assistant), MCP clients to the tenant's software, connections that sign in with OAuth | [mcp.md](docs/architecture/mcp.md) |
+| The tenant's MCP server for Claude Code (MCP key, ask_assistant), connected software passed through unchanged (tools, prompts, resources), MCP clients to the tenant's software, connections that sign in with OAuth | [mcp.md](docs/architecture/mcp.md) |
 | A2A both ways on the official SDK: A2A agents as connected software (the tool, a tenant answering through its agent, the skills' choice, call_agent, the assistant prompt step), the tenant's assistant at /a2a (the doors of a key, cards, tasks, push notifications) | [a2a.md](docs/architecture/a2a.md) |
 | The tenants' file stores (SFTP, FTPS, S3, SharePoint / OneDrive): fingerprint confirmed before the password goes out, internal hosts, FTPS data connections resuming the TLS session, S3 with the store's own access key only, SharePoint through Microsoft Graph | [file-stores.md](docs/architecture/file-stores.md) |
 | Knowledge sources: a file store's folder synced into the knowledge (listing, by hand, by schedule), source_file, deleted and moved by hand, the indexer fair between tenants | [knowledge-sources.md](docs/architecture/knowledge-sources.md) |
@@ -265,7 +265,8 @@ Ports, chosen so that it runs next to other local projects: backend 19100, Angul
   come through service loading, which AOT touches), embed it and chat through a fake Ollama server of the script
   (Python) - in one piece and as the stream's events -, ask the tenant's MCP server, connect the tenant's software through its MCP server (the same fake answers as
   one: its tools are read, and a tenant user's chat calls one through the MCP Java SDK's client, then the client
-  software's `/api/v1/chat` once its API key is given the software), check knowledge areas (a key pushes into its area, only the area's
+  software's `/api/v1/chat` once its API key is given the software; passed through to an MCP key its tool is
+  listed with its own entry and called, its resources listed and read with the connection in front), check knowledge areas (a key pushes into its area, only the area's
   user finds it in the chat, the company knowledge's uploads are deleted at once), check through a fake
   WAM proxy of the script (it strips the user header from outside and sends the signed-in person) that the header
   counts for nothing without WAM, serve the frontend if it has one, and start again under a context path
@@ -562,8 +563,9 @@ de.alpdesk
 │   │                  AssistantMcpPrompts (the tenant's templates as prompts), BrandedMcpServer (the tenant's
 │   │                  brand in initialize and tools/list, prompts/list and prompts/get), McpKeyService (the key's
 │   │                  areas and software); SoftwareMcpProxy (the key's connected software passed through to MCP
-│   │                  clients: tools, prompts, instructions); McpConnectionService (also the switch "Direkt an
-│   │                  MCP-Clients", .../pass-through, .../sign-in), Credential (a call's bearer: key or OAuth token),
+│   │                  clients unchanged: tools, prompts, instructions), SoftwareResources (its resources, the
+│   │                  connection in front of the address), ResourceErrorStatus (their errors with HTTP 200); McpConnectionService (also the switches "Direkt an
+│   │                  MCP-Clients" and "Ressourcen an MCP-Clients", .../pass-through, .../resources, .../sign-in), Credential (a call's bearer: key or OAuth token),
 │   │                  McpClient (MCP Java SDK client), LinkDownloads (a tool's file returned as an https link),
 │   │                  McpAddresses, McpTools (in the chat),
 │   │                  SoftwarePrompts (the connected software's prompts in the chat); TaskMcpTools (list_tasks, run_task,
@@ -684,8 +686,9 @@ password login; every tenant user's request is checked against the header. The a
 proxy strips it from outside requests, and the app is reachable through the proxy only.
 `AuthenticationProviderUserPassword`: one `/login` for the admin account from config/env and then the tenant users
 (PBKDF2 hashes, `PasswordHasher`; the JWT carries `tenantId` and `userId`, a tenant admin's also `ROLE_TENANT_ADMIN`),
-no lockout (behind the reverse proxy every
-request has the proxy's address). `ActiveTenantUserRule` rejects every request of a tenant user who or whose tenant was
+no lockout by address (behind the reverse proxy every
+request has the proxy's address) - a tenant user's account is locked after `app.login.max-attempts` wrong passwords
+for `app.login.lock-minutes` instead (tenancy.md "Password login"). `ActiveTenantUserRule` rejects every request of a tenant user who or whose tenant was
 deactivated or deleted, with a token older than a password an admin set, or of a former tenant admin to
 `/tenant/admin/**` - although the JWT is still valid - see [tenancy.md](docs/architecture/tenancy.md). `ApiKeyTokenValidator`: accepts `ai_` bearer tokens next to
 JWTs, looks the key up by SHA-256 hash (`ApiKeyService`, off the event loop) and yields `ROLE_TENANT` with the tenant id

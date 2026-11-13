@@ -137,6 +137,16 @@ class A2aConnectionSpec extends Specification {
 
         then:
         (broken.toolsError as String).startsWith("Kaputt offers no valid agent card")
+
+        when: "JSON that is no card"
+        agent.rawCard = '{"status": "ok"}'
+        def other = api.call(admin, "POST", "/tenant/admin/mcp-connections", request("Etwas anderes")) as Map
+        def check = api.call(admin, "POST", "/tenant/admin/mcp-connections/${other.id}/check") as Map
+
+        then:
+        (other.toolsError as String).startsWith("Etwas anderes offers no valid agent card")
+        !check.ok
+        (check.error as String).startsWith("Etwas anderes offers no valid agent card")
     }
 
     def "the chat's model asks the agent through one tool, with a skill and who asks - answered with the connection's name in front"() {

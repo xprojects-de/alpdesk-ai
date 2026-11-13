@@ -14,7 +14,8 @@ import {catchError, timeout} from "rxjs/operators";
 // app.ai.timeout as well.
 // The timeout counts from the last event, so a streamed answer only fails if it stalls that long - the stream names
 // each tool before it runs ("tool"), so a round of slow tools still shows signs of life - and an upload that reports
-// its progress (the ZIP archive, the chat's files with their videos) only if the upload stalls.
+// its progress (the ZIP archive, the chat's files with their videos) only if the upload stalls - likewise the
+// download of a chat file, which reports its progress too.
 const REQUEST_TIMEOUT_MS = 30000;
 const LONG_TIMEOUT_MS = 6 * 60000;
 

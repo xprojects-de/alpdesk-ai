@@ -20,7 +20,7 @@ A company running Zirmo for itself only is operator and controller at once.
 
 | Data | Where | Personal data in it |
 |------|-------|---------------------|
-| Tenants, users (username, display name, password hash, the frontend's language, the last login, since when its sessions are valid), admin flags, user groups and their members (each group's knowledge areas and levels for connected software), access requests (WAM user name, name and the browser's language) | management database | yes - the employees' accounts |
+| Tenants, users (username, display name, password hash, the frontend's language, the last login, since when its sessions are valid, the count of wrong passwords in a row and until when they lock the account, which users the admin marked as one person's), admin flags, user groups and their members (each group's knowledge areas and levels for connected software), access requests (WAM user name, name and the browser's language) | management database | yes - the employees' accounts |
 | With the WAM proxy's IDM groups checked (`APP_WAM_GROUPS_HEADER`): the IDM groups the proxy sent on each user's last request | management database, replaced on every change, deleted with the user - and all of them when the app starts without the check | yes - which groups of the company's directory a person is in. Since 2.0.0 they also decide the members of a group with a WAM group, and a person they list in such a group gets a user in that tenant at the sign-in (username and name as the proxy sends them, no password) - kept like any user until a tenant admin deletes it |
 | API keys of the client software, MCP keys | management database | SHA-256 hash and a display prefix only |
 | Provider keys, keys of own model servers, keys of connected software, the token of a tenant's sandbox, the passwords of file stores | management database | encrypted (`APP_SECRET_KEY`) |
@@ -136,9 +136,13 @@ Every model call sends data to the provider of the model in use:
   Anthropic under the plan of whoever added the connector. Only the search query is embedded (by the tenant's
   embedding model); nothing of it is stored but the usage.
 - **Connected software passed through to an MCP client** (a connection switched "Direkt an MCP-Clients", given to
-  the MCP key): the client's arguments go to that software, and its results - text, the files it returns, a prompt's
-  text - go unchanged to the MCP client, whose own model reads them (with claude.ai, Claude Desktop or Cowork under the
-  plan of whoever added the connector). Nothing of the call is stored. The instructions the software gives about its
+  the MCP key): the client's arguments go to that software, and its results - text in full length, images, audio, the
+  files it returns or links to a resource of its own (Zirmo reads them from the software and passes them on), structured
+  content, `_meta`, every message of a prompt, and its tools' whole entries - go unchanged to the MCP client, whose own
+  model reads them; with "Ressourcen an MCP-Clients" also the resources the client lists and reads. A link to a web
+  address goes to the client as a link, which the client fetches itself - Zirmo fetches nothing for it. With claude.ai,
+  Claude Desktop or Cowork all of it reaches Anthropic under the plan of whoever added the connector. Nothing of a call
+  is stored; the tools' entries are kept as last read, until the tools are read again or the connection is deleted. The instructions the software gives about its
   tools are kept on the connection (at most 2,000 characters, until its address changes or it is deleted) and go to
   every MCP client of a key given it and into the assistant's prompt when the software's tools are offered.
 
@@ -223,7 +227,9 @@ every request up to 30 days. The provider stays a US company, so the US CLOUD Ac
   storage `APP_CHAT_FILE_RETENTION_DAYS` (14) after it was stored, an uploaded video `APP_CHAT_VIDEO_RETENTION_HOURS`
   (8) after its upload - by an hourly job, together with its text in the tenant database (extracted on upload, a
   transcript). The conversation keeps its name, type and size, marked expired; its messages stay. A file that cannot be
-  deleted at that moment is tried again at the next run. Set empty, a retention is off.
+  deleted at that moment is tried again at the next run. Set empty, a retention is off. A file an answer had created when the
+  app was stopped before the answer was stored (a restart, an update) stays in the file storage unreachable - no
+  conversation shows it, no retention finds it - and goes with the tenant.
 - **A document or a conversation** is deleted with its chunks or messages and files. What of a document cannot be
   removed at that moment stays behind unreachable and is logged: its chunks go with the next change of the embedding
   model or with the tenant, its file with the tenant. Every document uploaded into the company knowledge or a

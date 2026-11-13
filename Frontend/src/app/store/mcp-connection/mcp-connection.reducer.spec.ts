@@ -22,6 +22,7 @@ describe("mcpConnectionReducer", () => {
         toolsError: null,
         promptsError: null,
         passesThrough: false,
+        passesResources: false,
         instructions: null,
         protocol: "MCP",
         answersChat: false,
@@ -150,6 +151,17 @@ describe("mcpConnectionReducer", () => {
             }),
         );
         expect(state.connections[0].passesThrough).toBe(true);
+    });
+
+    it("passing a connection's resources to MCP clients replaces it with the stored one", () => {
+        const state = mcpConnectionReducer(
+            loaded([connection(1, "Buchhaltung")]),
+            McpConnectionActions.setPassResourcesSuccess({
+                scope: 1,
+                connection: {...connection(1, "Buchhaltung"), passesThrough: true, passesResources: true},
+            }),
+        );
+        expect(state.connections[0].passesResources).toBe(true);
     });
 
     it("ignores connections answered after the logout, before the next login opened them", () => {

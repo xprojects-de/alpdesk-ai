@@ -40,6 +40,12 @@ public record McpConnection(
          */
         boolean passesThrough,
 
+        /**
+         * MCP keys with it that pass it through read its resources too, their addresses with the connection in front
+         * ("Ressourcen an MCP-Clients") - off by default.
+         */
+        boolean passesResources,
+
         /** The instructions its server gives in initialize, cut to McpConnectionService.MAX_INSTRUCTIONS; null: none. */
         @Nullable
         String instructions,

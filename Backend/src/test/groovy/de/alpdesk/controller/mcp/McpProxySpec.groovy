@@ -208,7 +208,7 @@ class McpProxySpec extends Specification {
         unknownTool(rpc(setup.key, "tools/call", [name: "Buchhaltung__find_invoice", arguments: [number: "4711"]]))
     }
 
-    def "files the software returns go to the client as resources - text as text, the rest as base64, types kept to the list"() {
+    def "files the software returns go to the client as it sent them - their own type, text as text, the rest as base64"() {
         given:
         def setup = tenantWithSoftware(true)
         def zip = zipOf("Main.java": "class Main {}")
@@ -225,30 +225,183 @@ class McpProxySpec extends Specification {
         !result.isError
         result.content[0].text == "Generated"
         resources*.uri == ["file:///demo-project.zip", "file:///Main.java", "file:///page.html"]
+        resources*.mimeType == ["application/zip", "text/x-java", "text/html"]
         Base64.decoder.decode(resources[0].blob as String) == zip
         resources[1].text == "class Main {}"
-        resources[2].mimeType == "text/plain"
-        resources[2].text == "<script>x</script>"
+        Base64.decoder.decode(resources[2].blob as String) == "<script>x</script>".getBytes("UTF-8")
     }
 
-    def "a file the software links to goes to the client as a resource with its content - the link itself never"() {
+    def "a result goes to the client unchanged - long text whole, an image as an image, audio as audio, structured content and _meta"() {
         given:
         def setup = tenantWithSoftware(true)
-        software.downloads["signed-4711"] = [body: "%PDF-1.4".getBytes("UTF-8"), type: "application/pdf"]
-        software.callContent = [[type: "text", text: "Rechnung"],
-                                FakeMcpSoftware.link(software.fileUrl("signed-4711"), "rechnung-4711.pdf")]
+        def longText = "Zeile " + ("x" * 150_000)
+        software.callContent = [[type: "text", text: longText],
+                                [type: "image", data: "iVBORw0KGgo=", mimeType: "image/png", annotations: [audience: ["user"]]],
+                                [type: "audio", data: "UklGRg==", mimeType: "audio/wav"]]
+        software.callStructured = [invoice: "4711", total: 412.5]
+        software.callMeta = ["com.example/trace": "abc", "io.modelcontextprotocol/related-task": [taskId: "t1"]]
 
         when:
         def result = rpc(setup.key, "tools/call", [name: "Buchhaltung__find_invoice", arguments: [number: "1"]]).result
-        def resources = result.content.findAll { it.type == "resource" }*.resource as List<Map>
 
         then:
         !result.isError
-        resources*.uri == ["file:///rechnung-4711.pdf"]
-        resources[0].mimeType == "application/pdf"
-        Base64.decoder.decode(resources[0].blob as String) == "%PDF-1.4".getBytes("UTF-8")
-        !result.content.any { it.type == "resource_link" }
-        !(result.toString().contains(software.fileUrl("signed-4711")))
+        result.content*.type == ["text", "image", "audio"]
+        result.content[0].text == longText
+        result.content[1].data == "iVBORw0KGgo="
+        result.content[1].mimeType == "image/png"
+        result.content[1].annotations.audience == ["user"]
+        result.content[2].data == "UklGRg=="
+        result.structuredContent == [invoice: "4711", total: 412.5]
+
+        and: "the software's _meta goes on - the keys MCP reserves for itself stay back"
+        result._meta == ["com.example/trace": "abc"]
+    }
+
+    def "a link to a web address goes to the client as a link - Zirmo fetches nothing"() {
+        given:
+        def setup = tenantWithSoftware(true)
+        software.downloads["signed-4711"] = [body: "%PDF-1.4".getBytes("UTF-8"), type: "application/pdf"]
+        def link = FakeMcpSoftware.link(software.fileUrl("signed-4711"), "rechnung-4711.pdf", "application/pdf")
+        software.callContent = [[type: "text", text: "Rechnung"], link]
+
+        when:
+        def result = rpc(setup.key, "tools/call", [name: "Buchhaltung__find_invoice", arguments: [number: "1"]]).result
+
+        then:
+        !result.isError
+        result.content == [[type: "text", text: "Rechnung"], link]
+        software.downloadRequests.isEmpty()
+    }
+
+    def "a link to a resource of the software's own is read in the call's session and its file embedded - one it cannot read stays as it came"() {
+        given:
+        def setup = tenantWithSoftware(true)
+        software.resources["ticket://4711/protokoll.log"] = [uri: "ticket://4711/protokoll.log", mimeType: "text/plain",
+                                                             text: "Started\nDone"]
+        def readable = FakeMcpSoftware.link("ticket://4711/protokoll.log", "protokoll.log", "text/plain") +
+                [annotations: [priority: 0.5]]
+        def missing = FakeMcpSoftware.link("ticket://4711/gone.pdf", "gone.pdf", "application/pdf")
+        software.callContent = [[type: "text", text: "Ticket 4711"], readable, missing]
+
+        when:
+        def result = rpc(setup.key, "tools/call", [name: "Buchhaltung__find_invoice", arguments: [number: "1"]]).result
+
+        then:
+        !result.isError
+        result.content*.type == ["text", "resource", "resource_link"]
+        result.content[1].resource == [uri: "ticket://4711/protokoll.log", mimeType: "text/plain", text: "Started\nDone"]
+        result.content[1].annotations == [priority: 0.5]
+        result.content[2] == missing
+        software.received*.method.contains("resources/read")
+        software.received.findAll { it.method == "resources/read" }*.session.every { it == "session-1" }
+    }
+
+    def "at most 20 links to own resources are resolved in a call - the rest stay links"() {
+        given:
+        def setup = tenantWithSoftware(true)
+        def links = (1..22).collect {
+            software.resources["ticket://$it".toString()] = [uri: "ticket://$it".toString(), text: "Ticket $it".toString()]
+            FakeMcpSoftware.link("ticket://$it", "ticket-${it}.txt")
+        }
+        software.callContent = links
+
+        when:
+        def result = rpc(setup.key, "tools/call", [name: "Buchhaltung__find_invoice", arguments: [number: "1"]]).result
+
+        then:
+        result.content.count { it.type == "resource" } == 20
+        result.content.findAll { it.type == "resource_link" }*.uri == ["ticket://21", "ticket://22"]
+    }
+
+    def "the files embedded for links to own resources stay within 8 MB together - a link beyond stays a link"() {
+        given:
+        def setup = tenantWithSoftware(true)
+        byte[] file = new byte[3 * 1024 * 1024]
+        def links = (1..3).collect {
+            software.resources["file://archive/$it".toString()] = FakeMcpSoftware.blob("file://archive/$it", "application/zip", file).resource as Map
+            FakeMcpSoftware.link("file://archive/$it", "archive-${it}.zip")
+        }
+        software.callContent = links
+
+        when:
+        def result = rpc(setup.key, "tools/call", [name: "Buchhaltung__find_invoice", arguments: [number: "1"]]).result
+
+        then:
+        result.content*.type == ["resource", "resource", "resource_link"]
+        result.content[2].uri == "file://archive/3"
+    }
+
+    def "an answer larger than 8 MB is refused and says so - nothing is cut"() {
+        given:
+        def setup = tenantWithSoftware(true)
+        software.callText = "x" * (9 * 1024 * 1024)
+
+        when:
+        def result = rpc(setup.key, "tools/call", [name: "Buchhaltung__find_invoice", arguments: [number: "1"]]).result
+
+        then:
+        result.isError
+        (result.content[0].text as String).contains("larger than 8 MB")
+    }
+
+    def "a tool is listed with everything the software says - title, annotations, _meta, output schema; ours are the name, the description's start and readOnlyHint"() {
+        given:
+        software.tools = [[name: "find_invoice", title: "Rechnung finden", description: "Finds an invoice by its number",
+                           inputSchema: [type: "object", properties: [number: [type: "string"]], required: ["number"]],
+                           outputSchema: [type: "object", properties: [invoice: [type: "string"]]],
+                           annotations: [title: "Rechnung", readOnlyHint: true, openWorldHint: false, idempotentHint: true],
+                           _meta: ["anthropic/requiresUserInteraction": true, "com.example/version": 2,
+                                   "dev.mcp/hop": "ours"]],
+                          [name: "cancel_invoice", description: "Cancels an invoice",
+                           inputSchema: [type: "object", properties: [number: [type: "string"]]],
+                           annotations: [readOnlyHint: false, destructiveHint: true]]]
+        def setup = tenantWithSoftware(true)
+        api.call(setup.admin, "PUT", "/tenant/admin/mcp-keys/${setup.keyId}", [changingConnectionIds: [setup.connection.id]])
+
+        when:
+        def listed = rpc(setup.key, "tools/list").result.tools as List<Map>
+        def find = listed.find { it.name == "Buchhaltung__find_invoice" }
+        def cancel = listed.find { it.name == "Buchhaltung__cancel_invoice" }
+
+        then:
+        find.title == "Rechnung finden"
+        find.description == "[Buchhaltung] Finds an invoice by its number"
+        find.inputSchema == [type: "object", properties: [number: [type: "string"]], required: ["number"]]
+        find.outputSchema == [type: "object", properties: [invoice: [type: "string"]]]
+        find.annotations == [title: "Rechnung", readOnlyHint: true, openWorldHint: false, idempotentHint: true]
+        find._meta == ["anthropic/requiresUserInteraction": true, "com.example/version": 2]
+        cancel.annotations == [readOnlyHint: false, destructiveHint: true]
+
+        when: "the tenant admin marks the reading tool as changing"
+        def findId = (setup.connection.tools as List<Map>).find { it.name == "find_invoice" }.id
+        api.call(setup.admin, "PUT", "/tenant/admin/mcp-connections/${setup.connection.id}/tools/${findId}", [changes: true])
+        def marked = (rpc(setup.key, "tools/list").result.tools as List<Map>).find { it.name == "Buchhaltung__find_invoice" }
+
+        then: "only readOnlyHint follows the mark"
+        marked.annotations == [title: "Rechnung", readOnlyHint: false, openWorldHint: false, idempotentHint: true]
+        marked._meta == find._meta
+    }
+
+    def "a tool not read again since its entry is kept is listed as before - read again, as the software says"() {
+        given:
+        software.tools = [[name: "find_invoice", title: "Rechnung finden", description: "Finds an invoice",
+                           inputSchema: [type: "object"], annotations: [readOnlyHint: true, openWorldHint: false]]]
+        def setup = tenantWithSoftware(true)
+        managementDatabase.connection.withCloseable {
+            it.prepareStatement("UPDATE mcp_tool SET definition = NULL WHERE connection_id = ${setup.connection.id}").executeUpdate()
+        }
+
+        when:
+        def before = (rpc(setup.key, "tools/list").result.tools as List<Map>).find { it.name == "Buchhaltung__find_invoice" }
+        api.call(setup.admin, "POST", "/tenant/admin/mcp-connections/${setup.connection.id}/reload")
+        def after = (rpc(setup.key, "tools/list").result.tools as List<Map>).find { it.name == "Buchhaltung__find_invoice" }
+
+        then:
+        before.title == null
+        before.annotations == [readOnlyHint: true, destructiveHint: false]
+        after.title == "Rechnung finden"
+        after.annotations == [readOnlyHint: true, openWorldHint: false]
     }
 
     def "a name that does not fit ends in its tool's id - each calls its own software, and none moves when another tool is turned off"() {
@@ -323,10 +476,13 @@ class McpProxySpec extends Specification {
         (setup.connection.instructions as String).startsWith("Call find_invoice with the invoice's number.")
         instructions.startsWith("It can also read the connected software Buchhaltung - hand it those parts of a "
                 + "question that concern the company, with their full context.\n\nZirmo is the AI assistant of the company")
-        instructions.contains("\n\nSoftware Buchhaltung (its tools' descriptions start with [Buchhaltung]): Call find_invoice")
+        instructions.contains("\n\nConnected software: Buchhaltung - their tools' names start with the software's name "
+                + "and \"__\", their descriptions with [<software>].\n\nSoftware Buchhaltung (its tools' descriptions "
+                + "start with [Buchhaltung]): Call find_invoice")
 
         and: "a key without the software, or the software not passed through, gets ours only"
         !(initialize(plainKey).result.instructions as String).contains("Software Buchhaltung")
+        !(initialize(plainKey).result.instructions as String).contains("Connected software")
 
         when:
         api.call(setup.admin, "PUT", "/tenant/admin/mcp-connections/${setup.connection.id}/pass-through", [passesThrough: false])
@@ -390,18 +546,21 @@ class McpProxySpec extends Specification {
         def got = rpc(setup.key, "prompts/get", [name: "Buchhaltung__create_test_program",
                                                  arguments: [package_name: "de.muster", project_name: "Demo"]]).result
 
-        then:
+        then: "every message of the software, as it sent them"
         listed.description == "[Buchhaltung] Creates a test program"
         listed.title == "Prüfprogramm erstellen"
         (listed.arguments as List<Map>).collect { [it.name, it.required] } ==
                 [["package_name", true], ["project_name", true], ["comment", false]]
-        got.messages.size() == 1
-        got.messages[0].role == "user"
-        got.messages[0].content.text == "Erstelle ein Prüfprogramm für de.muster im Projekt Demo.\n\nAnmerkung: keine"
+        got.description == "A test program"
+        got.messages == [[role: "user", content: [type: "text", text: "Erstelle ein Prüfprogramm für de.muster im Projekt Demo."]],
+                         [role: "assistant", content: [type: "text", text: "Gern, ich lege es an."]],
+                         [role: "user", content: [type: "image", data: "iVBORw0KGgo=", mimeType: "image/png"]],
+                         [role: "user", content: [type: "text", text: "Anmerkung: keine"]]]
 
-        and: "a required value missing is refused by us, before the software is asked - as the prompt's text"
-        promptText(rpc(setup.key, "prompts/get", [name: "Buchhaltung__create_test_program", arguments: [package_name: "de.muster"]])) ==
-                'The prompt Buchhaltung__create_test_program could not be fetched: The value "project_name" is required'
+        and: "the client's values go to the software as given - it checks them"
+        rpc(setup.key, "prompts/get", [name: "Buchhaltung__create_test_program", arguments: [package_name: "de.muster"]])
+                .result.messages[0].content.text == "Erstelle ein Prüfprogramm für de.muster im Projekt null."
+        software.received.findAll { it.method == "prompts/get" }.last().params.arguments == [package_name: "de.muster"]
 
         and: "our own templates stay, another key gets none of the software's"
         !promptNames(plainKey).contains("Buchhaltung__create_test_program")

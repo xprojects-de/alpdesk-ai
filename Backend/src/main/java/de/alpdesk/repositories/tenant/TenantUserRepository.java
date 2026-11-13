@@ -44,6 +44,26 @@ public interface TenantUserRepository extends CrudRepository<TenantUser, Long> {
     void updateLastLoginAt(@Id Long id, Instant lastLoginAt);
 
     /**
+     * Counts an attempt to log in with a password, before the password is checked - 0 when the account is locked and
+     * takes none. The attempt that reaches maxAttempts locks the account until lockedUntil and starts the count anew.
+     * In one statement and before the check: attempts sent at once are each counted, so no more than maxAttempts
+     * passwords are ever tried - a count after the check would let all of them through first.
+     */
+    @Query("""
+            UPDATE tenant_user SET
+              failed_logins = CASE WHEN failed_logins + 1 >= :maxAttempts THEN 0 ELSE failed_logins + 1 END,
+              locked_until = CASE WHEN failed_logins + 1 >= :maxAttempts THEN CAST(:lockedUntil AS TIMESTAMPTZ) ELSE NULL END
+            WHERE id = :id AND (locked_until IS NULL OR locked_until <= :now)""")
+    int countLoginAttempt(Long id, int maxAttempts, Instant now, Instant lockedUntil);
+
+    /** The right password, or one an admin set: the count of attempts starts anew and a lock ends. */
+    @Query("UPDATE tenant_user SET failed_logins = 0, locked_until = NULL WHERE id = :id")
+    void clearLoginAttempts(Long id);
+
+    /** The person alone - set when the admin adds the person's user to another tenant. */
+    void updatePerson(@Id Long id, Long person);
+
+    /**
      * The language alone: a whole row written back would undo what an admin changed meanwhile on a user the person has
      * in another tenant (deactivated, demoted, renamed).
      */

@@ -120,6 +120,7 @@ class TenantAdminSpec extends Specification {
         "PUT"    | "/tenant/admin/mcp-connections/1/tools/1"
         "GET"    | "/tenant/admin/mcp-connections/1/access"
         "PUT"    | "/tenant/admin/mcp-connections/1/pass-through"
+        "PUT"    | "/tenant/admin/mcp-connections/1/resources"
         "GET"    | "/tenant/admin/file-stores"
         "POST"   | "/tenant/admin/file-stores"
         "PUT"    | "/tenant/admin/file-stores/1"

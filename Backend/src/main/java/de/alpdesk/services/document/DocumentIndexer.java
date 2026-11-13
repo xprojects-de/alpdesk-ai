@@ -46,6 +46,7 @@ import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
@@ -185,7 +186,33 @@ public class DocumentIndexer implements ApplicationEventListener<ServerStartupEv
     }
 
     private void ensureTextIndex(Long tenantId, int attempt) {
-        executor.execute(() -> withTenantLock(tenantId, () -> {
+        executor.execute(() -> buildTextIndex(tenantId, attempt));
+    }
+
+    /**
+     * Every tenant's full-text index on start, one tenant after the other: the job checks one tenant and queues itself
+     * again for the next - as a tenant's documents do. One job per tenant at once would fill the executor's queue, and
+     * a document uploaded right after the start waited behind all of them (with a thousand tenants, longer than a
+     * user waits); so it waits behind one check. A server shutting down ends the walk - the next start walks again.
+     */
+    private void ensureTextIndexes(Deque<Long> tenantIds) {
+        Long tenantId = tenantIds.poll();
+        if (tenantId == null) {
+            return;
+        }
+        try {
+            executor.execute(() -> {
+                buildTextIndex(tenantId, 1);
+                ensureTextIndexes(tenantIds);
+            });
+        } catch (RejectedExecutionException e) {
+            LOG.debug("The full-text indexes of {} tenants are left to the next start - the server is shutting down",
+                    tenantIds.size() + 1);
+        }
+    }
+
+    private void buildTextIndex(Long tenantId, int attempt) {
+        withTenantLock(tenantId, () -> {
             Optional<Tenant> tenant = tenants.findById(tenantId);
             if (tenant.isEmpty()) {
                 return null;
@@ -206,7 +233,7 @@ public class DocumentIndexer implements ApplicationEventListener<ServerStartupEv
                 }
             }
             return null;
-        }));
+        });
     }
 
     /** Runs the action while no document of the tenant is being embedded. */
@@ -231,8 +258,9 @@ public class DocumentIndexer implements ApplicationEventListener<ServerStartupEv
      */
     @Override
     public void onApplicationEvent(ServerStartupEvent event) {
-        for (Tenant tenant : tenants.findAllOrderByName()) {
-            ensureTextIndex(tenant.id());
+        List<Tenant> all = tenants.findAllOrderByName();
+        ensureTextIndexes(new ArrayDeque<>(all.stream().map(Tenant::id).toList()));
+        for (Tenant tenant : all) {
             if (tenant.embeddingModelId() == null) {
                 continue;
             }

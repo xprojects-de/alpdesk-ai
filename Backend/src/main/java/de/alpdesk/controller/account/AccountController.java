@@ -72,7 +72,7 @@ public class AccountController {
         return new AccountResponse(user.id(), user.username(), user.displayName(), tenant.id(), tenant.name(),
                 user.admin(), TenantUserResponse.languageOf(user), mcpKeys.hasKey(tenantId),
                 tenant.tasksAllowed(), connections.answeringAgent(tenantId).isPresent(),
-                userService.loginAccounts(user.username()).stream()
+                userService.switchableAccounts(user).stream()
                         .map(account -> TenantChoice.from(account, wam.enabled())).toList());
     }
 

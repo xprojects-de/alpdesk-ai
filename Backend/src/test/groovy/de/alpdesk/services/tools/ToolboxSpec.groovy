@@ -174,8 +174,8 @@ class ToolboxSpec extends Specification {
         given:
         def context = context(api.tenant(), null, false)
         def connection = new McpConnection(1L, 1L, "Lager Süd", "http://example.com/mcp", null, null, null,
-                false, null, McpConnectionProtocol.MCP, false, Instant.now(), Instant.now())
-        def tool = new McpTool(1L, 1L, "find_invoice", "Finds an invoice", "{}", false, true, true, true)
+                false, false, null, McpConnectionProtocol.MCP, false, Instant.now(), Instant.now())
+        def tool = new McpTool(1L, 1L, "find_invoice", "Finds an invoice", "{}", false, true, true, true, null)
         def specification = ToolSpecification.builder().name("Lager_S_d__find_invoice").build()
         context.softwareTools([new McpTools.Offered(specification, connection, tool)])
 

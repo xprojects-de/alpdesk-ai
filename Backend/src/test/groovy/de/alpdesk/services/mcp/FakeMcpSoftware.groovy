@@ -12,7 +12,8 @@ import java.util.concurrent.CopyOnWriteArrayList
  * {@code eventStream} - as an event stream, checking a bearer key if it has one. Its tools: {@code find_invoice}
  * (readOnlyHint; its schema as the Python SDK writes it, with "title" and "$schema") and {@code cancel_invoice} (no
  * hint - it changes something); {@code tools} can be replaced, and {@code callText} / {@code callContent} /
- * {@code callError} replace what every tool call answers. Its prompt {@code create_test_program} (arguments
+ * {@code callError} replace what every tool call answers. Its resources: {@code resources} (read), {@code resourcePages}
+ * and {@code templatePages} (listed). Its prompt {@code create_test_program} (arguments
  * package_name and project_name, both required) answers with a user's text naming them - plus an assistant's message
  * and an image, which a client leaves out; {@code prompts} null: a server without prompts.
  * <p>
@@ -60,6 +61,9 @@ class FakeMcpSoftware {
     final Set<String> refusedSources = java.util.concurrent.ConcurrentHashMap.<String> newKeySet()
     /** Whether {@code callContent} is answered as an error of the tool (isError). */
     volatile boolean callIsError = false
+    /** The structured content and the _meta every answer of {@code callContent} carries; null: none. */
+    volatile Map callStructured = null
+    volatile Map callMeta = null
     /** The prompts the server lists; null: it offers none (no prompts capability). */
     volatile List<Map> prompts = [
             [name: "create_test_program", title: "Prüfprogramm erstellen", description: "Creates a test program",
@@ -78,6 +82,8 @@ class FakeMcpSoftware {
     volatile int errorStatus = 200
     /** How long it waits before it answers a tool call - a software that takes its time, or hangs. */
     volatile long callDelayMillis = 0
+    /** The HTTP status resources/read answers with, without a body - a server failing for the moment; 0: it answers. */
+    volatile int readStatus = 0
     /** The instructions its answer to initialize gives; null: none. */
     volatile String instructions = null
     /** Whether the server is stateless: it sends no session id with its answer to initialize. */
@@ -87,6 +93,12 @@ class FakeMcpSoftware {
      * no resources (no resources capability).
      */
     final Map<String, Map> resources = new java.util.concurrent.ConcurrentHashMap<>()
+    /**
+     * What resources/list and resources/templates/list answer, page by page: the cursor asked with ("" on the first
+     * page) to the page ([resources: ..., nextCursor: ...] or [resourceTemplates: ...]). Empty: a page of none.
+     */
+    final Map<String, Map> resourcePages = new java.util.concurrent.ConcurrentHashMap<>()
+    final Map<String, Map> templatePages = new java.util.concurrent.ConcurrentHashMap<>()
     /**
      * Its downloads under /files/ by the path after it: [status, body (bytes), type, location, headerDelayMillis,
      * bodyDelayMillis - a slow server before its headers or between them and the body]. A file a tool links to with an
@@ -199,6 +211,11 @@ class FakeMcpSoftware {
         if (message.method == "tools/call" && callDelayMillis > 0) {
             Thread.sleep(callDelayMillis)
         }
+        if (message.method == "resources/read" && readStatus > 0) {
+            exchange.sendResponseHeaders(readStatus, -1)
+            exchange.close()
+            return
+        }
         if (message.id == null) {
             exchange.sendResponseHeaders(202, -1)
             exchange.close()
@@ -207,10 +224,14 @@ class FakeMcpSoftware {
         Map result = switch (message.method) {
             case "initialize" -> [protocolVersion: "2025-06-18",
                                   capabilities: (prompts == null ? [tools: [:]] : [tools: [:], prompts: [:]])
-                                          + (resources.isEmpty() ? [:] : [resources: [:]]),
+                                          + (resources.isEmpty() && resourcePages.isEmpty() && templatePages.isEmpty()
+                                          ? [:] : [resources: [:]]),
                                   serverInfo: [name: "fake", version: "1"]] + (instructions == null ? [:] : [instructions: instructions])
             case "resources/read" -> resources[(message.params as Map).uri as String] == null ? null
                     : [contents: [resources[(message.params as Map).uri as String]]]
+            case "resources/list" -> resourcePages[((message.params as Map)?.cursor ?: "") as String] ?: [resources: []]
+            case "resources/templates/list" -> templatePages[((message.params as Map)?.cursor ?: "") as String]
+                    ?: [resourceTemplates: []]
             case "tools/list" -> listTools(message.params as Map)
             case "tools/call" -> callError ? null : answerCall(message.params as Map)
             case "prompts/list" -> prompts == null ? null : listPrompts(message.params as Map)
@@ -334,7 +355,8 @@ class FakeMcpSoftware {
             return [content: [[type: "text", text: "Booking of " + source + " refused"]], isError: true]
         }
         if (callContent != null) {
-            return [content: callContent, isError: callIsError]
+            return [content: callContent, isError: callIsError] + (callStructured == null ? [:]
+                    : [structuredContent: callStructured]) + (callMeta == null ? [:] : [_meta: callMeta])
         }
         if (callText != null) {
             return [content: [[type: "text", text: callText]], isError: false]

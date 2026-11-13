@@ -34,11 +34,12 @@ so the gap is seen.
 | AUTH-14 | Accounts from the IDM: person listed in a group's WAM group gets a user in that tenant at sign-in (active, no password) | WAM | walk B1, C1; `check.py` |
 | AUTH-15 | Every tenant-user request checked against the proxy header: another person at the same browser gets 403, forced logout, new person signed in | WAM | walk D3 |
 | AUTH-16 | Logout returns to the login page it came from (remembered tenant key) | both | walk C21, E5 |
-| AUTH-17 | Tenant switch in the user menu (shown with two or more tenants), new token, all state reset, queued uploads/deletions ended | both | walk D2; `check.py` |
+| AUTH-17 | Tenant switch in the user menu (shown with two or more tenants), new token, all state reset, queued uploads/deletions ended; plain: only between users the admin added from one another - a user created by name lists and reaches no other tenant | both | walk D2; `check.py` |
 | AUTH-18 | Sessions end at once: user or tenant deactivated/deleted, password set by an admin, username changed, tenant-admin right removed | both | walk D4, E3 |
 | AUTH-19 | Another open tab of the same browser reloads when the shared token changes (logout, switch, another person's sign-in) | both | walk D3 |
 | AUTH-20 | Wrong role redirected to its own area (admin to `/dashboard`, tenant user to `/app`; non-admin kept off tenant-admin pages) | both | walk C1 |
 | AUTH-21 | Unknown username / user without password refused in the time of a wrong password | plain | **specs only** - no step yet |
+| AUTH-22 | Wrong passwords lock the account for a while (5 in a row, 15 minutes; answered like a wrong password; a password an admin sets lifts it; the admin's account never) | plain (the admin: both) | `check.py`; the lock ending by itself and the switch: **specs only** (`LoginLockoutSpec`) |
 
 ## Admin: tenants
 
@@ -242,6 +243,7 @@ so the gap is seen.
 | SW-14 | Switch "Beantwortet den Chat" (one A2A connection per tenant answers every question: chat, `/api/v1/chat`, `ask_assistant`, `/a2a`) | both | walk B11; `check.py` (the agent's part, after `setup.py a2a`) |
 | SW-15 | Who-asks metadata sent to an agent (tenant, language, user or key, groups, IDM groups, skills) | both | `check.py` (the agent's part, after `setup.py a2a`) |
 | SW-16 | Our MCP client introduces itself with the tenant's brand | both | **specs only** - no step yet |
+| SW-17 | Switch "Ressourcen an MCP-Clients" (the software's resources to MCP clients, addresses with the connection in front; off by default, greyed out without pass-through, refused for A2A) | both | walk B8, B12 |
 
 ## The tenant's MCP server (/mcp)
 
@@ -258,10 +260,11 @@ so the gap is seen.
 | MCP-09 | Tool `read_document(document, offset?)` by id | both | `check.py` |
 | MCP-10 | Tools `list_tasks`, `run_task` (waits up to 60 s), `task_run` for the tasks assigned to the key | both | `scenarios.py` |
 | MCP-11 | Templates as MCP prompts (`prompts/list`, `prompts/get` with optional `question`; slash commands in the client) | both | `check.py` |
-| MCP-12 | Pass-through: reading tools of the key's software listed as `<connection>__<tool>` (max 32 chars) and called by the client; files passed on; every failure a tool error | both | walk B12; `check.py` |
+| MCP-12 | Pass-through: reading tools of the key's software listed as `<connection>__<tool>` (max 32 chars) and called by the client; the result as the software sent it (long text, images, files with their type, web links as links, own resource links embedded); every failure a tool error | both | walk B12; `check.py` |
 | MCP-13 | Pass-through: software's prompts listed and fetched | both | **specs only** - no step yet |
 | MCP-14 | Key boundaries: MCP key reaches only its door (401 at `/a2a` without the door), API keys and user tokens get 403 at `/mcp`, renewed key's old secret refused, `GET /mcp` 405 | both | walk B12; `check.py` |
 | MCP-16 | Pass-through of changing tools: "Darf ändern in" per key and software (only software passing through), the changing tool listed as not read-only and called; taken back - gone; `ask_assistant` still reading | both | walk B12; `check.py` |
+| MCP-17 | Pass-through of resources: `resources/list` and `resources/templates/list` with `<connection>.` in front, `resources/read` by such an address; without the prefix "not found" with the hint | both | walk B12 |
 | MCP-15 | Connecting real clients: Claude Code (`claude mcp add`), GitHub Copilot (`mcp.json`), claude.ai / Cowork custom connector with the `authorization` header | both | **not run** - needs the real clients (Claude Code, Copilot, claude.ai) - by hand |
 
 ## The tenant's A2A server (/a2a)

@@ -85,7 +85,7 @@ dependencies {
     }
     implementation("com.vladsch.flexmark:flexmark:0.64.8")
     implementation("com.vladsch.flexmark:flexmark-ext-tables:0.64.8")
-    implementation("io.github.openhtmltopdf:openhtmltopdf-pdfbox:1.1.110")
+    implementation("io.github.openhtmltopdf:openhtmltopdf-pdfbox:1.1.113")
     implementation("org.jsoup:jsoup:1.24.1")
     // The AI features (docs/architecture/ai-features.md): one module per provider, pgvector for the tenants'
     // embeddings, the core for splitting documents.
@@ -102,10 +102,10 @@ dependencies {
     implementation("io.micronaut.mcp:micronaut-mcp-client-java-sdk")
     // The tenant's A2A agent and the A2A clients to agents (docs/architecture/a2a.md):
     // the official SDK's server core (the task lifecycle behind a controller of ours) and its client.
-    implementation("org.a2aproject.sdk:a2a-java-sdk-server-common:1.5.0.Final")
-    implementation("org.a2aproject.sdk:a2a-java-sdk-transport-jsonrpc:1.5.0.Final")
-    implementation("org.a2aproject.sdk:a2a-java-sdk-client:1.5.0.Final")
-    implementation("org.a2aproject.sdk:a2a-java-sdk-client-transport-jsonrpc:1.5.0.Final")
+    implementation("org.a2aproject.sdk:a2a-java-sdk-server-common:1.5.1.Final")
+    implementation("org.a2aproject.sdk:a2a-java-sdk-transport-jsonrpc:1.5.1.Final")
+    implementation("org.a2aproject.sdk:a2a-java-sdk-client:1.5.1.Final")
+    implementation("org.a2aproject.sdk:a2a-java-sdk-client-transport-jsonrpc:1.5.1.Final")
     implementation("dev.langchain4j:langchain4j-pgvector")
     // Models of Amazon Bedrock - Claude in the EU (docs/architecture/ai-features.md "Amazon Bedrock"): its Converse API
     // through the AWS SDK (the platform's version, as S3's), streamed over the SDK's Netty client - Micronaut brings
@@ -130,7 +130,7 @@ dependencies {
     implementation("software.amazon.awssdk:url-connection-client")
     // SharePoint and OneDrive: the app's token through Microsoft's own authentication library (MSAL); the few Graph
     // calls themselves need no SDK (services.filestore.GraphStoreClient).
-    implementation("com.microsoft.azure:msal4j:1.26.0")
+    implementation("com.microsoft.azure:msal4j:1.26.1")
     // Connected software that signs in with OAuth (docs/architecture/mcp.md "Signing in to the software's server"):
     // Nimbus builds and parses the OAuth messages only - our own HttpClient sends them under the address rules.
     implementation("com.nimbusds:oauth2-oidc-sdk:11.39")

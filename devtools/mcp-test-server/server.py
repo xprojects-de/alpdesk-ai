@@ -267,6 +267,64 @@ def report_csv() -> str:
     return REPORT_CSV
 
 
+@mcp.resource("test://tickets/{number}/log", name="ticket log", mime_type="text/plain",
+              description="The log of an invented ticket")
+def ticket_log(number: str) -> str:
+    log(f"resources/read ticket {number} log")
+    return f"Ticket {number}: opened by Erika Musterfrau\nTicket {number}: answered\n"
+
+
+@mcp.tool(annotations=READS)
+def ticket_link(number: str = "4711") -> list:
+    """Returns a resource link to the log of a ticket - an address following the template test://tickets/{number}/log."""
+    log(f"ticket_link {number}")
+    return [TextContent(type="text", text=f"The log of ticket {number} is linked."),
+            ResourceLink(type="resource_link", uri=f"test://tickets/{number}/log", name=f"ticket-{number}.log",
+                         mimeType="text/plain")]
+
+
+@mcp.tool(annotations=READS)
+def web_link() -> list:
+    """Returns a link to a file at a web address - a client fetches it itself, with its user's rights."""
+    log("web_link")
+    return [TextContent(type="text", text="The handbook is on the web."),
+            ResourceLink(type="resource_link", uri="https://files.example.com/handbuch.pdf", name="handbuch.pdf",
+                         mimeType="application/pdf")]
+
+
+# ---------------------------------------------------------------------------------------------------------------------
+# What a tool says beyond its text: long text, structured content, _meta
+
+
+@mcp.tool(annotations=READS)
+def long_text(characters: Annotated[int, Field(ge=1, le=2_000_000)] = 150_000) -> str:
+    """Returns a text of the given length - for a client's or a proxy's limit of text."""
+    log(f"long_text {characters}")
+    line = "Musterfirma line of invented text. "
+    return (line * (characters // len(line) + 1))[:characters - 3] + "END"
+
+
+class Invoice(BaseModel):
+    number: str = Field(description="The invoice's number")
+    total: float = Field(description="Its total in EUR")
+    paid: bool
+
+
+@mcp.tool(title="Find an invoice (structured)", annotations=READS)
+def structured_invoice(number: str = "4711") -> Invoice:
+    """Returns an invented invoice as structured content with an output schema (and as text)."""
+    log(f"structured_invoice {number}")
+    return Invoice(number=number, total=412.5, paid=True)
+
+
+@mcp.tool(annotations=READS, meta={"com.example/category": "test", "anthropic/searchHint": "metadata"})
+def with_meta() -> CallToolResult:
+    """A tool whose entry and result carry _meta - a proxy passes both on."""
+    log("with_meta")
+    return CallToolResult(content=[TextContent(type="text", text="Meta sent.")],
+                          _meta={"com.example/trace": "trace-4711"})
+
+
 # ---------------------------------------------------------------------------------------------------------------------
 # Values from the user: a changing tool, a strict one, elicitation
 

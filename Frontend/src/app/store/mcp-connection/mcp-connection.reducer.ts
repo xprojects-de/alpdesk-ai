@@ -54,6 +54,7 @@ export const mcpConnectionReducer = createReducer(
         McpConnectionActions.updateConnectionSuccess,
         McpConnectionActions.reloadToolsSuccess,
         McpConnectionActions.setPassThroughSuccess,
+        McpConnectionActions.setPassResourcesSuccess,
         McpConnectionActions.completeSignInSuccess,
         (state, {scope, connection}) =>
             state.scope === scope

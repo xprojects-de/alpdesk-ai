@@ -63,7 +63,7 @@ the user agrees to - no code before that. Then the implementation with its specs
 | 53 | A frontend of the tenant's own for the users: signing in, the account and the chat published in Swagger next to `/api/v1` and kept compatible like it, `APP_CORS_ORIGINS` for another origin, CORS without credentials - the admin's and tenant admins' pages stay in Alpdesk AI | S (about 1 day) | **built** 6 Nov 2026 on `feature/orchestrator` (2.0.0) - decided the same day; the README's "A frontend of your own for the users" |
 | 54 | A2A client: an A2A agent as connected software of a tenant - a workflow engine of the tenant's own (the LangGraph Python library in a container per tenant, never shipped by us), a foreign agent, or our own topics over A2A. Package A: a connection of protocol A2A (address rules as MCP, the agent card with its skills read on reload), one tool `<connection>__ask` for the chat's model by the groups' level; package B: a tenant answering **every** question through its agent (the orchestrator's case - the stream mapped onto the chat's events, the context kept with the conversation, a question back answered by the next question, the asker's tenant, language, user or key, groups and IDM groups in `message.metadata.alpdesk`, the way back over the topics' MCP keys in the container); package C: the agent's skills deselectable like the topics of 51; package D: the step `call_agent` of the scheduled tasks (rows to an agent as `call_tool` sends them to a tool, a target only); package E: a `prompt` step answered by the assistant (`assistant: true` with areas, software - A2A agents included -, web search and a template: the prompt chain with the company's knowledge); `devtools/a2a-test-agent/` - an agent on the official Python SDK to try the client against by hand, the template for an adapter of one's own | M (about 13-15 days) | **built in the night of 6/7 Nov 2026** (2.0.0, `feature/a2a`, its plan's "Built") - decided 6 Nov 2026 (workflows: A2A, not MCP or a REST API of our own; the engine the tenant's own; the orchestrator always through the workflow; groups in the metadata) - **2.0.0, before the server (52)**; the way back from the workflow over `/mcp` or `/a2a` with the topics' standard MCP keys (decided 6 Nov 2026 - no token per asker, see 55); operations: a log line per agent call, the check button, the admin's switch per tenant; the skills filtered by group later - a separate plan (kept outside the repository) |
 | 55 | A signed short-lived assertion per asker for the way back from a workflow: the person resolved to its own user in every topic (rights, usage and audit per person, no fixed keys in the engine), JWKS of the installation, accepted at `/mcp` and `/a2a` | M (about 3-4 days) | idea - designed 6 Nov 2026 with 54 and put aside as too much to explain; taken up when the person must be visible in the topics |
-| 56 | A second factor for the password login (TOTP): set up in the account (QR code, recovery codes), asked as a second step of `/login`, mandatory per tenant as the admin's switch, reset by the admin or a tenant admin; the admin account's from the environment; passkeys later | M (about 3-4 days) | agreed 8 Nov 2026 - proposal first; the first of the three points taken from a comparison with a hosted assistant (the product stays as it is) |
+| 56 | A second factor for the password login (TOTP): set up in the account (QR code, recovery codes), asked as a second step of `/login`, mandatory per tenant as the admin's switch, reset by the admin or a tenant admin; the admin account's from the environment; passkeys later; a wrong code counts like a wrong password on the lock of point 70 | M (about 3-4 days) | agreed 8 Nov 2026 - proposal first; the first of the three points taken from a comparison with a hosted assistant (the product stays as it is) |
 | 57 | A budget per tenant and month: the admin sets an amount, every provider call is checked against the month's usage, over it the chat, the API and the MCP server answer 409 with a clear message, the usage pages show it, the daily report warns at 80 % | S-M (about 2-3 days) | agreed 8 Nov 2026 - proposal first; the safety an operator billing global keys has no equivalent of today |
 | 58 | Retention of chat histories per tenant: days or unlimited, set by the admin, a nightly job deletes a tenant's conversations older than that with their files; the installation's file and video retention stays | S (about 1 day) | agreed 8 Nov 2026 - proposal first; after 56 and 57 |
 | 59 | Custom sandboxes: an operator builds a tenant's sandbox image on ours with the tenant's own programs (a test framework, a simulator, a CLI) and writes one README into it; the sandbox hands the README to the app, the chat's model gets it with the code rules - nothing else in the core | S (about 1 day) | **built** 8 Nov 2026 (2.0.0) - the README through `/health` into the code rules, the admin's check, `sandbox-example/`; selftest and the example image checked by hand |
@@ -76,6 +76,8 @@ the user agrees to - no code before that. Then the implementation with its specs
 | 66 | Media and documents read apart from the app: defence in depth for the two places that read foreign files - ffmpeg (audio and video of the chat) runs in the app's container, Tika has no time limit. ffmpeg started without the app's environment, the app's container hardened (no capabilities, no new privileges, later a read-only root), then conversion in a process or container of its own | S for the first two steps, M-L for the separation | later; from the security review of 10 November 2026; the first two steps can go into any release; proposal first |
 | 67 | A user's own connections to software: a tenant user connects an MCP server or an A2A agent on the account page with their own address and sign-in (a token, or OAuth) - the tools are read for that user and used in that user's chat only, with the person's rights in the software; the tenant's connections stay as they are, shared and the tenant admin's; nothing of an issue tracker or a wiki in the core | M (about 3-4 days) | **plan agreed** 10 Nov 2026 for 2.1.0, the user's shape (replaces the modes on a tenant's connection agreed earlier that day): a tenant admin's switch, off by default, and any address the rules allow; not started - after 2.0.0 is released |
 | 68 | Changing tools of the connected software through to MCP clients: a company's own MCP server behind ours offers tools that change something (a ticket created in an issue tracker, a document filed on another server) and Claude Code, Cowork or Copilot call them directly - a level per MCP key and software (none, read, read and change) where the key card has a tick per software today, the tool marked as changing - whether its user is asked is the client's matter; `ask_assistant` and `/a2a` stay reading | S (about 2-3 days) | **built** 11 Nov 2026 (2.0.0, migration `V18` - the release candidate is out) - [architecture/mcp.md](architecture/mcp.md) "Changing tools passed through"; the "later" of point 41 |
+| 69 | MCP 2026-07-28: the tenant's MCP server and the clients to connected software move to the protocol's next revision - questions back, progress, long runs and subscriptions become possible; what the proxy has to do for it is listed | L | open - waits for the MCP Java SDK's client and Micronaut MCP; no date known (12 Nov 2026) |
+| 70 | Wrong passwords lock the account for a while: after 5 wrong passwords in a row (`APP_LOGIN_MAX_ATTEMPTS`) a tenant user's account takes no password for 15 minutes (`APP_LOGIN_LOCK_MINUTES`), counted per account at the login and the tenant switch, answered like a wrong password | S | built 13 Nov 2026 (2.0.0) - [architecture/tenancy.md](architecture/tenancy.md) "Password login" |
 
 ## Target architecture
 
@@ -2456,7 +2458,8 @@ the plugins are MCP servers, Zirmo keeps the rules.
   instructions and prompts.
 
 **Not built now, on purpose**: resources (`resources/list`, `resources/read` - raw content, own rules; when a
-module offers some); a catalog of the connected software at the admin (a module is entered per tenant as connected
+module offers some - **built 11 November 2026**: with a switch per connection, the addresses with the connection in
+front, mcp.md "Resources of the software"); a catalog of the connected software at the admin (a module is entered per tenant as connected
 software); usage per call of a connected software (only the AI providers are counted); changing tools passed through (Cowork would ask before each call -
 later: point 68); elicitation (point 30).
 
@@ -2980,6 +2983,10 @@ the tenant dialog (the switch); en.json, de.json; [SECURITY.md](../SECURITY.md),
 setup needs a first right code; the duty leads a user without a factor to the setup and nowhere else; the reset by
 admin and tenant admin, another tenant's user 404; WAM users untouched; the admin's factor from the environment.
 
+**With the lock of point 70** (built 13 November 2026): a wrong code of the second step counts like a wrong password,
+or anyone holding the password could try codes; the hint "locked" and an "unlock" in the user lists may come with
+this point's user-list changes.
+
 **Open questions**: the challenge as a short-lived JWT of its own or a row; how many recovery codes (8 or 10); whether
 a tenant admin may switch the duty for their own tenant or only the admin; the frontend's QR code library (a license
 check, [THIRD-PARTY.md](../THIRD-PARTY.md)).
@@ -3382,7 +3389,9 @@ the result's text is no standard and stays text - nothing can tell a file's link
 - the chat: a link of the server's own and an `https` link each become a file of the answer, read like an upload (a
   PDF's text, an image), the model told it was created;
 - a task's `call_tool` source of documents whose file tool answers with a link: the document extracted;
-- the MCP proxy passes the resolved file on as an embedded resource;
+- the MCP proxy passes the resolved file on as an embedded resource (**changed 11 November 2026**: for MCP clients a
+  web link goes on as a link and only a link to the software's own resource is embedded - mcp.md "Connected software
+  through to MCP clients");
 - `where:` table of refusals, each a note and no file: expired (410), larger than 50 MB (the body cut while read), an
   internal address, a redirect to an internal address, plain `http` to a public host, a timeout, an unknown scheme
   that `resources/read` refuses;
@@ -3600,7 +3609,9 @@ are the case; mcp.md "What the client does".
   connection passes through, and the service refuses it otherwise.
 - **Marked as changing**: `readOnlyHint: false` and nothing else - so Claude Code neither repeats the call by itself
   nor runs it in parallel (it does both for a read-only tool). The software's own `destructiveHint` is not stored (`mcp_tool` keeps `readOnlyHint` and
-  `changes`); no column for it until a client makes a difference of it.
+  `changes`); no column for it until a client makes a difference of it. **Changed 11 November 2026**: the tool's whole
+  entry is kept (`mcp_tool.definition`, `V19`) and its annotations go on as the software listed them, `readOnlyHint`
+  from the admin's mark.
 - **`ask_assistant` and `/a2a` stay reading** (`McpTools.forMcpKey`): there the tenant's model would decide and no
   person sees the call before it runs. The client software's API keys stay reading too.
 - **A call that failed after it was sent may have run** (no answer in time, an answer without content or too large):
@@ -3639,7 +3650,7 @@ line (0.5), the key card (0.5), specs (1), docs, SECURITY.md, the test server (0
 
 **Not built, on purpose**: changing tools for `ask_assistant`, `/a2a` or the client software's API keys; a record of
 the changing calls in the database (the log line until someone must look them up); the software's `destructiveHint`
-and `idempotentHint` passed on; elicitation (point 30); rights per person (point 67, OAuth per person).
+and `idempotentHint` passed on (passed on since 11 November 2026, with the whole entry); elicitation (point 30); rights per person (point 67, OAuth per person).
 
 **Noted for later - a question back over A2A** (11 November 2026, left out for now): `/a2a` could offer changing
 tools the way the chat does, with the calling agent in the user's place - the task goes to `input-required` naming
@@ -3650,3 +3661,71 @@ limit: an agent decides at the other end, not surely a person - a model confirmi
 and a workflow engine without a user confirms by itself or hangs; `SECURITY.md` would have to say the calling agent's
 operator answers for it. `ask_assistant` has no counterpart (elicitation, point 30 - `/mcp` is stateless). When: an
 agent that speaks A2A only must change something and a person decides behind it.
+
+## 69 MCP 2026-07-28
+
+**Noted** 12 November 2026, while the proxy was made to pass on unchanged what a connected software sends (point 41,
+[architecture/mcp.md](architecture/mcp.md) "Connected software through to MCP clients"). Nothing to build yet: Zirmo
+speaks 2025-11-25, the revision of the MCP Java SDK it uses on both sides - as a server at `/mcp` (Micronaut MCP) and
+as a client to the tenants' software. This point collects what the move to 2026-07-28 asks, so the notes spread over
+mcp.md have one place.
+
+**Waits for**: the MCP Java SDK with a client for 2026-07-28, and Micronaut MCP following it (an answer as a stream
+from the server's side among it). No date is known for either. Until then Zirmo is the slower part: Claude Code speaks
+the new revision already, and **a software built for 2026-07-28 alone cannot be connected** (the specification: a
+legacy client and a modern-only server fail; a server may serve both - mcp.md "What a server behind Zirmo must
+observe").
+
+**What becomes possible with it** - each left out today because `/mcp` answers one request with one answer:
+- questions back from the software during a call (`input_required` - elicitation, point 30);
+- progress and long runs (tasks);
+- subscriptions to a resource and `list_changed` (`subscriptions/listen`).
+
+**What the move asks of the proxy's design** (reviewed 11 November 2026 against both revisions - nothing in today's
+design blocks it):
+- Zirmo sets the per-request protocol fields and the headers `Mcp-Method` / `Mcp-Name` itself for each hop - it
+  renames, so the client's header and the one toward the software differ. Our own request to the software (not a
+  relay) does that by itself; a tool parameter marked `x-mcp-header` must be mirrored into `Mcp-Param-*` toward the
+  software too.
+- Results carry `resultType`; a question back is a result and passes like any other - the retry is the same
+  `tools/call` with the same name, so it finds its software without any state of ours.
+- `tools/list` needs caching hints: a merged list is private to the key (`cacheScope`), in a fixed order (ours is:
+  connection, then tool), with our own cursor.
+- `server/discover` answered by Zirmo; no `initialize`. Legacy clients served beside modern ones.
+- A task's id names no server - it needs the connection in front, as a resource's address has it. An id is opaque to
+  the client, so this is clean.
+- The `_meta` keys MCP reserves (`io.modelcontextprotocol/...`) carry the protocol version, capabilities, server info
+  and a subscription's id there: Zirmo sets its own and already keeps the software's back.
+- A resource whose address is a web address may be fetched by the client directly - they are never prefixed today for
+  that reason.
+
+**To be checked again then** (decided 12 November 2026):
+- "Resource not found" becomes `-32602` (today `-32002`; clients should still accept the old code).
+- An unknown method must answer HTTP 404 with `-32601`; today Micronaut MCP sends 400.
+- **The HTTP status of a JSON-RPC error**: neither revision names one for an error answering a request (read 12
+  November 2026). Micronaut MCP sends 400 or 500, on which the SDKs' clients end their session; `ResourceErrorStatus`
+  sends the errors of `resources/*` with 200. Whether that filter stays, widens to every request or goes depends on
+  what Micronaut MCP and the SDKs' clients do by then.
+- The error codes renumbered in 2026-07-28 (`HeaderMismatch`, `MissingRequiredClientCapability`,
+  `UnsupportedProtocolVersion`).
+- The clients to connected software: sessions, `resources/read` of a link, the OAuth sign-in (built against the
+  authorization specification of 2026-07-28 already - point 61).
+
+**Size**: L, and not to be estimated before the SDK's client exists. As every point: a written proposal first.
+
+## 70 Wrong passwords lock the account for a while
+
+**Goal** (13 November 2026, after the security review of 12 November): without a WAM proxy a tenant user's password
+could be tried without end - an address-based limit cannot work behind the reverse proxy, where every request has the
+proxy's address. Built in its smallest form the same day.
+
+**Built**: two columns on `tenant_user` (`failed_logins`, `locked_until`, migration V20) and two settings
+(`app.login.max-attempts` 5, `app.login.lock-minutes` 15 - `APP_LOGIN_MAX_ATTEMPTS`, `APP_LOGIN_LOCK_MINUTES` in both
+compose files). The wrong password reaching the limit locks the account; while locked every password is refused after
+the same hashing, so neither the answer nor its time tells the lock, and the frontend shows its usual message.
+Counted at the login and at the tenant switch (on the user switched to); the right password resets the count, a
+password an admin sets lifts the lock. Not for the admin's account nor with WAM. The rules:
+[architecture/tenancy.md](architecture/tenancy.md) "Password login"; spec `security.LoginLockoutSpec`.
+
+**Not built (later, with point 56 if asked)**: a hint "locked" and an "unlock" in the user lists, a message to the
+person, a lock that grows with repeated locks, the second factor's code counted the same way.

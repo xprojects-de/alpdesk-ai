@@ -26,6 +26,11 @@ Nothing in `.env` or `/api/v1` needs a hand; the new settings have defaults.
 
 ### Added
 
+- **Resources of your own software for MCP clients**: switched "Ressourcen an MCP-Clients" on the page "Software"
+  (off for every software), an MCP key that gets the software directly also lists and reads its resources - files,
+  logs, attachments. Their addresses start with the software's name and a dot, e.g.
+  `ticketsystem.ticket://4711/log`.
+
 - **Changing tools of your own software for MCP clients**: an MCP key may now also call the changing tools of a
   connected software that goes directly to MCP clients - e.g. create a ticket or file a document - where a tenant
   admin chose it under "Darf ändern in" in the key's dialog. Off for every key. Whether a person is asked before
@@ -38,7 +43,8 @@ Nothing in `.env` or `/api/v1` needs a hand; the new settings have defaults.
   name and icon.
 - **Files a connected software hands out as a link**: when a tool of an MCP server returns a file as a link (a
   temporary download, e.g. a document from a document management system), Zirmo fetches it at once - in the
-  chat, in a scheduled task's documents and for MCP clients alike. Up to 50 MB; an expired or refused link is named
+  chat and in a scheduled task's documents. For MCP clients a link to a web address goes on as a link, and a link to a
+  resource of the software's own is read and embedded (see "Changed"). Up to 50 MB; an expired or refused link is named
   to the assistant instead of failing the call. Your software's key goes only to its own host, never to another
   download address.
 - **Claude through Amazon Bedrock**: the model catalog takes Bedrock's chat models with an AWS account of your own -
@@ -136,6 +142,20 @@ Nothing in `.env` or `/api/v1` needs a hand; the new settings have defaults.
 
 ### Changed
 
+- **Structured results of a connected software reach the assistant**: the structured data a tool returns was
+  dropped; the assistant now reads it - beside the tool's text, or in its place where the tool sends no text.
+- **MCP clients get what your connected software sends, unchanged**: a software passed "Direkt an MCP-Clients" now
+  reaches Claude Code and the other MCP clients as it answers - long text whole (no longer cut at 100,000 characters),
+  an image as an image, files with the type the software names (an HTML page stays HTML), structured results, and
+  every message of a prompt. A link to a web address goes to the client as a link - Zirmo no longer fetches it for the
+  client; a link to the software's own resource is still read and embedded. Beyond 8 MB an answer is refused and says
+  so. The general chat over topic companies gets such web links as links too: it fetches them only where they are
+  reachable from its own installation without a key of the software.
+- **A tool's own statements reach MCP clients**: its title, all its annotations, its `_meta` and its output schema -
+  after "Werkzeuge neu laden" of the software on the page "Software"; until then a tool is listed as before.
+- **The MCP server names a key's connected software first**: its instructions now list every software passed to the
+  key in one line before the software's own texts, so a client that reads only the beginning still knows them.
+
 - **The name: Zirmo**, a product of Alpdesk. The installation's default name (`APP_BRANDING_NAME`) is now "Zirmo" -
   an installation that set its own name keeps it. The default logo is new - a Zirbe cone instead of "AD" (an
   installation's own logo stays); the colour stays. The public A2A card names Zirmo as its
@@ -184,10 +204,32 @@ Nothing in `.env` or `/api/v1` needs a hand; the new settings have defaults.
   document's id holds only within the software that gave it - for a chat asking several tenants' MCP servers.
 - **Documents are read with Apache Tika 4.2** (before 3.3): the same file types are read, but the text a document gives
   may differ slightly (Markdown is still read as written, headings and paragraphs kept). Documents already in the
-  knowledge stay as they are - "Embed again" reads them anew. Libraries updated besides: Micronaut 5.2.5, Angular 22.2.
+  knowledge stay as they are - "Embed again" reads them anew. Libraries updated besides: Micronaut 5.2.6, Angular 22.2.
 
 ### Fixed
 
+- **Embedding, replacing and deleting documents stays fast in a large knowledge**: removing a document's previous
+  pieces read the tenant's whole store each time - noticeable in a large import or after a change of the embedding
+  model. An index now finds them; a tenant gets it with the first document embedded after the update.
+- **The API documentation of `POST /api/v1/documents` names the answers as they are**: a document over 50 MB is
+  answered 400 (not 413, which only a request over the server's limit gets), and 409 also for an image without an
+  image model and for a push changed by another at the same moment. The answers themselves are unchanged.
+- **Downloading a large file of the chat over a slow line** no longer ends with a timeout after 30 seconds: the
+  download goes on as long as data arrives - also for a clip or image shown below an answer.
+- **A scheduled task's assistant prompt finds the knowledge again.** A `prompt` step with `assistant: true` searched
+  the company knowledge and its areas but never got a passage back - it answered without the documents.
+- **A connected software moved to another address** no longer keeps what was chosen for the old one: its resources
+  stop going to MCP clients and its MCP keys read only, until a tenant admin chooses again.
+- **An A2A agent whose address answers with something that is no agent card** is now refused with that reason when
+  it is created, reloaded or checked, instead of an unexpected error.
+- **Scheduled tasks**: a prompt of the assistant that uses an A2A agent now fails its run once the admin no longer
+  allows the company A2A agents, instead of answering without the agent. And a document a software hands out as one
+  of its own resources is asked for again by the next run when the software did not answer while reading it,
+  instead of being filed as unreadable.
+- SharePoint / OneDrive stores sign in with Microsoft's sign-in library 1.26.1, which fixes how it picks a token from
+  its cache.
+- **A document uploaded right after a restart no longer waits behind every company's index check**: on an
+  installation with many companies the first uploads after a start stayed "pending" until all of them were checked.
 - **The embeddings image for ARM**: announced with 1.8.0, `ghcr.io/xprojects-de/alpdesk-ai-embeddings:latest` was
   still published for `linux/amd64` only - on an ARM server it ran emulated, minutes per document. It now carries
   `linux/arm64` as well; pull it again.
@@ -246,9 +288,24 @@ Nothing in `.env` or `/api/v1` needs a hand; the new settings have defaults.
 
 ### Security
 
+- **Wrong passwords lock a user's account for a while.** After 5 wrong passwords in a row a user's account takes no
+  password for 15 minutes - at the login and at the switch to another company - and the login page shows its usual
+  message. A password an admin sets lifts it; the admin's own account is never locked. Optional settings
+  `APP_LOGIN_MAX_ATTEMPTS` and `APP_LOGIN_LOCK_MINUTES` (in both compose files).
+- **Without a WAM proxy, the tenant switch goes by the person, no longer by the username.** A user of the same name in
+  another tenant - one another company's admin may create under any name - was listed in the account's tenants with
+  its company's name, and the switch asked for its password. Now only the users the admin added with "Benutzer aus
+  anderem Mandanten" count as one person's. Installations of the release candidate without WAM: a person's users in
+  several tenants from before this release - created by name or added that way - are no longer offered for the
+  switch; delete all but one and add them again from it.
 - A spreadsheet that unpacks into an excessive size is refused: a part of an Office file that unpacks into more than
-  200 MB is refused before it is read.
+  200 MB is refused before it is read, so is an Office file whose parts unpack into more than 500 MB together or that
+  has more than 10,000 parts - a file made of many parts just below the limit kept the server busy for minutes.
 - Reading certain HTML mails no longer slows down the knowledge sources.
+- **A connected software's address reaches its own host only.** An address whose path began with `//` followed by
+  another host (`https://software.example.com//other.example.com/mcp`) sent the requests - and the connection's key -
+  to that other host, past the check for internal addresses. Such an address is refused now when it is saved (a model
+  server's too), and a connection saved with one before no longer reaches the other host: check its address.
 - **A sign-in to connected software belongs to its address.** After a connection's address was changed and signed in
   anew, a call still open to the old address could be given the new sign-in's token. A call now gets the token of
   the address it was started for only.
@@ -281,6 +338,9 @@ Nothing in `.env` or `/api/v1` needs a hand; the new settings have defaults.
   row it failed on - like every other database error.
 - The privacy notes now say that a scheduled task's last successful run stays beyond the 14 days (the next run
   reads on from it), until a later run takes its place or a tenant admin deletes it.
+- **Micronaut 5.2.6** brings the framework's security fixes (access rules checked against the path as routed, also
+  below a context path; upload limits; server-sent events). Behind a sub-path, a request outside it now answers 401
+  instead of 404 - nothing is served there, as before.
 
 ## [1.9.0] - 2026-11-02
 

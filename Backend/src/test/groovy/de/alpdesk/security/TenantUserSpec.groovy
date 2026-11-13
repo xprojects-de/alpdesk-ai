@@ -191,7 +191,7 @@ class TenantUserSpec extends Specification {
         def username = uniqueName()
         def now = Instant.now()
         def old = users.save(new TenantUser(null, tenant.id as Long, username, "Alt", PasswordHasher.hash(PASSWORD), true,
-                false, now, now, null, null, null))
+                false, now, now, null, null, null, null))
         groups.joinStandard(old.tenantId(), old.id())
 
         expect:
@@ -296,6 +296,26 @@ class TenantUserSpec extends Specification {
         def waiting = admin("POST", "/admin/tenants/${third.id}/users/from-tenant", [userId: original.id, active: false, admin: true])
         waiting.active == false
         waiting.admin == true
+
+        and: "the three are one person's - also when the person is taken from a user added before"
+        def person = users.findById(original.id as Long).get().person()
+        person != null
+        users.findById(added.id as Long).get().person() == person
+        users.findById(waiting.id as Long).get().person() == person
+        def fourth = createTenant()
+        def again = admin("POST", "/admin/tenants/${fourth.id}/users/from-tenant", [userId: added.id])
+        users.findById(again.id as Long).get().person() == person
+    }
+
+    def "a user created by name is nobody's person - also when its name is another tenant's user's"() {
+        given:
+        def username = uniqueName()
+        def first = admin("POST", "/admin/tenants/${createTenant().id}/users", [username: username, displayName: "A", password: PASSWORD])
+        def second = admin("POST", "/admin/tenants/${createTenant().id}/users", [username: username, displayName: "B", password: PASSWORD])
+
+        expect:
+        users.findById(first.id as Long).get().person() == null
+        users.findById(second.id as Long).get().person() == null
     }
 
     def "adding another tenant's user is refused: #reason"() {

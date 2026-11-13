@@ -104,6 +104,11 @@ export interface McpConnection {
      * through the assistant's answers only. Which keys may use it is the keys' choice.
      */
     passesThrough: boolean;
+    /**
+     * MCP keys that pass it through read its resources too, their addresses with the connection in front ("Ressourcen
+     * an MCP-Clients") - in force only while it passes through.
+     */
+    passesResources: boolean;
     /** The instructions its server gave, cut to 2,000 characters; null: none. */
     instructions: string | null;
     /** MCP or A2A - an A2A agent's tools are its card's skills, it has no prompts. */

@@ -27,7 +27,8 @@ import java.util.Map;
  * prompts - the tenant's chat templates ({@link AssistantMcpPrompts}) - differ per tenant: prompts/list and prompts/get
  * are answered here, and initialize says the server has prompts. The connected software an MCP key may use and that
  * passes through ({@link SoftwareMcpProxy}, roadmap point 41) differs per key: its tools join tools/list here, and their
- * calls are answered here - the SDK never sees them.
+ * calls are answered here - the SDK never sees them. So are the resources of the software that passes them on
+ * ({@link SoftwareResources}) - the server has none of its own.
  */
 @Singleton
 public class BrandedMcpServer implements BeanCreatedEventListener<McpStatelessServerHandler> {
@@ -40,13 +41,16 @@ public class BrandedMcpServer implements BeanCreatedEventListener<McpStatelessSe
     private final BeanProvider<AssistantMcpPrompts> prompts;
     private final BeanProvider<SoftwareMcpProxy> software;
     private final BeanProvider<McpKeyService> keys;
+    private final BeanProvider<SoftwareResources> resources;
 
     public BrandedMcpServer(BeanProvider<BrandingService> brandings, BeanProvider<AssistantMcpPrompts> prompts,
-                            BeanProvider<SoftwareMcpProxy> software, BeanProvider<McpKeyService> keys) {
+                            BeanProvider<SoftwareMcpProxy> software, BeanProvider<McpKeyService> keys,
+                            BeanProvider<SoftwareResources> resources) {
         this.brandings = brandings;
         this.prompts = prompts;
         this.software = software;
         this.keys = keys;
+        this.resources = resources;
     }
 
     @Override
@@ -58,6 +62,11 @@ public class BrandedMcpServer implements BeanCreatedEventListener<McpStatelessSe
                 if (isPromptRequest(request)) {
                     // The templates are read from the database - off the event loop.
                     return Mono.fromCallable(() -> prompts(context, request)).subscribeOn(Schedulers.boundedElastic())
+                            .onErrorResume(RuntimeException.class, e -> failed(request, e));
+                }
+                if (isResourceRequest(request)) {
+                    // The software is asked over HTTP - off the event loop.
+                    return Mono.fromCallable(() -> resources(context, request)).subscribeOn(Schedulers.boundedElastic())
                             .onErrorResume(RuntimeException.class, e -> failed(request, e));
                 }
                 if (isPassedThroughCall(request)) {
@@ -101,6 +110,35 @@ public class BrandedMcpServer implements BeanCreatedEventListener<McpStatelessSe
 
     private static boolean isPromptRequest(McpSchema.JSONRPCRequest request) {
         return McpSchema.METHOD_PROMPT_LIST.equals(request.method()) || McpSchema.METHOD_PROMPT_GET.equals(request.method());
+    }
+
+    private static boolean isResourceRequest(McpSchema.JSONRPCRequest request) {
+        return McpSchema.METHOD_RESOURCES_LIST.equals(request.method())
+                || McpSchema.METHOD_RESOURCES_TEMPLATES_LIST.equals(request.method())
+                || McpSchema.METHOD_RESOURCES_READ.equals(request.method());
+    }
+
+    /**
+     * resources/list, resources/templates/list or resources/read of the key's software. A request we refuse - an
+     * address that names none of its software, a cursor that is not ours - and the software's own error are JSON-RPC
+     * errors: the protocol knows no other way to say "not found".
+     */
+    private McpSchema.JSONRPCResponse resources(McpTransportContext context, McpSchema.JSONRPCRequest request) {
+        Long tenantId = AssistantMcpTools.tenantId(context);
+        Long mcpKeyId = AssistantMcpTools.mcpKeyId(context);
+        Map<?, ?> params = request.params() instanceof Map<?, ?> map ? map : Map.of();
+        String cursor = params.get("cursor") instanceof String given ? given : null;
+        try {
+            Object result = switch (request.method()) {
+                case McpSchema.METHOD_RESOURCES_LIST -> resources.get().list(tenantId, mcpKeyId, cursor);
+                case McpSchema.METHOD_RESOURCES_TEMPLATES_LIST -> resources.get().templates(tenantId, mcpKeyId, cursor);
+                default -> resources.get().read(tenantId, mcpKeyId,
+                        params.get("uri") instanceof String uri ? uri : null);
+            };
+            return McpSchema.JSONRPCResponse.result(request.id(), result);
+        } catch (SoftwareResources.Refused refused) {
+            return McpSchema.JSONRPCResponse.error(request.id(), refused.error());
+        }
     }
 
     private static boolean isPassedThroughCall(McpSchema.JSONRPCRequest request) {
@@ -205,7 +243,8 @@ public class BrandedMcpServer implements BeanCreatedEventListener<McpStatelessSe
         Long keyId = AssistantMcpTools.mcpKeyId(context);
         return switch (result) {
             case McpSchema.InitializeResult initialize -> new McpSchema.InitializeResult(initialize.protocolVersion(),
-                    withPrompts(initialize.capabilities()), new McpSchema.Implementation(brand,
+                    withPrompts(initialize.capabilities(), resources.get().offered(AssistantMcpTools.tenantId(context),
+                            keyId)), new McpSchema.Implementation(brand,
                     initialize.serverInfo().version()), AssistantMcpTools.knows(description(keyId), offer(keyId))
                     + AssistantMcpTools.instructions(brand) + software.get()
                     .instructions(AssistantMcpTools.tenantId(context), keyId),
@@ -232,11 +271,16 @@ public class BrandedMcpServer implements BeanCreatedEventListener<McpStatelessSe
         return tools;
     }
 
-    /** The SDK's capabilities with prompts: it has none registered, they are answered here. */
-    private static McpSchema.ServerCapabilities withPrompts(McpSchema.ServerCapabilities capabilities) {
+    /**
+     * The SDK's capabilities with prompts - it has none registered, they are answered here - and resources where a
+     * software of the key passes them on (no subscriptions, no list_changed: /mcp is stateless).
+     */
+    private static McpSchema.ServerCapabilities withPrompts(McpSchema.ServerCapabilities capabilities,
+                                                            boolean resources) {
         return new McpSchema.ServerCapabilities(capabilities.completions(), capabilities.experimental(),
                 capabilities.logging(), new McpSchema.ServerCapabilities.PromptCapabilities(false),
-                capabilities.resources(), capabilities.tools());
+                resources ? new McpSchema.ServerCapabilities.ResourceCapabilities(false, false)
+                        : capabilities.resources(), capabilities.tools());
     }
 
     private String brand(McpTransportContext context) {

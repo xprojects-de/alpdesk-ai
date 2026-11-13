@@ -132,6 +132,7 @@ Ollama with Qwen or Devstral, Mistral - next to the three big providers.
     Backend/podman/public/README.md "Own model servers"), never a switch that skips the check (decided 11 October
     2026).
   - An address with user info, a query or a fragment is refused - credentials would show in the catalog and the logs.
+    One with an empty part in its path (`//`) too: such a path can name another host than the one checked.
   - **The key stays with its host**: an address with another scheme, host or port drops the stored key unless a new
     one comes with it - a typo or a taken-over admin account cannot quietly send a company's key elsewhere.
   - **No redirect is followed** (`JdkHttpClientBuilder` with `Redirect.NEVER`): key and data go to the entered address
@@ -222,7 +223,9 @@ between. Researched that day on the providers' pages: Claude in the EU exists th
   are held in memory whole before any text comes out - a crafted file of a few megabytes can take gigabytes. So every
   part is unpacked once and only counted before the file is parsed: 400
   `document.partTooLarge` for a part of more than 200 MB (`MAX_PART_BYTES`; DOCX and PPTX are read as a stream and
-  were never affected).
+  were never affected) or for all parts together of more than 500 MB (`MAX_PARTS_BYTES` - many parts just below the
+  limit of one would keep a thread unpacking for minutes), 400 `document.tooManyParts` for more than 10,000 parts
+  (`MAX_PARTS`; a presentation of hundreds of slides has a few thousand) - security review 12 November 2026.
 - `services.document.DocumentIndexer` embeds in the background (executor `indexing`, 2 threads): splits the text into
   chunks (recursive, 1000 characters, 100 overlap), embeds them in batches of 64 and stores them in the table
   `embedding` (langchain4j `PgVectorEmbeddingStore`, created with the model's dimension, metadata `document_id` and
@@ -824,6 +827,11 @@ conversation; the client software has the same as the users.
   and the dimension is asked of the provider (OpenAI `dimensions`, Gemini `outputDimensionality`) - a model offering
   more, like `gemini-embedding-001` with 3072, is entered with 1536. A model entered with more before that limit is
   searched without the index (logged). On a small table PostgreSQL rightly scans instead of using the index.
+- The table also has an **index on a chunk's document** (`embedding_document_idx`, on
+  `(metadata->>'document_id')::bigint` - the expression langchain4j's `removeAll` and our own delete write), created
+  with the others: every embedding run removes the document's previous chunks first and every delete removes them,
+  and without it each read the tenant's whole table. An installation from before gets it with the first document a
+  tenant embeds after the update.
 - **Only the indexer creates the table** (`TenantEmbeddings.storeForIndexing`), with the first document it embeds,
   under the tenant's lock - which a change of the embedding model takes too. The search and the removal of a document's
   chunks never create it: before the first document there is no table, the search finds nothing and there is nothing to
@@ -858,7 +866,10 @@ conversation; the client software has the same as the users.
     when the table is created, on every start for every tenant and after a change of the language
     (`DocumentIndexer.ensureTextIndex`: in the background on the indexing executor, under the tenant's lock, which the
     indexer creating the table takes too; on start after the server's start, so no index build delays it - the
-    search runs without the index meanwhile, right and slower; afterwards a look at the catalog). It is application
+    search runs without the index meanwhile, right and slower; afterwards a look at the catalog; **on start one tenant
+    after the other**, the job queueing itself again for the next (`ensureTextIndexes`, 12 November 2026): a job per
+    tenant at once filled the executor's queue, and a document uploaded right after a start waited behind all of them
+    - found by the full suite, where a start meets a thousand tenants). It is application
     code, not a tenant migration: the index depends on a setting, and a name is checked more simply than an index
     definition.
   - `CREATE INDEX CONCURRENTLY`: a change comes while the tenant's people chat; nothing waits for a lock. It waits

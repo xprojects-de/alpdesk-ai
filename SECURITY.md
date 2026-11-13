@@ -66,8 +66,10 @@ protected by the software:
   several tenants of one installation and switches between them in the user menu. Each token belongs to one user of
   one tenant - a switch issues a new one. With WAM the proxy's header proves the person, at the sign-in (where it
   chooses among its tenants) and at the switch; without WAM a username proves no person (the admin may give the same
-  name to two people in two tenants), so the switch asks for the password of the user in the other tenant, like a
-  login. A username in several tenants signs in on the tenant's own login page only (`/login/<key>`, which sends the
+  name to two people in two tenants, and a tenant admin may create a user under any name its tenant does not have),
+  so only the users the admin added as the same person's ("Benutzer aus anderem Mandanten") are listed and switched
+  to - a user created under another tenant's user's name learns nothing of that tenant -, and the switch asks for the
+  password of the user in the other tenant, like a login. A username in several tenants signs in on the tenant's own login page only (`/login/<key>`, which sends the
   tenant's key with the login); on the neutral `/login` it is refused like a wrong password.
 - **Code execution runs in a container of the tenant's own, never in the app's and never in another tenant's.** The
   chat's model may run Python and shell commands (`run_python`, `run_shell`) for a tenant whose sandbox the admin
@@ -186,9 +188,14 @@ protected by the software:
 
 So nobody has to find it out the hard way:
 
-- **No lockout and no rate limiting of logins.** Behind the reverse proxy every request has the proxy's address, so an
-  address-based lockout would lock out everyone. Passwords are hashed with PBKDF2-HMAC-SHA256 (600 000 iterations) and
-  must have at least 12 characters. If you need rate limiting, add it in the reverse proxy.
+- **No rate limiting of logins by address, a lock per account instead.** Behind the reverse proxy every request has
+  the proxy's address, so an address-based lockout would lock out everyone. A tenant user's account is locked instead:
+  after `APP_LOGIN_MAX_ATTEMPTS` (5) wrong passwords in a row - at the login and at the tenant switch - it takes no
+  password for `APP_LOGIN_LOCK_MINUTES` (15), the right one neither; the answer and its time are those of a wrong
+  password. Whoever knows a username can lock its account this way for that while - the price of the lock; a
+  password an admin sets lifts it. The admin's account from the environment is never locked (it would lock out the
+  operator). Passwords are hashed with PBKDF2-HMAC-SHA256 (600 000 iterations) and must have at least 12 characters.
+  If you need rate limiting by address, add it in the reverse proxy.
 - **The recent warnings in the app can be pushed out.** The admin's page "Application log" and the daily report show
   the last 1,000 warnings and errors, kept in memory. Anonymous requests with invalid JSON each write a WARN line, so
   enough of them push older warnings out of that list. The list is bounded to keep the memory bounded; the container's
@@ -260,7 +267,16 @@ So nobody has to find it out the hard way:
 - **Connected software passed through to MCP clients.** An MCP key reaches only the connected software a tenant admin
   gave it - through `ask_assistant` and, where a connection is switched "Directly to MCP clients" (off by default),
   directly: the client's model then calls its reading tools and prompts itself and reads their raw results, which
-  leave the installation for the client (with claude.ai or Cowork, Anthropic). The software's address and key stay in
+  leave the installation for the client (with claude.ai or Cowork, Anthropic). **What the software sends goes on
+  unchanged** (decided 11 November 2026): text in full length, files with the type the software names (an HTML page as
+  HTML - the client decides how to show it), images, structured content, its tools' whole entries and `_meta` - unfiltered
+  but for the keys MCP reserves for the protocol, so also a statement such as `anthropic/requiresUserInteraction`. A
+  link to a web address goes to the client as it came: the client fetches it with its user's rights, Zirmo no longer
+  fetches it for the client. A link to a resource of the software's own is read by Zirmo and embedded; with
+  "Ressourcen an MCP-Clients" (off by default) the client also lists and reads the software's resources, their
+  addresses with the connection in front. The switch opens all of them: whatever address a client asks for goes to the
+  software as the connection's one account, and the software alone decides what it hands out - there is no choice per
+  resource as there is per tool. The software's address and key stay in
   the installation. Its changing tools are passed through only to a key a tenant admin let change in that software
   ("Darf ändern in", off by default), marked as not read-only. **Whether a person is asked before such a call is the
   MCP client's matter, not ours**: Claude Code asks at a tool's first use, lets its user allow the tool for good, and
@@ -271,7 +287,7 @@ So nobody has to find it out the hard way:
   to keys whose clients you know. Whoever holds the key may change what it may change - as the
   connection's one account in the software, not as a person. Every changing call is logged (key, tool, software). The software's tool descriptions, prompts and the
   instructions it gives (at most 2,000 characters, after ours) are text of another server that the client's and our
-  model read - enter only software you trust, and leave a module whose knowledge must not leave answer-only: its raw
+  model read - enter only software you trust (what it sends is passed on, not checked), and leave a module whose knowledge must not leave answer-only: its raw
   results and the files its tools return then stay in the installation, an MCP client gets the assistant's answer.
 - **MCP clients that act on the computer read the company's documents as text.** What `search_knowledge`,
   `read_document` and `ask_assistant` hand to an MCP client reaches an agent that may write files or run commands

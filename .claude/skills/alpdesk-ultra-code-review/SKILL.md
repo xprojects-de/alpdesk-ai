@@ -105,7 +105,8 @@ Base paths: `Backend/src/main/java/de/alpdesk/` (below `…/`), tests in
        in `TenantApiKeySpec`, tags "Users - sign-in" / "Users", `UserAuth`); nothing of `/admin`, `/tenant/admin`,
        `/tenant/ai`
      - one person with users in several tenants (2.0.0): a token one user's of one tenant, the switch
-       (`/tenant/account/switch`: with WAM the header, without the target's password - 400, never 401), `X-Login-Key`
+       (`/tenant/account/switch`: with WAM the header, without the target's password - 400, never 401 - and only
+       between users the admin marked as one person's, `tenant_user.person` set by `users/from-tenant`), `X-Login-Key`
        at `POST /login` (a wrong key like a wrong password, ignored with WAM), `POST /login/wam` with the choice and
        `{tenantId}`, `users/from-tenant` the admin's only; CORS `APP_CORS_ORIGINS` exact origins and
        `allow-credentials` false
@@ -127,7 +128,8 @@ Base paths: `Backend/src/main/java/de/alpdesk/` (below `…/`), tests in
      - users: password hashing, sessions after a password change, the last tenant admin, deleting a user with its
        chats; a username unique per tenant (`tenant_user_tenant_username_ci_uq`, the admin's taken everywhere),
        `loginAccounts` (active user, active tenant, without WAM a password, a tenant admin or a user in a group),
-       `switchTenant`, `addFromOtherTenant`
+       `switchableAccounts`, `switchTenant`, `addFromOtherTenant` (the person's mark); wrong passwords lock the account
+       for a while (`countLoginAttempt` before the password check, `app.login.*`, `LoginLockoutSpec`)
      - user groups (`UserGroupService`, tenancy.md "User groups"): a group with a WAM group takes its members from the
        IDM alone (`GROUPS_OF_USER`, every right through it), members sent 400, assigned rows dropped when the WAM group
        is set, only the admin sets a WAM group under WAM (409); `AccessRequestService.signIn` gives a person listed in
@@ -293,7 +295,10 @@ Base paths: `Backend/src/main/java/de/alpdesk/` (below `…/`), tests in
        is switched off, a log line per changing call, "the change may have been made" after a call that failed once
        sent); names within 32
        characters keeping "__", list and call agree, an unknown name a tool error (the transport's HTTP 400 ends an SDK
-       client's session), calls off the event loop, files by the returned-file rules and 8 MB, instructions cut to 2,000
+       client's session), calls off the event loop, the result passed on unchanged (mcp.md "Connected software through
+       to MCP clients": a web link as a link, an own resource's link embedded within 20 links and 8 MB, the tool's
+       whole entry from `mcp_tool.definition`, the reserved `_meta` keys kept back, resources through
+       `SoftwareResources` with the connection in front of the address), instructions cut to 2,000
      - the MCP client (`McpClient`, MCP Java SDK): no redirects, the key only to its origin, timeouts, result size,
        failures naming the connection, never the address; a file a tool returns as a link (`LinkDownloads`): the
        address rules before the request and after every redirect (followed by hand, at most 3), the bearer only on

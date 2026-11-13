@@ -301,6 +301,7 @@ class McpConnectionSpec extends Specification {
         "plain HTTP elsewhere" | { s -> [name: "Buchhaltung", baseUrl: "http://software.example.com/mcp"] }
         "an internal address"  | { s -> [name: "Buchhaltung", baseUrl: "https://10.1.2.3/mcp"] }
         "credentials in it"    | { s -> [name: "Buchhaltung", baseUrl: "https://user:pw@software.example.com/mcp"] }
+        "a host in its path"   | { s -> [name: "Buchhaltung", baseUrl: s.url().replace("/mcp", "//software.example.com/mcp")] }
         "a key with blanks"    | { s -> [name: "Buchhaltung", baseUrl: s.url(), apiKey: "a key"] }
     }
 
@@ -1110,6 +1111,25 @@ class McpConnectionSpec extends Specification {
             it instanceof dev.langchain4j.data.message.UserMessage && it.singleText().contains(
                     "\"demo-project.zip\" (application/zip, ${zip.length} bytes, created by you)")
         }
+    }
+
+    def "the model gets a result's structured content beside its text - once, where the text is that JSON already: #reason"() {
+        given:
+        def setup = readSetup()
+        software.callContent = [[type: "text", text: text]]
+        software.callStructured = [invoice: "4711", total: 412.5]
+
+        when:
+        def answer = api.ask(setup.token, [modelId: setup.chat.id, message: FIND_QUESTION]).answer as Map
+
+        then:
+        answer.content.contains(expected)
+        (answer.content as String).count('"invoice"') == 1
+
+        where:
+        reason               | text                                 || expected
+        "a summary as text"  | "1 invoice found"                    || '1 invoice found\n\n=== Structured result ===\n{"invoice":"4711","total":412.5}'
+        "the JSON as text"   | '{"invoice": "4711", "total": 412.5}' || '{"invoice": "4711", "total": 412.5}'
     }
 
     def "the model reads a returned text file in the tool's result at once - not an archive, not a Latin-1 file: #reason"() {

@@ -29,7 +29,7 @@ public record AccountResponse(
         boolean answersThroughAgent,
         /**
          * The tenants where a user of this username may log in, this one included - the user menu offers the switch
-         * with two or more.
+         * with two or more. Without the WAM proxy only the users the admin added as the same person's.
          */
         List<TenantChoice> tenants
 ) {

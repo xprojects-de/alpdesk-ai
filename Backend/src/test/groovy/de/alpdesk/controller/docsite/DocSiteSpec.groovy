@@ -256,7 +256,8 @@ class DocSiteSpec extends Specification {
 
         and: "the start without its slash is redirected below it - for a signed token only, never to another site"
         unfollowed("/doc-sites/${token}") == [301, "${token}/"]
-        unfollowed("/doc-sites/%2F%2Fevil.example") == [404, null]
+        // reaches no route: since Micronaut 5.2.6 an anonymous request there is refused with 401 - no redirect either way
+        unfollowed("/doc-sites/%2F%2Fevil.example") == [401, null]
         unfollowed("/doc-sites/http:evil.example") == [404, null]
         unfollowed("/doc-sites/${token.substring(0, token.length() - 2)}xx") == [404, null]
 

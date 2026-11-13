@@ -92,8 +92,26 @@ class McpClientSpec extends Specification {
         "too many tools"      | (1..McpClient.MAX_TOOLS + 1).collect { tool("tool_$it") }   || "Buchhaltung offers more than 500 tools"
         "a too long name"     | [tool("t" * (McpClient.MAX_TOOL_NAME + 1))]                 || "Buchhaltung offers a tool with a name longer than 128 characters"
         "a too large schema"  | [tool("find", [type: "string", description: "x" * McpClient.MAX_SCHEMA])] || "Buchhaltung offers a tool with an input schema longer than 20000 characters"
+        "a too large entry"   | [tool("find", null, "d" * McpClient.MAX_DEFINITION)]       || "Buchhaltung offers a tool whose entry is longer than 50000 characters"
         "a too large message" | (1..3).collect { tool("tool_$it", null, "y" * 3_000_000) } || "Buchhaltung sent an answer larger than 8 MB"
         "a name twice"        | [tool("find"), tool("list"), tool("find")]                 || "Buchhaltung offers the tool find twice"
+    }
+
+    def "a tool's whole entry is kept as the server listed it - for the MCP clients it is passed through to"() {
+        given:
+        software.tools = [[name: "find", title: "Finden", description: "d" * 5_000, inputSchema: [type: "object"],
+                           outputSchema: [type: "object", properties: [hit: [type: "string"]]],
+                           annotations: [readOnlyHint: true, openWorldHint: false], _meta: ["com.example/v": 1]]]
+
+        when:
+        def tool = client.listTools(NO_TENANT, "Buchhaltung", software.url(), null)[0]
+        def definition = io.micronaut.serde.ObjectMapper.getDefault().readValue(tool.definition(), Map)
+
+        then:
+        tool.description() == "d" * McpClient.MAX_DESCRIPTION + " [cut off]"
+        definition == [name: "find", title: "Finden", description: "d" * 5_000, inputSchema: [type: "object"],
+                       outputSchema: [type: "object", properties: [hit: [type: "string"]]],
+                       annotations: [readOnlyHint: true, openWorldHint: false], _meta: ["com.example/v": 1]]
     }
 
     def "a long tool description is cut, the tools up to the limit are read"() {
@@ -107,6 +125,31 @@ class McpClientSpec extends Specification {
         tools.size() == McpClient.MAX_TOOLS
         tools[0].description() == "d" * McpClient.MAX_DESCRIPTION + " [cut off]"
         tools[1].description() == "short"
+    }
+
+    def "a structured result without text is the text; beside a text it is kept apart - unless the text is that JSON"() {
+        given:
+        software.callStructured = [invoice: "4711", total: 412.5]
+
+        when:
+        software.callContent = []
+        def onlyStructured = call()
+        software.callContent = [[type: "text", text: "1 invoice found"]]
+        def summary = call()
+        software.callContent = [[type: "text", text: '{"invoice": "4711", "total": 412.5}']]
+        def sameAsText = call()
+        software.callStructured = null
+        def none = call()
+
+        then:
+        [onlyStructured.text(), onlyStructured.structured()] == ['{"invoice":"4711","total":412.5}', null]
+        [summary.text(), summary.structured()] == ["1 invoice found", '{"invoice":"4711","total":412.5}']
+        [sameAsText.text(), sameAsText.structured()] == ['{"invoice": "4711", "total": 412.5}', null]
+        none.structured() == null
+    }
+
+    private McpClient.CallResult call() {
+        client.callTool(NO_TENANT, "Buchhaltung", software.url(), null, "find_invoice", [number: "4711"])
     }
 
     def "a long result is cut for the model, a long error of the software too"() {
@@ -273,6 +316,22 @@ class McpClientSpec extends Specification {
         when                      | delay
         "before its headers"      | [headerDelayMillis: 2_000]
         "between headers and body" | [bodyDelayMillis: 2_000]
+    }
+
+    def "a uri of the server's own the server gives no answer for is a note for now - the next try may give the file"() {
+        given: "a server that fails while reading its resource"
+        software.resources["dms://archive/beleg"] = FakeMcpSoftware.blob("dms://archive/beleg", "application/pdf", "x".bytes).resource
+        software.readStatus = 503
+        software.callContent = [[type: "text", text: "The document"], FakeMcpSoftware.link("dms://archive/beleg", "beleg.pdf")]
+
+        when:
+        def result = client.callTool(NO_TENANT, "Buchhaltung", software.url(), null, "find_invoice", [number: "4711"])
+
+        then:
+        !result.error()
+        result.files().isEmpty()
+        result.linkFailedForNow()
+        result.text() == 'The document\n[file "beleg.pdf" could not be fetched: the server did not answer when asked to read it]'
     }
 
     def "a uri of the server's own from a server that offers no resources is a note - the SDK refuses before asking it"() {
@@ -460,6 +519,35 @@ class McpClientSpec extends Specification {
         "nothing listening"  | { FakeMcpSoftware s -> }                        | "http://127.0.0.1:1/mcp"    | null    || "Buchhaltung is not reachable"
         "an internal host"   | { FakeMcpSoftware s -> }                        | "https://10.1.2.3/mcp"      | null    || "Buchhaltung: The address leads into an internal network - only the hosts in APP_AI_PLAIN_HTTP_HOSTS may"
         "an unknown host"    | { FakeMcpSoftware s -> }                        | "https://erp.invalid/mcp"   | null    || "Buchhaltung: The host of its address is not known"
+    }
+
+    def "an address whose path begins with // reaches its own host only - never the host the path names, nor with the key"() {
+        given: "another server, named by the path of the software's address"
+        def other = new FakeMcpSoftware()
+        def address = software.url().replace("/mcp", "//127.0.0.1:${other.http.address.port}/mcp")
+
+        when:
+        client.listTools(NO_TENANT, "Buchhaltung", address, Credential.key("secret-key-1"))
+
+        then: "the software has no such path - and the other server is never asked"
+        def e = thrown(ServiceException)
+        e.message == "Buchhaltung did not answer as an MCP server"
+        other.received.isEmpty()
+
+        cleanup:
+        other.stop()
+    }
+
+    def "an address with an empty part in its path is refused when it is saved: #address"() {
+        when:
+        new ModelServers("").normalize(address)
+
+        then:
+        def e = thrown(ServiceException)
+        e.code() == "modelServer.addressForm"
+
+        where:
+        address << ["https://software.example.com//other.example.com/mcp", "https://software.example.com/api//mcp"]
     }
 
     def "an unknown host is named when the address is saved - to the admin who typed it"() {

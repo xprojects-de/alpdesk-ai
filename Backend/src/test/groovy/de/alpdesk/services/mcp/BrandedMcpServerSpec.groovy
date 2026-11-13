@@ -26,7 +26,7 @@ class BrandedMcpServerSpec extends Specification {
                    handleNotification: { McpTransportContext context, McpSchema.JSONRPCNotification notification ->
                        Mono.empty()
                    }] as McpStatelessServerHandler
-        def server = new BrandedMcpServer(failing, failing, failing, failing)
+        def server = new BrandedMcpServer(failing, failing, failing, failing, failing)
                 .onCreated(new BeanCreatedEvent(Stub(BeanContext), Stub(BeanDefinition), Stub(BeanIdentifier), sdk))
 
         when:
@@ -55,7 +55,7 @@ class BrandedMcpServerSpec extends Specification {
                    handleNotification: { McpTransportContext context, McpSchema.JSONRPCNotification notification ->
                        Mono.empty()
                    }] as McpStatelessServerHandler
-        def server = new BrandedMcpServer(unused, unused, unused, unused)
+        def server = new BrandedMcpServer(unused, unused, unused, unused, unused)
                 .onCreated(new BeanCreatedEvent(Stub(BeanContext), Stub(BeanDefinition), Stub(BeanIdentifier), sdk))
 
         expect:

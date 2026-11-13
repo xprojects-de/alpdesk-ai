@@ -300,8 +300,24 @@ software an MCP key may use reaches MCP clients - Claude Code, Cowork, claude.ai
 its tools itself, without a second model behind `ask_assistant`. The case: a software that only Zirmo reaches (an internal
 service, a module in a pod of its own, its key held by Zirmo alone - a key per tenant as the connection's key), and a
 tenant's own internal software. Zirmo is the one gate: the module's address and token never leave it, the key decides
-who gets what. `services.mcp.SoftwareMcpProxy`, answered by
-`BrandedMcpServer` - the SDK never sees these tools and prompts.
+who gets what. `services.mcp.SoftwareMcpProxy` (and `SoftwareResources`), answered by
+`BrandedMcpServer` - the SDK never sees these tools, prompts and resources.
+
+**Zirmo passes on unchanged what the software says and decides rights only** (decided 11 November 2026, after the
+user counted the earlier behaviour - text cut at 100,000 characters, images turned into files, types rewritten, links
+fetched by Zirmo, a tool's extra statements and structured results lost - as errors). The software is responsible for
+what it sends. The architecture stays: one MCP server at `/mcp`, the connection found by the name in front of the tool,
+a new session to the software per call, the MCP Java SDK on both sides - so "unchanged" means what the SDK's types
+carry (a field a later revision adds reaches the client once the SDK knows it). Rejected the same day: an address per
+software, a relay without the SDK, sessions, a stored registry of resources, a switch for links, forcing the client's
+permission question. What Zirmo changes: a tool's name (the connection in front), the start of its description
+(`[<connection>] `), its `readOnlyHint` (the tenant admin's mark), a resource's address and name (the connection in
+front, below), and the `_meta` keys MCP reserves for itself (a prefix whose second label is `modelcontextprotocol` or
+`mcp`, e.g. `io.modelcontextprotocol/...` - they belong to the hop that sends them; in 2026-07-28 the protocol version,
+capabilities and subscription ids live there). Every other `_meta` key goes on, `anthropic/requiresUserInteraction` too
+(an agent without a person then fails - the software's wish). The chat, `ask_assistant`, `/a2a`, `/api/v1/chat` and the
+tasks are unchanged: there Zirmo is the client and keeps its own rules (text cut, links fetched, HTML as text, files
+stored - "Files in tool results" below).
 
 - **Two settings, one place each**: the **MCP key** chooses the software it may use (`tenant_mcp_key_connection`,
   "Software" on the key card - for `ask_assistant` and passing through alike); the **connection** says whether it may
@@ -317,9 +333,17 @@ who gets what. `services.mcp.SoftwareMcpProxy`, answered by
   tool keeping at least half, and ends in `__<id>` of the tool - `Warenwirtscha__get_customer___17` (review of 25
   October 2026: a counter `_2` where two came out alike moved a name to another tool when one before it was turned on
   or off, and a client holding the old list called that one). Each name comes from its own tool alone, so a name never
-  moves to another tool; `__` is always in it (it tells a passed-through call from ours - our tools never have it). The
-  description starts with `[<connection>] `, the input schema is the software's, marked read-only. The changing
-  tools only where the key may change in that software (below).
+  moves to another tool; `__` is always in it (it tells a passed-through call from ours - our tools never have it).
+  **The entry is the software's**: reading the tools keeps each tool's whole entry as the server listed it
+  (`mcp_tool.definition`, JSON, migration `V19`; at most 50,000 characters per entry - a larger one refuses the tools
+  like a schema too long, `mcpServer.toolDefinitionTooLong`): title, input and output schema, all annotations,
+  `_meta`, icons. `tools/list` builds the entry from it with our name, `[<connection>] ` before the software's whole
+  description (the column keeps 4,000 characters for the chat) and `readOnlyHint` = not the admin's mark `changes`
+  (otherwise the software's own value, which is the same). A tool not read again since `V19` (`definition` null) is
+  listed as before - name, description, input schema, read-only or not - until "Werkzeuge neu laden"; so is a statement
+  the software adds later (a forced question): the entry is as of the last reading, no scheduled re-read. Name,
+  description, schema and `readOnlyHint` stay columns - rights and the chat use them. The changing tools only where the
+  key may change in that software (below).
 - **Changing tools passed through** (decided 11 November 2026, roadmap point 68 - for a company's own MCP server that
   creates a ticket or files a document elsewhere, called from Claude Code or Copilot): **a level per key and
   software**, `tenant_mcp_key_connection.level` (`READ`, `WRITE` - the user groups' `McpAccessLevel`; migration
@@ -340,8 +364,8 @@ who gets what. `services.mcp.SoftwareMcpProxy`, answered by
   - **Which tools**: those turned on (a tenant admin turns on each, a delete left off reaches no key) and marked
     changing (`changes`). `tools/list` and `tools/call` take the same list (`SoftwareMcpProxy.passed`,
     `McpTools.usable(tool, level)`): a key with `READ` neither lists nor calls a changing tool - the call is the
-    unknown tool of above. Marked `readOnlyHint: false` and nothing more; the software's own `destructiveHint` is not
-    kept. The mark matters: Claude Code repeats a tool marked read-only by itself after a dropped connection and
+    unknown tool of above. Marked `readOnlyHint: false`; the software's other annotations (`destructiveHint`,
+    `idempotentHint`, ...) go on as it listed them. The mark matters: Claude Code repeats a tool marked read-only by itself after a dropped connection and
     runs it in parallel with others - a changing tool must never be listed as read-only.
   - **What the client does** (Claude Code's documentation, read 11 November 2026 - corrected the same day: the first
     text said "the client asks before each call"): Claude Code asks at the **first use** of every MCP tool, whatever
@@ -367,43 +391,172 @@ who gets what. `services.mcp.SoftwareMcpProxy`, answered by
     out by the client's model), and asks no values back during the call (elicitation, point 30 - `/mcp` is
     stateless).
   - Not built: a question back over A2A (the calling agent confirming, `input-required` - roadmap point 68 "Noted for
-    later"); a record of the changing calls in the database; the software's `destructiveHint` and `idempotentHint`.
-- **Calls**: `tools/call` of such a name goes through `McpClient` to the software with its key and the client's
-  arguments (the software checks them - the SDK checks only its registered tools), off the event loop
-  (`boundedElastic`), within `app.ai.timeout`. Its text comes back as it is; its files as embedded resources by the
-  rules of `ask_assistant`'s (`ChatFileService.passedOn`: types from the list - an HTML page as `text/plain` -, text as
-  text, at most 8 MB together, a file beyond it named); its `isError` and a software out of reach are a tool error the
-  client's model reads, and so is the connection's key no longer decryptable ("... enter it again in the connection").
-  So is every other failure on the way - the database (logged by its class only, told without details):
-  `BrandedMcpServer` never answers a passed-through call with a JSON-RPC error.
-  **A name the key does not have** - another key's, a software not passing through, a tool turned
-  off, a connection renamed - is a tool error "Unknown tool: ... list the tools again", not a JSON-RPC
-  error: Micronaut MCP's transport sends those with HTTP 400, and the MCP SDK's client then ends the whole session.
+    later"); a record of the changing calls in the database.
+- **Calls**: `tools/call` of such a name goes through `McpClient.passTool` to the software with its key and the
+  client's arguments (the software checks them - the SDK checks only its registered tools), off the event loop
+  (`boundedElastic`), within `app.ai.timeout`. **Its result goes to the client as the software sent it**: text in full
+  length, images and audio as such, embedded files with their own type and address, structured content, `_meta` (the
+  reserved keys excepted), `isError`. Nothing cut, nothing turned into a file, no type rewritten (HTML stays HTML), no
+  limit of files per answer. Our client does not check a structured result against the output schema (the SDK's
+  `enableCallToolSchemaCaching` is off) - the client may. Only what protects the installation is a limit: 8 MiB per
+  message of the software (the SDK reads it whole - "Files in tool results" below), 500 tools, `app.ai.timeout`; beyond
+  it the call is a tool error saying so ("... sent an answer larger than 8 MB"), nothing is cut silently.
+  - **A link to a web address** (`resource_link` with `https://...`) **goes on as a link** - Zirmo no longer fetches it
+    for an MCP client: the client has its user's rights there, Zirmo often has none. No switch. A software only Zirmo
+    reaches that links to itself with `https` has to embed the file or link to a resource of its own.
+  - **A link to a resource of the software's own** (`ticket://...`, any scheme but http/https) **is still resolved**:
+    only Zirmo is connected to the software, the client could not read it. `McpClient.passTool` reads it with
+    `resources/read` in the call's session (where such a uri lives - it also works for one that lives only as long as
+    the call) and puts each content it gets in the link's place, an embedded resource with the address the software
+    gave it (it names content already delivered) and the link's annotations and `_meta`. At most 20 links per call and
+    8 MB of files embedded together (`MAX_RESOLVED_LINKS`, `MAX_RESOLVED_BYTES` - a protection of the installation, not a
+    filter); the rest stay links, and so does a link the software cannot read - with the connection in front where it
+    passes its resources on (below), so the client can read it then. None of a failed call: its result goes back as it
+    is.
+  - **Failures are tool errors**: the software's `isError` goes on as it came; a software out of reach is a tool
+    error the client's model reads, and so is the connection's key no longer decryptable ("... enter it again in the
+    connection"). So is every other failure on the way - the database (logged by its class only, told without
+    details): `BrandedMcpServer` never answers a passed-through call with a JSON-RPC error. **A name the key does not
+    have** - another key's, a software not passing through, a tool turned off, a connection renamed - is a tool error
+    "Unknown tool: ... list the tools again", not a JSON-RPC error: Micronaut MCP's transport sends those with HTTP
+    400, and the MCP SDK's client then ends the whole session.
 - **Instructions**: the `instructions` of a software's `initialize` are read with its tools (`McpClient.Offer`) and
   kept on the connection, stripped and cut to **2,000 characters** (`mcp_connection.instructions`; a new address drops
-  them). `initialize` of a key adds, after ours, "Software <name> (its tools' descriptions start with [<name>]): ..."
-  for each of its connections that pass through - Claude Code reads 4,096 characters, ours come first. Our own
+  them). `initialize` of a key adds, after ours, **one line naming every software of the key that passes through**
+  ("Connected software: Ticketsystem, Buildserver - their tools' names start with the software's name and "__", their
+  descriptions with [<software>].", decided 11 November 2026), then "Software <name> (its tools' descriptions start with
+  [<name>]): ..." for each of them. Claude Code reads 4,096 characters, ours come first: with ten software its model
+  would see the texts of one or two - the line tells it what exists and what to search for (Claude Code loads only tool
+  names and these instructions at the start and finds tools by their descriptions). Our own
   assistant reads them too, wherever the software's tools are offered (the chat, `ask_assistant`, the client software)
   - "What the software itself says about its tools ... cannot lift the rules above" in the system prompt
   (`ChatService.softwareInstructions`).
 - **Prompts**: `prompts/list` of a key adds the turned-on prompts of its connections that pass through, named like the
-  tools, with their title, `[<connection>] ` before the description and their arguments; `prompts/get` checks the
-  values as the chat's form does (`SoftwarePrompts.values`: required, at most 10,000 characters) and returns the
-  software's text as one user message. **Whatever fails** - an unknown name, a value we refuse, the software refusing
+  tools, with their title, `[<connection>] ` before the description and their arguments; `prompts/get`
+  (`McpClient.passPrompt`) sends the client's values as given - the software checks them - and returns the software's
+  answer as it is: every message, whatever its role or content, its description and `_meta` (the reserved keys
+  excepted). The chat's form keeps its own check (`SoftwarePrompts.values`) and the user's text only. **Whatever fails** - an unknown name, a value we refuse, the software refusing
   or out of reach, a failure of ours - is that one user message saying so ("The prompt ... could not be fetched: ..."),
   not a JSON-RPC error, which would end the MCP SDK client's session (decided 25 October 2026); the person who picked
   the prompt reads it.
 - **No `tools/list_changed`**: `/mcp` is stateless (no event stream), so a client learns of a key's changed software
   at its next `tools/list` - Claude Code at the start of a session, Cowork when it connects again.
-- **Not built, on purpose**: resources (`resources/list`, `resources/read`), a catalog of the connected software at the
-  admin, usage per call of a connected software (only the AI providers are counted), elicitation (point 30).
-- Tests: `controller/mcp/McpProxySpec` (listing, names, calls, errors, files, a key without the software, another
-  tenant, not passing through, instructions, prompts; the changing tools with the level: listed and called, turned
-  off, taken back, kept on a change of the key's software, the admin's API, `ask_assistant` still reading, the refused
-  levels), `services/mcp/SoftwareMcpProxySpec` (the names, a changing call's timeout), `McpSpec` (the key's software for `ask_assistant`, the choice
-  per key), `McpConnectionSpec` (the switch); the smoke test (a passed-through tool called through the AOT jar, its
-  instructions); by hand: `devtools/mcp-test-server/proxy_check.py` - the test server as a module, the MCP SDK's client
-  with a key with and one without it (its README).
+- **Resources of the software** (decided and built 11 November 2026): below.
+- **Not built, on purpose**: subscriptions to a resource (`resources/subscribe`) and `list_changed` (with MCP
+  2026-07-28 - `/mcp` answers one request with one answer), a catalog of the connected software at the admin, usage per
+  call of a connected software (only the AI providers are counted), elicitation, progress and long runs (with MCP
+  2026-07-28, once the Java SDK has a client for it and Micronaut MCP follows - roadmap point 69).
+- Tests: `controller/mcp/McpProxySpec` (listing, names, the entry as the software listed it and the admin's mark, a
+  tool not read again, calls unchanged - long text, images, audio, files with their type, structured content, `_meta` -,
+  web links passed, own links embedded within 20, the 8 MB limit, errors, a key without the software, another tenant,
+  not passing through, instructions with the overview line, every prompt message; the changing tools with the level:
+  listed and called, turned off, taken back, kept on a change of the key's software, the admin's API, `ask_assistant`
+  still reading, the refused levels), `controller/mcp/McpProxyResourcesSpec` (below), `services/mcp/SoftwareMcpProxySpec`
+  (the names, a changing call's timeout), `services/mcp/SoftwareResourcesSpec` (the address's part, the reserved
+  `_meta` keys), `McpClientSpec` (the entry kept, its limit), `McpSpec` (the key's software for `ask_assistant`, the
+  choice per key), `McpConnectionSpec` (the switch); the smoke test (a passed-through tool called through the AOT jar,
+  its instructions and the overview line); by hand: `devtools/mcp-test-server/proxy_check.py` - the test server as a
+  module, the MCP SDK's client with a key with and one without it (its README). Checked 11 November 2026 with Claude
+  Code 2.1.321 (Sonnet) through a test stack: an image shown as an image, an embedded PDF saved as a local file, 150,000
+  characters whole, a web link left unfetched, structured content read, a resource read by its prefixed address - and
+  after a "not found" with the hint it listed the resources, found the right address and read it.
+
+### Resources of the software
+
+Decided and built 11 November 2026 (package 2 of the same day's decision above). A resource is found the way a tool
+is - the connection in front. A client reads a resource by its **address** (uri), not by its name, so the connection
+goes into the address, separated by a dot (`SoftwareResources`):
+
+| From the software | To the client |
+|---|---|
+| `ticket://4711/protokoll.log` | `ticketsystem.ticket://4711/protokoll.log` |
+| template `ticket://{number}/attachment` | `ticketsystem.ticket://{number}/attachment` |
+
+- **The connection's part** is computed from all of the tenant's MCP connections (not the key's, not the switches'):
+  lower case, letters, digits and `-` only (`Lager Süd` - `lager-sud`), starting with a letter (an address must), no
+  dot - so the first dot always splits. A name starting with a digit, or without any such character, is `c` and the
+  connection's id; parts that come out alike all get `-` and their connection's id (an id has no `-`, so these never
+  meet another part). A dot, not `+` or `-`: the user's choice - of the three signs an address may carry before `://`,
+  `-` is in connection names and schemes alike, `+` looked wrong. A renamed connection changes its addresses, as it
+  changes its tools' names.
+- **The switch**: per connection, "Ressourcen an MCP-Clients" on the page "Software" below "Direkt an MCP-Clients",
+  `mcp_connection.passes_resources` (`V19`), `PUT .../mcp-connections/{id}/resources` `{passesResources}` (400
+  `mcpConnection.passResourcesRequired` without a value, 409 `mcpConnection.notForA2a` for an A2A agent, 409
+  `mcpConnection.resourcesNeedPassThrough` for a connection that does not pass through - the frontend greys the switch
+  out then), **off by default**. On, every key that passes the software through reads its resources - reading a
+  resource is reading; no switch per resource. **A software that stops passing through loses the switch**
+  (`setPassThrough`, decided 12 November 2026 - as it takes the changing level off its keys): left on, it would be in
+  force again the day pass-through is turned back on, and nobody chose it then.
+- **`resources/list` and `resources/templates/list`**: asked live, every time - resources change with every ticket. A
+  page of ours is one page of one software, in the order of the software's names; our cursor (opaque, base64) names the
+  software and carries its cursor, so nothing is capped or cut and one software is paged at a time. A software that
+  fails, or has nothing on its page and no next one, is left out and the next asked in the same request (a client that
+  stops at an empty page would never see the software after it) - all within one `app.ai.timeout` (decided 12 November
+  2026): with several software out of reach the waits would add up, so past it the page ends empty and its cursor
+  leads on. The name a
+  client shows (`name`, `title`) gets `[<connection>] ` in front. **A web address is never prefixed** (2026-07-28 says a
+  client may fetch an `https` resource directly - a prefix would break that). `initialize` says the server has
+  resources (no subscriptions, no `list_changed`) when a software of the key has the switch on; without one, a
+  resources request is "method not found" as before.
+- **`resources/read`**: the connection from the prefix, the prefix taken off and exactly that software asked with the
+  address as it was - nothing guessed, nothing stored; its answer goes back as it is, its addresses with the prefix
+  again. An address without a prefix, or of a connection the key does not read: "Resource not found: <uri> - the
+  addresses of connected software start with "<connection>."; list the resources (resources/list) to find them" - a
+  model that took an address out of a text finds its way (Claude Code did). A web address: not found, "fetch it
+  directly". The software's own error (its "not found") goes back with its code and message. "Not found" is `-32002`
+  (2025-11-25; `-32602` in 2026-07-28).
+- **An error answering a resources request goes out with HTTP 200** (`ResourceErrorStatus`, a response filter on
+  `/mcp`, decided 12 November 2026). Micronaut MCP's controller gives every JSON-RPC error an HTTP status (400 for
+  invalid params or an unknown method, 500 for the rest - "not found" among them), and the official SDKs' clients take
+  that for a broken server and end their whole session, the tools with it (seen with the Python SDK's; Claude Code
+  reads the error and goes on). For tools this is why every failure is a tool error; a resource has no such way -
+  "not found" can only be a JSON-RPC error, and an address a model guessed wrong must not cost the session. **The
+  specification names no HTTP status here** (read 12 November 2026, 2025-11-25 and 2026-07-28 alike: a request is
+  answered with JSON or an event stream; 400, 403, 404 and 405 are prescribed for the transport's own failures only -
+  a protocol version, a header, an origin, a session, in 2026-07-28 an unknown method with 404); the Java SDK's own
+  stateless server sends 200. Only `resources/*`: every other request keeps the status the controller gives (an
+  unknown method 400, as shipped since October). **To be checked again when Zirmo moves to 2026-07-28** (roadmap point 69, which collects what that move asks): the code
+  becomes `-32602` there, an unknown method must answer 404, and what Micronaut MCP and the SDKs' clients do then
+  decides whether this filter stays, widens or goes.
+- **Links in a tool result** stay resolved at once and embedded (above) - also a link that lives only as long as the
+  call; one left as a link gets the prefix where the switch is on.
+- **Addresses the software writes into a text are not touched and not reliably resolved**: Zirmo cannot tell them
+  from any text, and MCP does not make an address in a text a link at all - also at a server connected directly it is
+  up to the client's model to notice it. The model may still find the resource (it sees the prefixed address in the
+  list, or follows the hint of a failed read), but nothing guarantees it. Claude Code's listing shows its model the
+  fixed resources only, not the templates: a resource that exists only at run time reaches the model through a link in
+  a tool result.
+- **What it changes**: the software's addresses, the same kind of change as the name in front of a tool - several
+  servers lie behind one address. A client or a server that compares an address with one from a text finds them
+  different.
+- Tests: `controller/mcp/McpProxyResourcesSpec` (the switch off by default and its API, the lists merged and prefixed,
+  page by page with our cursor, a read reaching the right software among two, the answer's addresses prefixed, not
+  found with the hint, a web address, the software's own error, a software out of reach in a list of two, a key without
+  the software, another tenant, the switch gone with pass-through and refused without it, an A2A agent, a link left
+  in a result prefixed), every error of a resources request with HTTP 200 and another method's as before),
+  `services/mcp/SoftwareResourcesSpec`; by hand `proxy_check.py`.
+
+### What a server behind Zirmo must observe
+
+For the authors of a company's MCP server that is passed through to MCP clients:
+
+- **Answer the revision Zirmo speaks** (2025-11-25, the MCP Java SDK's): a server that only takes 2026-07-28 cannot be
+  connected until Zirmo has moved (the specification: legacy client and modern-only server "Fails"; a server may serve
+  both).
+- **A file goes as a file**: embed it (an `EmbeddedResource`, or an image as image content), link to a web address the
+  client's user can reach, or link to a resource of its own (`resource_link` - Zirmo embeds it). **Never only name a
+  resource in the text**: an address in a text is not reliably resolved, behind Zirmo or anywhere - only a
+  `resource_link` is a link in MCP.
+- **Everything a tool needs as its arguments** - a tool takes JSON arguments only, and asks no values back during the
+  call (elicitation needs a session; `/mcp` is stateless).
+- **Results within 8 MB** per message (about 6 MB of files after base64).
+- **A structured result comes as text too** (the specification's SHOULD - and our own assistant reads the text).
+- **The words searched for first in a description**: Claude Code finds tools by their descriptions, and the client may
+  cut them.
+- **What a model shall find by itself belongs behind a tool**: Claude Code takes a fitting tool before it looks at
+  resources (tested with 300 resources, 11 November 2026).
+- **A statement added later** (a forced question, a new annotation) reaches clients after "Werkzeuge neu laden" of the
+  connection.
 
 ## MCP clients to the tenant's software
 
@@ -429,10 +582,16 @@ call - is not built: when a module needs it.
   (`SecretCipher`), shown as `keyHint` only, and stays with its host: an address on another origin drops it unless a
   new one comes (like own model servers). **Another address is another software**: its tools are read anew and come in
   off, the old ones are removed - what was chosen for a tool (on, `changes`) must not pass to a tool of the same name
-  there. Only the name or the key changed, everything stays.
+  there. For the same reason its resources stop going to MCP clients (`passes_resources` off - the switch opens all of
+  them, there is no choice per resource) and every MCP key reads only in it again (the level `WRITE` back to `READ`),
+  as when it stops passing through; which keys and groups use the connection, and that it passes through, stay. Only
+  the name or the key changed, everything stays.
 - **Addresses** (`services.mcp.McpAddresses`): HTTPS, plain HTTP only to the hosts in `APP_AI_PLAIN_HTTP_HOSTS`; no
-  user, query or fragment; a host that resolves to an internal address (loopback, private, link-local, `fc00::/7`,
-  `100.64/10`) is refused unless it is one of those hosts - checked when saved and again before every call. An unknown
+  user, query or fragment, no empty part in the path (`//`); a host that resolves to an internal address (loopback,
+  private, link-local, `fc00::/7`, `100.64/10`) is refused unless it is one of those hosts - checked when saved and
+  again before every call. The host that is checked is the host that is called: the client gives the SDK the whole
+  address as its endpoint, never the path alone - a path like `//other.host/mcp`, resolved against the origin, would
+  name another host, which would get the request and the key (security review 12 November 2026). An unknown
   host is named when the address is saved; at a call the refusal reaches the model, the user and an MCP client, and
   names the connection only ("the host of its address is not known").
 - **The client** (`services.mcp.McpClient`): the SDK's `McpSyncClient` over `HttpClientStreamableHttpTransport`, one
@@ -452,7 +611,7 @@ call - is not built: when a module needs it.
   all, which `McpClient` takes the same way), which says "could not carry out the request". Tools are read page by page -
   not with the SDK's `listTools()`, which follows every next page itself, without end -, at most 100 pages: a server
   that sends the same page again or more answers "keeps sending more pages of tools". The server is the tenant's, the
-  memory the installation's, so what it may offer is bounded: one message at most 8 MiB ("sent an answer larger than 8 MB"; "Files in tool results" below says why not more), at most 500 tools, a tool name of at most 128 characters and an input schema of at most 20,000
+  memory the installation's, so what it may offer is bounded: one message at most 8 MiB ("sent an answer larger than 8 MB"; "Files in tool results" below says why not more), at most 500 tools, a tool's whole entry of at most 50,000 characters (kept for the MCP clients it is passed through to), a tool name of at most 128 characters and an input schema of at most 20,000
   (refused with 502 "offers more than 500 tools" / "offers a tool with ..."), a description cut at 4,000 characters,
   and the software's own error message cut at 500 in our 502.
 - **Tools are read as soon as the connection is created** (`mcp_tool`: name, description, input schema, `changes` =
@@ -483,7 +642,8 @@ call - is not built: when a module needs it.
   the excluded connections' tools from what `McpTools` offers the asker. An id the asker does not reach (unknown,
   another tenant's, not in the user's groups, not the API key's) is 400 `chat.unknownConnection` - never ignored, so a
   stale choice shows. **Kept with the conversation** (tenant `conversation.excluded_connection_ids`, `V8__release_2_0_0
-  .sql`, written with every question that names the list) and returned with it (`ConversationResponse
+  .sql`, written with every question that names the list - not by a stopped answer stored after a newer question,
+  whose choice stays) and returned with it (`ConversationResponse
   .excludedConnectionIds`), so a frontend - ours or a tenant's own - opens it with its last choice; a connection
   deleted or no longer reached since is dropped where it is read, never an error. A key without history takes it per
   question; a decided changing call goes on with the conversation's choice. **The list to choose from**: `GET
@@ -501,7 +661,13 @@ call - is not built: when a module needs it.
   so, and that passages a software's search tool returns are the company's documents too, cited by their file name with
   the software's name; without documents of its own the prompt says "no documents of its own to search". A tenant
   without connected software reads the prompt word for word as before. Passed through to MCP clients
-  (`SoftwareMcpProxy`) results stay unchanged. End to end: `controller/chat/GeneralChatSpec` (a tenant asks another's
+  (`SoftwareMcpProxy`) results stay unchanged - and links to a web address stay links there: **the general chat over
+  topic tenants gets a link where a topic's software links to a web address** (accepted by the user, 11 November
+  2026): its own client fetches it only when the address is reachable from the general tenant's Zirmo, allowed by its
+  address rules (HTTPS, no internal address) and needs no key of the software (our bearer goes only to the
+  connection's own origin - here the topic's Zirmo). A link inside the company's network, or one that needs the
+  software's key, is a note "could not be fetched" for the general chat's model. Links to a topic software's own
+  resources are embedded by the topic's Zirmo and arrive as files. End to end: `controller/chat/GeneralChatSpec` (a tenant asks another's
   `/mcp` of the same installation with its key).
 - **The client software only for the keys given it, and only to read** (decided 7 October 2026, revising the same
   day's "the client software gets no access"; the case: a client software asks about data of its own and the
@@ -563,7 +729,14 @@ call - is not built: when a module needs it.
   `BlobResourceContents` (base64) or `TextResourceContents`, and images as `ImageContent`. `McpClient.callTool`
   decodes them into `CallResult.files` (name = the last part of the resource's `uri`, an image `bild`; the type the
   server says); content that is no valid base64 is left out and noted in the text for the model; audio is still left
-  out (`[audio content left out]`); a `resource_link` is fetched at once (below, roadmap point 63). `McpTools.execute` (it gets the answer's
+  out (`[audio content left out]`); a `resource_link` is fetched at once (below, roadmap point 63). **A result's
+  structured content reaches the model** (decided 12 November 2026 - before, it was dropped): without any text it is
+  the text, as its JSON (the specification asks for a text beside it but does not require one, and the model got
+  nothing); beside a text it follows it as `=== Structured result ===` and its JSON (`CallResult.structured`,
+  `McpTools.appendStructured`) - the text may be a summary only, and an MCP client gets both through the proxy too.
+  Not twice: where the text is that JSON already, as most servers send it, the text alone. Within the result's 100,000
+  characters; beyond them the structured part is left out with a note, never cut. A task's `call_tool` step reads the
+  text as before (`CallResult.text` - a second JSON after it would break its search for the array). `McpTools.execute` (it gets the answer's
   `ToolContext`, also for a changing call run by the user's decision) stores each file like one of `create_file`
   (`ChatFileService.createReturned`) into `ToolContext.createdFiles`: it hangs at the answer as `GENERATED`, the
   download below it, and the model is told the file was created and not to write a link to it.
@@ -600,24 +773,26 @@ call - is not built: when a module needs it.
     software that hands out a file as a temporary download (valid once, for minutes) returns a link instead of the content. `McpClient.callTool` fetches it **at once**, before
     it returns - later the download has expired: a uri of the server's own (any scheme but http/https) with
     `resources/read` in the same session (where such a uri lives; the SDK refuses it for a server without the resources
-    capability), an http(s) address after the session with `LinkDownloads`: the connections' address rules
+    capability; no answer at all - too slow, the connection lost - is a failure for now like a download's, an error
+    the server answers is final), an http(s) address after the session with `LinkDownloads`: the connections' address rules
     (`McpAddresses.requireAllowed` - HTTPS, plain HTTP only to `app.ai.plain-http-hosts`, no internal address) before
     the request and after every redirect, followed by hand (3 at most); at most 50 MB (`ChatFileService.MAX_FILE_BYTES`,
     a chat file's - the JDK's `BodyHandlers.limiting` stops the body there) and 60 s for the whole download. **Our
     bearer goes only to the connection's own origin** (scheme, host, port); a download host elsewhere - the storage a
     link was signed for - never sees it, the link carries its own right. The file is a `ReturnedFile` like an embedded
     one (named by the link's `name`, else its uri's last part; typed by the link, else the server's `Content-Type`), so
-    the chat, a task's documents source and the proxy take it unchanged; the proxy hands the client the content, never
-    the link. Only as many links as one call's result leaves room for among the 5 files are fetched, none of a failed
+    the chat and a task's documents source take it unchanged. **Not for MCP clients** (decided 11 November 2026): the
+    proxy passes a web link on as it is and resolves a link to the software's own resource itself ("Connected software
+    through to MCP clients" above). Only as many links as one call's result leaves room for among the 5 files are fetched, none of a failed
     call (`[file "x" not fetched - ...]`) - counted per call, not per answer: a later call of the same answer may fetch
-    a file the answer then leaves out with a note (the proxy and a task have no answer to count against; not worth
-    threading through). A link that gives no file - expired (404/410), another status, too large, an
+    a file the answer then leaves out with a note (a task has no answer to count against; not worth threading
+    through). A link that gives no file - expired (404/410), another status, too large, an
     address refused or no address at all (a space in it, another scheme, none), too slow, a uri the server cannot
     read, a token that cannot be renewed then - is a note for the model, `[file "x" could not be fetched: <reason>]`,
     never a failed call (the tool has run by then); a task's document without a file takes it as its reason
     (`McpClient.unfetchedNotes`). Not built: a link only written into the text (nothing tells a file from any link),
     fetching when the model asks (expired by then), A2A's file parts with a uri. Specs: `McpClientSpec` (both kinds, the
-    bearer per origin, every refusal, the size, the limits), `McpConnectionSpec`, `McpProxySpec`, `TaskDocumentsSpec`.
+    bearer per origin, every refusal, the size, the limits), `McpConnectionSpec`, `TaskDocumentsSpec`.
   - **Limits**: the answer's 5 files (`CreateFileTool.MAX_FILES_PER_ANSWER`, shared with `create_file` and
     `create_image`; one more is left out with a note), and 8 MiB per message of the server (`McpClient.MAX_MESSAGE_BYTES`,
     about 6 MB of files after base64) - a larger result fails as "did not answer as an MCP server". Not more on

@@ -205,14 +205,14 @@ class FileStoreSpec extends Specification {
         (result.store as Map).checkError == "fileStore.unreachable"
     }
 
-    def "a host leading into the internal network since it was saved is refused before every connection"() {
-        given: "a store saved while its host was allowed - now its address is an internal one not on the list"
+    def "an address no longer allowed since it was saved is refused before every connection: #kind"() {
+        given: "a store saved while its host was allowed - now its address is one the installation does not allow"
         def tenant = api.tenant()
         def admin = api.tenantAdminToken(tenant.id)
-        def store = stores.create(admin, sftp())
+        def store = stores.create(admin, request)
         def saved = repository.findById(store.id as Long).get()
         repository.update(new FileStore(saved.id(), saved.tenantId(), saved.name(), saved.type(),
-                saved.settings().replace('"localhost"', '"127.0.0.3"'), saved.secret(), null, null, false,
+                saved.settings().replace("localhost", host), saved.secret(), null, null, false,
                 saved.createdAt(), saved.updatedAt()))
 
         when:
@@ -220,14 +220,22 @@ class FileStoreSpec extends Specification {
 
         then:
         result.status == "FAILED"
-        result.errorCode == "fileStore.internalNetwork"
+        result.errorCode == code
 
         when: "a task's run opens it"
         service.open(tenant.id as Long, store.id as Long)
 
         then:
         def e = thrown(ServiceException)
-        e.code() == "fileStore.internalNetwork"
+        e.code() == code
+
+        where:
+        kind                                 | request                                      | host        || code
+        "SFTP, an internal host"             | sftp()                                       | "127.0.0.3" || "fileStore.internalNetwork"
+        "S3, an internal host"               | s3()                                         | "127.0.0.3" || "fileStore.internalNetwork"
+        "S3 over plain HTTP, a host unnamed" | s3() + [endpoint: "http://localhost:9000"]   | "8.8.8.8"   || "fileStore.plainHttp"
+        "IMAP, an internal host"             | imap()                                       | "127.0.0.3" || "fileStore.internalNetwork"
+        "plain IMAP, a host unnamed"         | imap() + [security: "NONE"]                  | "8.8.8.8"   || "fileStore.plainImap"
     }
 
     def "a check's outcome is not written to a store changed while it ran"() {
@@ -572,6 +580,12 @@ class FileStoreSpec extends Specification {
     private static Map sharePoint() {
         [name    : "SharePoint " + UUID.randomUUID(), type: "SHAREPOINT", directoryId: DIRECTORY, clientId: CLIENT,
          password: "app-secret-value", siteUrl: "https://musterfirma.sharepoint.com/sites/projekte", basePath: "/logs"]
+    }
+
+    /** A mailbox on localhost - nothing is connected to here. */
+    private static Map imap() {
+        [name    : "Postfach " + UUID.randomUUID(), type: "IMAP", host: "localhost", port: 993, username: "check",
+         password: "check-secret", security: "SSL"]
     }
 
     /** An S3 store on localhost - nothing is connected to here. */

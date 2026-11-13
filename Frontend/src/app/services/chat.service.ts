@@ -115,8 +115,21 @@ export class ChatService {
         return this.http.get<ChatFile[]>(`${this.apiUrl}/conversations/${conversationId}/files`);
     }
 
+    /**
+     * Reports its progress like the upload: a large file takes long over a slow line, and the timeout then counts
+     * from the last progress, not the start.
+     */
     downloadFile(fileId: number): Observable<Blob> {
-        return this.http.get(`${this.apiUrl}/files/${fileId}/content`, {responseType: "blob"});
+        return this.http
+            .get(`${this.apiUrl}/files/${fileId}/content`, {
+                responseType: "blob",
+                observe: "events",
+                reportProgress: true,
+            })
+            .pipe(
+                filter(event => event.type === HttpEventType.Response),
+                map(event => (event as HttpResponse<Blob>).body as Blob),
+            );
     }
 
     deleteFile(fileId: number): Observable<void> {

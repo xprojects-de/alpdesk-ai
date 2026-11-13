@@ -52,7 +52,9 @@ take the release that follows without being set up again.
   software switched "Directly to MCP clients" ("Direkt an MCP-Clients") reaches them directly: its reading tools and
   prompts appear among the server's tools (`<software>__<tool>`), while its address and key stay in the installation -
   and its changing tools too, for a key the tenant admin lets change in it ("Darf ändern in"); whether its user
-  is asked before such a call is the client's matter (SECURITY.md).
+  is asked before such a call is the client's matter (SECURITY.md). What the software sends reaches the client
+  unchanged - long text, images, files with their own type, links to a web address as links - and, switched
+  "Ressourcen an MCP-Clients", its resources too, their addresses starting with the software's name and a dot.
 - **Single sign-on** through a WAM proxy that passes the signed-in person on in a header (optional).
 - **Branding** per installation and per tenant: name, colour and logo - with a login page of its own for every tenant.
 
@@ -180,6 +182,7 @@ The app's environment variables, set through the file `.env` next to `docker-com
 |---|---|
 | `APP_DOMAIN` | The domain Caddy serves and fetches the certificate for, without `https://` |
 | `APP_USERNAME` / `APP_PASSWORD` | The admin login - the password at least 12 characters |
+| `APP_LOGIN_MAX_ATTEMPTS` / `APP_LOGIN_LOCK_MINUTES` | Optional: after this many wrong passwords in a row (default 5) a tenant user's account takes no password for this many minutes (default 15) - also the right one, answered like a wrong one. A password an admin sets lifts it. The admin's account is never locked |
 | `APP_SECRET_KEY` | AES key encrypting the stored AI provider keys - `openssl rand -base64 32`. **Back it up**: losing or changing it makes every stored key unreadable (they must be entered again) |
 | `JWT_GENERATOR_SIGNATURE_SECRET` | JWT signing secret (at least 32 characters) - `openssl rand -base64 48`; changing it logs everyone out - change it together with a leaked `APP_PASSWORD`, whose admin sessions a new password alone does not end |
 | `DB_PASSWORD` | The database password - `openssl rand -base64 48` |
@@ -660,8 +663,10 @@ APP_WAM_NAME_HEADER=X-Remote-Name    # optional: the person's name for a new use
 - **One person in several tenants**: a username is unique per tenant, so the admin can give the same person a user in
   several tenants (page **Users** of the tenant, "User from another tenant" - "Benutzer aus anderem Mandanten"). At
   the sign-in the person chooses the tenant once (the browser remembers it) and switches in the user menu - with WAM
-  without a password. Without WAM the switch asks for the password of the user in the other tenant, and a username in
-  several tenants signs in on the tenant's own login page (`/login/<key>`, shown on the tenant's tab "Branding").
+  without a password. Without WAM the switch asks for the password of the user in the other tenant and is offered
+  only between users added that way - a user created by name is nobody else's, also when its name exists in another
+  tenant -, and a username in several tenants signs in on the tenant's own login page (`/login/<key>`, shown on the
+  tenant's tab "Branding").
 - **The app trusts the header completely**: the proxy must remove `APP_WAM_USER_HEADER` (and `APP_WAM_NAME_HEADER`,
   `APP_WAM_GROUPS_HEADER`) from every request coming from outside, and the app must be reachable through the proxy
   only - never publish its port anywhere else. Whoever reaches it past the proxy can sign in as anyone.

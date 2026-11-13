@@ -2,6 +2,8 @@ package de.alpdesk.controller.chat
 
 import de.alpdesk.services.ai.AiApi
 import de.alpdesk.services.ai.FakeAiModels
+import de.alpdesk.services.chat.ChatResult
+import de.alpdesk.services.chat.ChatService
 import de.alpdesk.services.mcp.FakeMcpSoftware
 import io.micronaut.http.HttpStatus
 import io.micronaut.http.client.HttpClient
@@ -10,6 +12,9 @@ import io.micronaut.test.extensions.spock.annotation.MicronautTest
 import jakarta.inject.Inject
 import spock.lang.Shared
 import spock.lang.Specification
+
+import java.util.concurrent.CompletableFuture
+import java.util.concurrent.TimeUnit
 
 /**
  * The connected software a question leaves out (roadmap point 51, docs/architecture/mcp.md "MCP clients"): the user
@@ -26,6 +31,9 @@ class SoftwareChoiceSpec extends Specification {
 
     @Inject
     FakeAiModels fake
+
+    @Inject
+    ChatService chatService
 
     @Shared
     AiApi api
@@ -86,6 +94,28 @@ class SoftwareChoiceSpec extends Specification {
         and: "a new conversation starts with every topic on"
         api.ask(token, [modelId: setup.chat.id, message: "Neu"])
         offered().containsAll(["Thema_A__find_invoice", "Thema_B__find_invoice"])
+    }
+
+    def "a stopped answer stored after a newer question leaves the newer question's choice"() {
+        given: "a question without topic A the user stopped listening to: prepared, its answer not yet there"
+        def setup = tenantWithTwoTopics()
+        def token = setup.user.token as String
+        def conversationId = api.ask(token, [modelId: setup.chat.id, message: "Eins"]).conversation.id
+        def stopped = chatService.prepare(setup.tenant.id as Long, setup.user.id as Long, conversationId as Long,
+                setup.chat.id as Long, null, "Zwei", [setup.a.id as Long])
+
+        and: "a newer question in the conversation with every topic on again"
+        api.ask(token, [modelId: setup.chat.id, conversationId: conversationId, message: "Drei",
+                        excludedConnectionIds: []])
+
+        when: "the stopped answer is stored"
+        def ended = new CompletableFuture<Object>()
+        chatService.stream(stopped, {}, {}, {}, {}, { ended.complete(it) }, { ended.complete(it) })
+
+        then: "the conversation keeps the choice of the question asked last"
+        ended.get(10, TimeUnit.SECONDS) instanceof ChatResult
+        (api.call(token, "GET", "/tenant/chat/conversations") as List<Map>)
+                .find { it.id == conversationId }.excludedConnectionIds == []
     }
 
     def "a connection deleted or taken from the user's groups since is dropped on reading, never an error"() {

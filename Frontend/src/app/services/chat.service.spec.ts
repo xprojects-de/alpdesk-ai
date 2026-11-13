@@ -61,3 +61,53 @@ describe("ChatService.uploadFiles", () => {
         expect(errors.map(error => error.error?.code)).toEqual(["request.timeout"]);
     });
 });
+
+/** A download reports its progress too: a large file over a slow line is not cut off after the plain timeout. */
+describe("ChatService.downloadFile", () => {
+    const SECOND = 1000;
+
+    beforeEach(() => vi.useFakeTimers());
+    afterEach(() => vi.useRealTimers());
+
+    function setup() {
+        TestBed.configureTestingModule({
+            providers: [provideHttpClient(withInterceptors([timeoutInterceptor])), provideHttpClientTesting()],
+        });
+        return {chat: TestBed.inject(ChatService), backend: TestBed.inject(HttpTestingController)};
+    }
+
+    function progress(loaded: number) {
+        return {type: HttpEventType.DownloadProgress, loaded, total: 100} as const;
+    }
+
+    it("a download that goes on for longer than the timeout still arrives - only its content comes out", () => {
+        const {chat, backend} = setup();
+        const content = new Blob(["x"]);
+        const results: Blob[] = [];
+        const errors: unknown[] = [];
+        chat.downloadFile(7).subscribe({next: blob => results.push(blob), error: error => errors.push(error)});
+
+        const request = backend.expectOne(r => r.url.endsWith("/tenant/chat/files/7/content"));
+        expect(request.request.reportProgress).toBe(true);
+        for (let loaded = 10; loaded <= 90; loaded += 10) {
+            vi.advanceTimersByTime(20 * SECOND);
+            request.event(progress(loaded));
+        }
+        request.flush(content);
+
+        expect(errors).toEqual([]);
+        expect(results).toEqual([content]);
+    });
+
+    it("a download that stalls ends with the timeout", () => {
+        const {chat, backend} = setup();
+        const errors: {error?: {code?: string}}[] = [];
+        chat.downloadFile(7).subscribe({error: error => errors.push(error)});
+
+        const request = backend.expectOne(r => r.url.endsWith("/tenant/chat/files/7/content"));
+        request.event(progress(10));
+        vi.advanceTimersByTime(31 * SECOND);
+
+        expect(errors.map(error => error.error?.code)).toEqual(["request.timeout"]);
+    });
+});

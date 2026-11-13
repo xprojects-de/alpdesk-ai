@@ -190,16 +190,22 @@ def people_by_hand(admin, state):
     """
     The plain mode: the people of Authelia's file as users kept by hand - one per tenant with the password, in the group
     their IDM group would have given -, clara in the general chat in no group (she must not get in), and every tenant's
-    own login page (its key: a name in several tenants signs in there).
+    own login page (its key: a name in several tenants signs in there). A person's users after the first are added
+    from it ("Benutzer aus anderem Mandanten"): without WAM only so are they one person's, which the switch goes by.
     """
     groups = {topic["connection"]: (topic["tenantId"], topic["groupId"]) for topic in state["topics"]}
     groups["general"] = (state["general"]["tenantId"], state["general"]["groupId"])
     for username, (name, places) in PEOPLE.items():
+        first = None
         for place in places:
             tenant_id, group_id = groups[place]
-            call(admin, "POST", f"/admin/tenants/{tenant_id}/users",
-                 {"username": username, "displayName": name, "password": stack.PERSON_PASSWORD,
-                  "groupIds": [] if username == "clara" else [group_id]})
+            user = {"username": username, "displayName": name, "password": stack.PERSON_PASSWORD,
+                    "groupIds": [] if username == "clara" else [group_id]}
+            if first is None:
+                first = call(admin, "POST", f"/admin/tenants/{tenant_id}/users", user)
+                continue
+            added = call(admin, "POST", f"/admin/tenants/{tenant_id}/users/from-tenant", {"userId": first["id"]})
+            call(admin, "PUT", f"/admin/tenants/{tenant_id}/users/{added['id']}", user)
     state["loginKeys"] = {}
     for tenant_id, _ in groups.values():
         branding = call(admin, "POST", f"/admin/tenants/{tenant_id}/branding/login-key")

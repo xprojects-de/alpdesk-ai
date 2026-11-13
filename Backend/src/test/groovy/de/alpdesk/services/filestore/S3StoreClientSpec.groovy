@@ -21,10 +21,13 @@ class S3StoreClientSpec extends Specification {
     /** The page that says more is to come but names no token. */
     Integer tokenMissingOn
     int requests
+    /** How the last request was signed. */
+    volatile String authorization
 
     def setup() {
         server.createContext("/") { exchange ->
             requests++
+            authorization = exchange.requestHeaders.getFirst("Authorization")
             int page = (exchange.requestURI.query =~ /continuation-token=(\d+)/).with { it.find() ? it.group(1) as int : 0 }
             byte[] answer = listing(page).getBytes(StandardCharsets.UTF_8)
             exchange.responseHeaders.add("Content-Type", "application/xml")
@@ -78,6 +81,25 @@ class S3StoreClientSpec extends Specification {
         then:
         def e = thrown(ServiceException)
         e.code == "fileStore.readFailed"
+    }
+
+    def "a request is signed with the store's own access key - never with credentials of the server it runs on"() {
+        given: "credentials as an installation on AWS has them, where the SDK's default chain would find them"
+        System.setProperty("aws.accessKeyId", "AKIAOPERATOR")
+        System.setProperty("aws.secretAccessKey", "secret-of-the-operator")
+        keysPerPage = 1
+        lastPage = 0
+
+        when:
+        list()
+
+        then:
+        authorization.contains("Credential=AKIAEXAMPLE/")
+        !authorization.contains("AKIAOPERATOR")
+
+        cleanup:
+        System.clearProperty("aws.accessKeyId")
+        System.clearProperty("aws.secretAccessKey")
     }
 
     private List<RemoteFile> list() {

@@ -189,7 +189,7 @@ class FakeAiModels extends AiModels {
             return promptAnswer(messages, tools*.name())
         }
         if (system?.startsWith("You take values out of one document")) {
-            return extractAnswer(messages)
+            return extractAnswer(messages, tools*.name())
         }
         if (system?.startsWith("You write scheduled tasks")) {
             return taskDraft(messages, system)
@@ -612,11 +612,17 @@ class FakeAiModels extends AiModels {
     /**
      * An extract step's answer: every field the question lists takes its value from a document line "<field>: <value>"
      * (none: null). In the document, "[[row-broken]]" makes the first answer no result, "[[row-broken-twice]]" both,
-     * "[[row-wrong]]" gives every date field "yesterday" in the first answer, "[[unclear <why>]]" sets unclear.
+     * "[[row-wrong]]" gives every date field "yesterday" in the first answer, "[[unclear <why>]]" sets unclear,
+     * "[[knowledge <query>]]" searches the knowledge first (similarity_search) when the step offers it.
      */
-    private ChatResponse extractAnswer(List<ChatMessage> messages) {
+    private ChatResponse extractAnswer(List<ChatMessage> messages, List<String> offered) {
         extractHold?.await(20, TimeUnit.SECONDS)
         String question = (messages.find { it instanceof UserMessage } as UserMessage).singleText()
+        def knowledge = question =~ /\[\[knowledge ([^\]]+)]]/
+        if (knowledge.find() && offered.contains("similarity_search")
+                && !messages.any { it instanceof ToolExecutionResultMessage }) {
+            return toolCalls(null, [toolCall("similarity_search", [query: knowledge.group(1)])])
+        }
         boolean again = messages.count { it instanceof UserMessage } > 1
         if (question.contains("[[row-broken-twice]]") || question.contains("[[row-broken]]") && !again) {
             return answer("Ich konnte das Dokument lesen.")

@@ -64,6 +64,18 @@ public class McpClient {
     static final int MAX_TOOL_NAME = 128;
     static final int MAX_DESCRIPTION = 4_000;
     static final int MAX_SCHEMA = 20_000;
+    /**
+     * A tool's whole entry at most (name, title, description, schemas, annotations, _meta) - kept for the MCP clients it
+     * is passed through to (decided 11 November 2026); beyond it the tools are refused, as a schema too long is.
+     */
+    static final int MAX_DEFINITION = 50_000;
+    /**
+     * Links to the server's own resources a call passed through resolves at most, and the bytes the files embedded in
+     * their place may have together (decided 11 November 2026): a protection of the installation, not a filter - the rest
+     * stay in the result as links.
+     */
+    static final int MAX_RESOLVED_LINKS = 20;
+    static final long MAX_RESOLVED_BYTES = 8L * 1024 * 1024;
     /** A prompt's arguments at most - the user fills each in the chat's form. */
     static final int MAX_PROMPT_ARGUMENTS = 20;
     /**
@@ -99,8 +111,12 @@ public class McpClient {
         this.version = version;
     }
 
-    /** A tool as the server lists it. readOnly: its readOnlyHint - a tool without one counts as changing. */
-    public record RemoteTool(String name, String description, Map<String, Object> inputSchema, boolean readOnly) {
+    /**
+     * A tool as the server lists it. readOnly: its readOnlyHint - a tool without one counts as changing. definition: its
+     * whole entry as JSON, for the MCP clients it is passed through to.
+     */
+    public record RemoteTool(String name, String description, Map<String, Object> inputSchema, boolean readOnly,
+                             String definition) {
     }
 
     /** A prompt as the server lists it, with its arguments - the user fills them in a form. */
@@ -114,12 +130,14 @@ public class McpClient {
      * What a tool call gave: its text, whether the server reports it as an error, the files it returned - and whether
      * the text was longer than {@value #MAX_RESULT_TEXT} characters and cut there; {@code linkFailedForNow} when a link
      * gave no file for a reason the next try may not have (its server out of reach, too slow, failing).
+     * {@code structured}: the result's structured content as JSON where it says more than the text - null without
+     * any, when the text is that JSON already, or when there was no text and the JSON became the text.
      */
     public record CallResult(String text, boolean error, List<ReturnedFile> files, boolean cutOff,
-                             boolean linkFailedForNow) {
+                             boolean linkFailedForNow, @Nullable String structured) {
 
         public CallResult(String text, boolean error, List<ReturnedFile> files, boolean cutOff) {
-            this(text, error, files, cutOff, false);
+            this(text, error, files, cutOff, false, null);
         }
     }
 
@@ -251,7 +269,9 @@ public class McpClient {
      * Calls the tool with the arguments the model gave. 502 as at {@link #listTools}. A file it returns as a link
      * (resource_link) is fetched at once - a temporary download expires in minutes: a uri of the server's own read with
      * resources/read in the same session, an https one downloaded after it ({@link LinkDownloads}). A link that gives
-     * no file is a note for the model, never a failed call.
+     * no file is a note for the model, never a failed call. A structured result without any text comes as its JSON - the
+     * specification asks for a text beside it, but does not require one, and the model would get nothing. Beside a
+     * text it is kept apart (CallResult.structured): the text may be a summary only.
      */
     public CallResult callTool(Long tenantId, String name, String url, @Nullable Credential credential, String tool,
                                Map<String, Object> arguments) {
@@ -314,12 +334,197 @@ public class McpClient {
                 default -> text.append("[").append(part.type()).append(" content left out]\n");
             }
         }
+        String structured = result.structuredContent() == null ? null : structuredAsText(result.structuredContent());
+        boolean hasText = result.content().stream().anyMatch(McpSchema.TextContent.class::isInstance);
+        if (structured != null && !hasText) {
+            text.append(structured);
+        }
         String answer = text.toString().strip();
+        if (!hasText || isSameData(answer, result.structuredContent())) {
+            structured = null;
+        }
         boolean cutOff = answer.length() > MAX_RESULT_TEXT;
         if (cutOff) {
             answer = answer.substring(0, MAX_RESULT_TEXT) + "\n[cut off - the result was longer]";
         }
-        return new CallResult(answer, Boolean.TRUE.equals(result.isError()), files, cutOff, linkFailedForNow);
+        return new CallResult(answer, Boolean.TRUE.equals(result.isError()), files, cutOff, linkFailedForNow,
+                structured);
+    }
+
+    /** Whether the text is the structured content written out as JSON - what most servers send beside it. */
+    private boolean isSameData(String text, Object structured) {
+        try {
+            return structured.equals(json.readValue(text, Object.class));
+        } catch (IOException | RuntimeException notJson) {
+            return false;
+        }
+    }
+
+    /**
+     * Calls the tool for an MCP client it is passed through to (docs/architecture/mcp.md "Connected software through to
+     * MCP clients"): the result as the server sent it - text, images, audio, embedded files, structured content, _meta,
+     * isError. Only a link to a resource of the server's own is read in the same session and its file embedded in its
+     * place - the client is not connected to the server and could not read it -, within {@value #MAX_RESOLVED_LINKS}
+     * links and 8 MB; a link that cannot be read, or beyond them, stays as it came, and so does a link to a web address
+     * (the client has its user's rights there). 502 as at {@link #listTools}; also for an answer without content.
+     */
+    public McpSchema.CallToolResult passTool(Long tenantId, String name, String url, @Nullable Credential credential,
+                                             String tool, Map<String, Object> arguments) {
+        McpSchema.CallToolResult result = session(tenantId, name, url, credential, mcp -> {
+            McpSchema.CallToolResult answer = mcp.callTool(new McpSchema.CallToolRequest(tool, arguments));
+            return answer == null || answer.content() == null ? null
+                    : withServerLinksEmbedded(mcp, answer, System.nanoTime() + timeout.toNanos());
+        });
+        if (result == null) {
+            throw requestFailed(name);
+        }
+        return result;
+    }
+
+    /**
+     * The result with its links to the server's own resources replaced by their files - each content the server reads
+     * for it an embedded resource with the address the server gave it, the link's annotations and _meta. None of a
+     * failed call: its result goes back as it is. All of them within one app.ai.timeout after the call answered: a
+     * server that hangs on resources/read would otherwise hold the call for a timeout per link - the links left stay.
+     */
+    private static McpSchema.CallToolResult withServerLinksEmbedded(McpSyncClient mcp, McpSchema.CallToolResult result,
+                                                                    long deadline) {
+        if (Boolean.TRUE.equals(result.isError())) {
+            return result;
+        }
+        List<McpSchema.Content> content = new ArrayList<>();
+        int links = 0;
+        long bytes = 0;
+        for (McpSchema.Content part : result.content()) {
+            if (part instanceof McpSchema.ResourceLink link && link.uri() != null && !isWebAddress(link.uri())
+                    && links < MAX_RESOLVED_LINKS && bytes < MAX_RESOLVED_BYTES && System.nanoTime() < deadline) {
+                links++;
+                List<McpSchema.ResourceContents> read = readQuietly(mcp, link.uri());
+                long size = size(read);
+                if (!read.isEmpty() && bytes + size <= MAX_RESOLVED_BYTES) {
+                    bytes += size;
+                    for (McpSchema.ResourceContents contents : read) {
+                        content.add(new McpSchema.EmbeddedResource(link.annotations(), contents, link.meta()));
+                    }
+                    continue;
+                }
+            }
+            content.add(part);
+        }
+        return new McpSchema.CallToolResult(content, result.isError(), result.structuredContent(), result.meta());
+    }
+
+    /** What resources/read gives for the address - empty when the server refuses it or sends nothing. */
+    private static List<McpSchema.ResourceContents> readQuietly(McpSyncClient mcp, String uri) {
+        try {
+            McpSchema.ReadResourceResult answer = mcp.readResource(new McpSchema.ReadResourceRequest(uri));
+            return answer == null || answer.contents() == null ? List.of() : answer.contents();
+        } catch (RuntimeException e) {
+            return List.of();
+        }
+    }
+
+    /** The bytes of the contents - base64 counted as what it decodes to. */
+    private static long size(List<McpSchema.ResourceContents> contents) {
+        long size = 0;
+        for (McpSchema.ResourceContents part : contents) {
+            size += switch (part) {
+                case McpSchema.TextResourceContents text -> text.text() == null ? 0
+                        : text.text().getBytes(StandardCharsets.UTF_8).length;
+                case McpSchema.BlobResourceContents blob -> blob.blob() == null ? 0 : blob.blob().length() * 3L / 4;
+                default -> 0;
+            };
+        }
+        return size;
+    }
+
+    /**
+     * A prompt for an MCP client it is passed through to: the client's arguments as given, the server's answer as it is
+     * - every message, whatever its role or content. 502 as at {@link #listTools}, also for an answer without messages.
+     */
+    public McpSchema.GetPromptResult passPrompt(Long tenantId, String name, String url, @Nullable Credential credential,
+                                                String prompt, @Nullable Map<String, Object> arguments) {
+        McpSchema.GetPromptResult result = session(tenantId, name, url, credential,
+                mcp -> mcp.getPrompt(new McpSchema.GetPromptRequest(prompt, arguments)));
+        if (result == null || result.messages() == null) {
+            throw requestFailed(name);
+        }
+        return result;
+    }
+
+    /**
+     * A page of the server's resources for an MCP client - none when the server offers no resources. 502 as at
+     * {@link #listTools}.
+     */
+    public McpSchema.ListResourcesResult listResources(Long tenantId, String name, String url,
+                                                      @Nullable Credential credential, @Nullable String cursor) {
+        McpSchema.ListResourcesResult page = session(tenantId, name, url, credential, mcp -> offersResources(mcp)
+                ? mcp.listResources(cursor) : new McpSchema.ListResourcesResult(List.of(), null));
+        return page != null ? page : new McpSchema.ListResourcesResult(List.of(), null);
+    }
+
+    /** A page of the server's resource templates, as {@link #listResources}. */
+    public McpSchema.ListResourceTemplatesResult listResourceTemplates(Long tenantId, String name, String url,
+                                                                      @Nullable Credential credential,
+                                                                      @Nullable String cursor) {
+        McpSchema.ListResourceTemplatesResult page = session(tenantId, name, url, credential, mcp -> offersResources(mcp)
+                ? mcp.listResourceTemplates(cursor) : new McpSchema.ListResourceTemplatesResult(List.of(), null));
+        return page != null ? page : new McpSchema.ListResourceTemplatesResult(List.of(), null);
+    }
+
+    /** What resources/read gave: the server's result, or the JSON-RPC error it answered with (its "not found"). */
+    public record ReadAnswer(McpSchema.@Nullable ReadResourceResult result,
+                             McpSchema.JSONRPCResponse.@Nullable JSONRPCError error) {
+    }
+
+    /**
+     * A resource read for an MCP client: the server's answer as it is, or its own error with its code and message. 502
+     * as at {@link #listTools} for any other failure.
+     */
+    public ReadAnswer readResource(Long tenantId, String name, String url, @Nullable Credential credential, String uri) {
+        ReadAnswer answer = session(tenantId, name, url, credential, mcp -> {
+            try {
+                McpSchema.ReadResourceResult result = mcp.readResource(new McpSchema.ReadResourceRequest(uri));
+                return result == null || result.contents() == null ? null : new ReadAnswer(result, null);
+            } catch (RuntimeException e) {
+                McpSchema.JSONRPCResponse.JSONRPCError error = errorAnswered(e);
+                if (error == null) {
+                    throw e;
+                }
+                return new ReadAnswer(null, error);
+            }
+        });
+        if (answer == null) {
+            throw requestFailed(name);
+        }
+        return answer;
+    }
+
+    /** The JSON-RPC error the server answered with - also one sent with HTTP 400 or 500; null for any other cause. */
+    private McpSchema.JSONRPCResponse.@Nullable JSONRPCError errorAnswered(Throwable e) {
+        for (Throwable cause = e; cause != null; cause = cause.getCause()) {
+            if (cause instanceof McpError error && error.getJsonRpcError() != null) {
+                return error.getJsonRpcError();
+            }
+            Map<?, ?> sent = errorSentWithHttpStatusOf(cause.getMessage());
+            if (sent != null && sent.get("code") instanceof Number code) {
+                return new McpSchema.JSONRPCResponse.JSONRPCError(code.intValue(),
+                        String.valueOf(sent.get("message")), sent.get("data"));
+            }
+        }
+        return null;
+    }
+
+    private static boolean offersResources(McpSyncClient mcp) {
+        return mcp.getServerCapabilities() != null && mcp.getServerCapabilities().resources() != null;
+    }
+
+    private String structuredAsText(Object structured) {
+        try {
+            return json.writeValueAsString(structured);
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
     }
 
     /** What a tool call answered, with what its links of the server's own gave - read while the session was open. */
@@ -358,8 +563,7 @@ public class McpClient {
     }
 
     /** The links of the server's own read with resources/read - inside the session, where such a uri lives. */
-    private static Map<McpSchema.ResourceLink, Linked> readServerLinks(McpSyncClient mcp,
-                                                                      McpSchema.CallToolResult result) {
+    private Map<McpSchema.ResourceLink, Linked> readServerLinks(McpSyncClient mcp, McpSchema.CallToolResult result) {
         Map<McpSchema.ResourceLink, Linked> read = new HashMap<>();
         for (McpSchema.ResourceLink link : linksToFetch(result)) {
             if (!isWebAddress(link.uri())) {
@@ -369,12 +573,20 @@ public class McpClient {
         return read;
     }
 
-    private static Linked readResource(McpSyncClient mcp, McpSchema.ResourceLink link) {
+    /**
+     * An error the server answered is final. No answer at all - too slow, the connection lost - is for now: the next
+     * try may give the file, as with a download whose server is out of reach.
+     */
+    private Linked readResource(McpSyncClient mcp, McpSchema.ResourceLink link) {
         McpSchema.ReadResourceResult answer;
         try {
             answer = mcp.readResource(new McpSchema.ReadResourceRequest(link.uri()));
         } catch (RuntimeException e) {
-            return new Linked(null, "the server refused to read it" + refusal(e));
+            String refusal = refusal(e);
+            if (refusal.isEmpty() && errorAnswered(e) == null) {
+                return new Linked(null, "the server did not answer when asked to read it", true);
+            }
+            return new Linked(null, "the server refused to read it" + refusal);
         }
         if (answer == null || answer.contents() == null || answer.contents().isEmpty()) {
             return new Linked(null, "the server sent no content for it");
@@ -411,7 +623,7 @@ public class McpClient {
         }
     }
 
-    private static boolean isWebAddress(String uri) {
+    static boolean isWebAddress(String uri) {
         String lower = uri.toLowerCase(java.util.Locale.ROOT);
         return lower.startsWith("https://") || lower.startsWith("http://");
     }
@@ -519,13 +731,18 @@ public class McpClient {
         }
     }
 
-    /** The SDK takes the server's origin and the path apart; no redirects, the bearer only to this server. */
+    /**
+     * The SDK takes the server's origin and the endpoint apart; no redirects, the bearer only to this server. The
+     * endpoint is the whole address, never the path alone: the SDK resolves it against the origin, and a path like
+     * //other.host/mcp would name another host there - one no check has seen, which would get the bearer.
+     */
     private HttpClientStreamableHttpTransport transport(String url, @Nullable String token) {
         URI uri = URI.create(url);
+        String origin = uri.getScheme() + "://" + uri.getRawAuthority();
         String path = uri.getRawPath() == null || uri.getRawPath().isEmpty() ? "/" : uri.getRawPath();
         HttpClientStreamableHttpTransport.Builder builder = HttpClientStreamableHttpTransport
-                .builder(uri.getScheme() + "://" + uri.getRawAuthority())
-                .endpoint(path)
+                .builder(origin)
+                .endpoint(origin + path)
                 .clientBuilder(HttpClient.newBuilder().followRedirects(HttpClient.Redirect.NEVER))
                 .connectTimeout(Duration.ofSeconds(10))
                 .maxResponseSize(MAX_MESSAGE_BYTES)
@@ -553,7 +770,23 @@ public class McpClient {
                 : json.convertValue(tool.inputSchema(), new io.modelcontextprotocol.json.TypeRef<>() {
                 });
         boolean readOnly = tool.annotations() != null && Boolean.TRUE.equals(tool.annotations().readOnlyHint());
-        return new RemoteTool(tool.name(), description, schema, readOnly);
+        return new RemoteTool(tool.name(), description, schema, readOnly, definition(name, tool));
+    }
+
+    /** The tool's whole entry as JSON - refused beyond {@value #MAX_DEFINITION} characters. */
+    private String definition(String name, McpSchema.Tool tool) {
+        String definition;
+        try {
+            definition = json.writeValueAsString(tool);
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+        if (definition.length() > MAX_DEFINITION) {
+            throw gateway("mcpServer.toolDefinitionTooLong", name,
+                    "offers a tool whose entry is longer than " + MAX_DEFINITION + " characters",
+                    Map.of("max", String.valueOf(MAX_DEFINITION)));
+        }
+        return definition;
     }
 
     /** A prompt within the limits of a tool: its name, its description, its arguments (a prompt's own limit). */
@@ -660,6 +893,13 @@ public class McpClient {
      */
     @Nullable
     private String errorSentWithHttpStatus(@Nullable String exceptionMessage) {
+        Map<?, ?> error = errorSentWithHttpStatusOf(exceptionMessage);
+        return error != null && error.get("message") instanceof String message ? message : null;
+    }
+
+    /** The error object of such a message - null when there is none. */
+    @Nullable
+    private Map<?, ?> errorSentWithHttpStatusOf(@Nullable String exceptionMessage) {
         int start = exceptionMessage == null ? -1 : exceptionMessage.indexOf("data={");
         if (start < 0) {
             return null;
@@ -670,8 +910,7 @@ public class McpClient {
         }
         try {
             Map<?, ?> answer = json.readValue(exceptionMessage.substring(start + "data=".length(), end + 1), Map.class);
-            return answer.get("error") instanceof Map<?, ?> error && error.get("message") instanceof String message
-                    ? message : null;
+            return answer.get("error") instanceof Map<?, ?> error ? error : null;
         } catch (RuntimeException | IOException notJson) {
             return null;
         }

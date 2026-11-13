@@ -56,6 +56,12 @@ public class DocumentTextExtractor {
     /** The most one part of an Office file may unpack to - {@link #requireModestParts}. */
     static final long MAX_PART_BYTES = 200L * 1024 * 1024;
 
+    /** The most all parts of an Office file may unpack to together - far above a real document of 50 MB. */
+    static final long MAX_PARTS_BYTES = 500L * 1024 * 1024;
+
+    /** The most parts an Office file may have - a presentation of hundreds of slides has a few thousand. */
+    static final int MAX_PARTS = 10_000;
+
     /**
      * The allowed types - the one place they are named: Tika's name, how the error message calls it, and the file name
      * extensions a knowledge source reads (it skips other files before reading them; upload and ZIP import decide by
@@ -174,30 +180,44 @@ public class DocumentTextExtractor {
      * An Office file is a ZIP archive, and a spreadsheet's shared strings are held in memory whole before any text
      * comes out - a file of a few megabytes made for it unpacks into gigabytes there, which the limit of the text
      * never sees. So every part is unpacked once and only counted: 400 for one of more than
-     * {@link #MAX_PART_BYTES}. Read by the archive's directory, as the parsers read it.
+     * {@link #MAX_PART_BYTES}, for all of them together of more than {@link #MAX_PARTS_BYTES} and for more than
+     * {@link #MAX_PARTS} parts - many parts just below the limit of one would keep a thread unpacking for minutes.
+     * Read by the archive's directory, as the parsers read it.
      */
     private static void requireModestParts(byte[] content) {
         if (content.length < 2 || content[0] != 'P' || content[1] != 'K') {
             return;
         }
-        byte[] buffer = new byte[64 * 1024];
         try (ZipFile zip = ZipFile.builder().setByteArray(content).get()) {
-            for (ZipArchiveEntry entry : Collections.list(zip.getEntries())) {
-                long size = 0;
-                try (InputStream part = zip.getInputStream(entry)) {
-                    for (int read = part.read(buffer); read > 0; read = part.read(buffer)) {
-                        size += read;
-                        if (size > MAX_PART_BYTES) {
-                            throw ServiceException.badRequest("document.partTooLarge", "The document unpacks into more "
-                                    + "than " + MAX_PART_BYTES / (1024 * 1024) + " MB",
-                                    Map.of("max", String.valueOf(MAX_PART_BYTES / (1024 * 1024))));
-                        }
-                    }
-                }
+            List<ZipArchiveEntry> parts = Collections.list(zip.getEntries());
+            if (parts.size() > MAX_PARTS) {
+                throw ServiceException.badRequest("document.tooManyParts", "The document has more than " + MAX_PARTS
+                        + " parts", Map.of("max", String.valueOf(MAX_PARTS)));
+            }
+            long total = 0;
+            for (ZipArchiveEntry part : parts) {
+                total += unpackedSize(zip, part, Math.min(MAX_PART_BYTES, MAX_PARTS_BYTES - total));
             }
         } catch (IOException e) {
             // No archive that can be walked: the parser says what the file is.
         }
+    }
+
+    /** Unpacks the part and counts it - 400 as soon as it is more than what is left for it. */
+    private static long unpackedSize(ZipFile zip, ZipArchiveEntry part, long allowed) throws IOException {
+        byte[] buffer = new byte[64 * 1024];
+        long size = 0;
+        try (InputStream unpacked = zip.getInputStream(part)) {
+            for (int read = unpacked.read(buffer); read > 0; read = unpacked.read(buffer)) {
+                size += read;
+                if (size > allowed) {
+                    long limit = allowed < MAX_PART_BYTES ? MAX_PARTS_BYTES : MAX_PART_BYTES;
+                    throw ServiceException.badRequest("document.partTooLarge", "The document unpacks into more than "
+                            + limit / (1024 * 1024) + " MB", Map.of("max", String.valueOf(limit / (1024 * 1024))));
+                }
+            }
+        }
+        return size;
     }
 
     private static Metadata nameOnly(String fileName) {

@@ -77,6 +77,11 @@ export class McpConnectionService {
         return this.http.put<McpConnection>(`${this.url(scope)}/${connectionId}/pass-through`, {passesThrough});
     }
 
+    /** Whether MCP keys that pass the connection through read its resources ("Ressourcen an MCP-Clients"). */
+    setPassResources(scope: TenantScope, connectionId: number, passesResources: boolean): Observable<McpConnection> {
+        return this.http.put<McpConnection>(`${this.url(scope)}/${connectionId}/resources`, {passesResources});
+    }
+
     access(scope: TenantScope, connectionId: number): Observable<McpAccess[]> {
         return this.http.get<McpAccess[]>(`${this.url(scope)}/${connectionId}/access`);
     }

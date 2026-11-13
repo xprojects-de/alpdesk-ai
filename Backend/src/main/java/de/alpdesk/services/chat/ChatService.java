@@ -1223,7 +1223,8 @@ public class ChatService {
         List<ConversationFile> created = files.attach(dataSource, conversation.id(), answered.id(),
                 chat.tools().createdFiles());
         PendingAction action = storePendingCall(chat, dataSource, conversation.id(), answered.id(), askedMeanwhile);
-        if (chat.tools().exclusionToKeep() != null) {
+        // A stopped answer stored after a newer question must not bring back the choice that question replaced.
+        if (chat.tools().exclusionToKeep() != null && !askedMeanwhile) {
             conversations.setExcludedConnections(dataSource, conversation.id(), chat.tools().exclusionToKeep());
         }
         nameConversation(chat, dataSource, conversation.id());
