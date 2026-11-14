@@ -120,6 +120,7 @@ class A2aServerSpec extends Specification {
         card.skills().isEmpty()
         card.supportedInterfaces()[0].protocolBinding() == "JSONRPC"
         card.supportedInterfaces()[0].url() == "${server.URL}/a2a".toString()
+        card.defaultInputModes() == ["text/plain", "text/*", "application/json"]
         card.capabilities().streaming()
         card.capabilities().extendedAgentCard()
         card.capabilities().extensions()*.uri() == [A2aCards.ASSISTANT_EXTENSION, "urn:alpdesk-ai:a2a:asker:1"]

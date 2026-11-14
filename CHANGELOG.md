@@ -216,7 +216,8 @@ Nothing in `.env` or `/api/v1` needs a hand; the new settings have defaults.
 
 - **Source code sent to the assistant over A2A is read whatever type the client names**: a file sent as
   `application/x-python`, `application/javascript` or `application/octet-stream` was refused as "not a text file".
-  Now any file whose content is text is read; images, PDFs and other binary files are refused as before.
+  Now any file whose content is text is read; images, PDFs and other binary files are refused as before. The agent
+  card names `text/*` and `application/json` next to `text/plain` as what a message may bring.
 - **An S3 file store that refuses says why**: a wrong secret or another refusal of the S3 server ended in "An
   unexpected error occurred" instead of the check's answer - two versions of the AWS library met in one installation.
 - **Embedding, replacing and deleting documents stays fast in a large knowledge**: removing a document's previous

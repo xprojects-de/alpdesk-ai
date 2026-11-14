@@ -16,6 +16,13 @@ Put the entries in `message.metadata["urn:alpdesk-ai:a2a:assistant:1"]` and name
   `TASK_STATE_SUBMITTED` while it waits, `TASK_STATE_WORKING` while it runs, then `TASK_STATE_COMPLETED`,
   `TASK_STATE_FAILED` or `TASK_STATE_CANCELED`. The text parts of such a message are ignored.
 
+## Files with a question
+
+A file comes as bytes (`raw`) and is read when its content is text in UTF-8 - source code, logs, Markdown, CSV, JSON -
+whatever media type it names; an image, a PDF or another binary file is refused (`ContentTypeNotSupportedError`), and
+so is a link (`url`). The card's input modes name `text/plain`, `text/*` and `application/json`; a text file of any
+other type is read as well, and may always be sent as `text/plain`.
+
 ## Answers
 
 - A blocking `SendMessage` answers one Message: the answer with "Sources: ..." appended, the files as `raw` parts.
