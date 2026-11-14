@@ -331,7 +331,9 @@ def equip(admin, topic, extra):
     web_search_for(admin, tenant_id)
     call(admin, "PUT", f"/admin/tenants/{tenant_id}/mcp-keys/{topic['mcpKeyId']}",
          {"webSearch": True, "connectionIds": [software["id"]]})
-    return {"software": extra["software"], "softwareId": software["id"], "templateId": template["id"]}
+    # "described": the template has its description - a state without it is from before, and `full` runs again.
+    return {"software": extra["software"], "softwareId": software["id"], "templateId": template["id"],
+            "described": True}
 
 
 def connection_named(admin, tenant_id, name):
@@ -513,6 +515,7 @@ def stores():
     state["stores"] = {"tenantId": tenant_id, "storeId": store["id"], "sourceId": source["id"]}
     if state.get("chatModelId"):
         state["stores"]["taskId"] = scheduled_task(admin, state, topic, store)
+        state["stores"]["taskDescribed"] = True
     STATE.write_text(json.dumps(state, indent=2, ensure_ascii=False))
     print(f"{STORE['name']} in {topic['tenant']}: fingerprint confirmed, knowledge source {source['name']}"
           + (f", task {TASK_NAME}" if "taskId" in state["stores"] else " - the task comes with `models`, then "

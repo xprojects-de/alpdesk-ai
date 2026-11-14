@@ -489,7 +489,8 @@ and keeps templates for kinds of questions ("Angebotsprüfung", "Nachschlagen").
   (next to the tenant's) and any of the four settings - null takes the tenant's. A user chooses one in the chat next to
   the model ("Standard" = none, `GET /tenant/chat/templates` lists names and descriptions, never the instructions); the
   client software with `GET /api/v1/templates` and `templateId` at `POST /api/v1/chat`. **A description** (optional,
-  up to 500 characters, `template.descriptionTooLong`; decided 13 November 2026) says what the template is for, to
+  up to 500 characters, kept on one line - line breaks become a space -, `template.descriptionTooLong`; decided 13
+  November 2026) says what the template is for, to
   whoever chooses it from outside: it leads the template's skill in the A2A card and its MCP prompt, follows its name
   in `list_templates` and comes with `GET /api/v1/templates` and `/tenant/chat/templates` (the chat does not show it).
   It never reaches the model - the instructions are for the model, the description for the one who chooses; taking

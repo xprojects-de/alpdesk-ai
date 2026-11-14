@@ -257,7 +257,7 @@ public class TaskCompiler {
                 errors.at(root, "task.fieldRequired", "The field version is required", Map.of("field", "version"));
             }
             String name = task.text("name", true, MAX_NAME);
-            String description = task.text("description", false, MAX_DESCRIPTION);
+            String description = onOneLine(task.text("description", false, MAX_DESCRIPTION));
             List<String> notify = recipients(task, "notify", true);
             List<Trigger> triggers = triggers(task);
             List<Node> stepNodes = task.list("steps", true);
@@ -283,6 +283,11 @@ public class TaskCompiler {
                 withEdges.add(withEdges(steps.get(i), i, steps, nextNodes.get(i)));
             }
             return new TaskDefinition(name, description, notify, triggers, withEdges);
+        }
+
+        /** A text written over several lines (|) as one: the task's description is listed as "- name: description". */
+        private static @Nullable String onOneLine(@Nullable String text) {
+            return text == null ? null : text.replaceAll("\\s+", " ");
         }
 
         /** Schedules: type schedule with every (15m to 7d) or cron (six fields) - never more often than 15 minutes. */

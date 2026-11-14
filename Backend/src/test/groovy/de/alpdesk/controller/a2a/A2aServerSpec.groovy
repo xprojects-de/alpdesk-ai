@@ -436,6 +436,7 @@ class A2aServerSpec extends Specification {
 
         then:
         read ? fake.chats.last().messages.toString().contains("def pruefe()") : answer.error.code == -32005
+        read || answer.error.message == "Only text files are read - \"${name}\" is not text in UTF-8"
 
         where:
         name         | type                       | bytes                                        | read

@@ -160,7 +160,7 @@ templates as prompts.
   answer before its next round. The timeout is twice `app.ai.timeout` for our model, and `app.a2a.timeout` and half a
   minute for a tenant answering through its agent - as long as the chat waits for it.
 - Text parts joined are the question; `raw` text files are sent files (`url` parts: `UnsupportedOperationError`, a
-  file that is no text `ContentTypeNotSupportedError`); `metadata["urn:alpdesk-ai:a2a:assistant:1"].template` picks a
+  file that is no text `ContentTypeNotSupportedError`, naming the file - not its type, which is not the reason); `metadata["urn:alpdesk-ai:a2a:assistant:1"].template` picks a
   template. What a text file is: valid UTF-8 under a type that says text (`text/*`, JSON, XML, YAML, CSV, or none) -
   and under any other type (clients send source code as `application/x-python`, `application/octet-stream`) when it
   also has no control characters but tab and line ends, which a binary file has (decided 13 November 2026). The text

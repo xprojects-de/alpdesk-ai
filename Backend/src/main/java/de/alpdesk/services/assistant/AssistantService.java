@@ -229,12 +229,12 @@ public class AssistantService {
         optionalSearchResults(request);
     }
 
-    /** Stripped; blank is none. */
+    /** On one line (it is listed as "- name: description"); blank is none. */
     private static @Nullable String description(@Nullable String description) {
         if (description == null || description.isBlank()) {
             return null;
         }
-        String text = description.strip();
+        String text = description.strip().replaceAll("\\s+", " ");
         if (text.length() > MAX_DESCRIPTION) {
             throw ServiceException.badRequest("template.descriptionTooLong", "The description may have at most "
                     + MAX_DESCRIPTION + " characters",

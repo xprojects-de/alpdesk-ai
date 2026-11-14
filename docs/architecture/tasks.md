@@ -600,7 +600,8 @@ proved:
   off - they were never verified; not the lines read, not the steps). Any other task: 404. The run
   keeps the key (`task_run.started_by_key`). Not built (decided 21 October 2026): inputs handed to a run,
   the run as a stream of events - the software polls.
-- **The description** (`description`, optional, up to 500 characters; decided 13 November 2026): what the task is for,
+- **The description** (`description`, optional, up to 500 characters, kept on one line - one written over several
+  becomes one; decided 13 November 2026): what the task is for,
   for whoever may start it from outside - `GET /api/v1/tasks`, MCP `list_tasks` after the name, the A2A card's skill
   `task:<id>` ahead of how to start it. Kept in the definition (`TaskDefinition.description`, no column of its own); a
   definition stored before has none. Nothing of a run reads it.

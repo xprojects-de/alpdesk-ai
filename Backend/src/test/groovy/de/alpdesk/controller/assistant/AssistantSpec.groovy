@@ -196,7 +196,7 @@ class AssistantSpec extends Specification {
         when:
         def planner = api.call(token, "POST", "/tenant/admin/assistant/templates",
                 [name       : " Angebotsprüfung ", instructions: "Prüfe Angebote auf Preise und Fristen.", reasoning: "HIGH",
-                 description: "  Prüft ein Angebot gegen die Lieferbedingungen. "]) as Map
+                 description: "  Prüft ein Angebot\n  gegen die Lieferbedingungen. "]) as Map
         def lookup = api.admin("POST", "/admin/tenants/${tenant.id}/assistant/templates",
                 [name: "Nachschlagen", answerSource: "DOCUMENTS_ONLY", creativity: "LOW", searchResults: 3]) as Map
 

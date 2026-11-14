@@ -324,7 +324,8 @@ public class AssistantAgent implements AgentExecutor {
             String text = text(bytes);
             if (text == null) {
                 throw new ContentTypeNotSupportedError(null, "Only text files are read - "
-                        + (bytes.mimeType() == null ? "this file" : bytes.mimeType()) + " is not", null);
+                        + (bytes.name() == null ? "a file sent" : "\"" + bytes.name() + "\"")
+                        + " is not text in UTF-8", null);
             }
             files.add(new SentFile(bytes.name(), text));
         }

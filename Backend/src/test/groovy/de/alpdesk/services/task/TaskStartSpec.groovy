@@ -300,7 +300,7 @@ class TaskStartSpec extends Specification {
         def setup = tasks.tenant()
         store.write(log(), "ERROR Timeout to interface X\n")
         def opened = tasks.create(setup.token, TaskApi.logCheck(setup.model, "it@example.com",
-                [name: "Offene Prüfung", description: "Prüft die Logs der Schnittstellen."]))
+                [name: "Offene Prüfung", description: "\"Prüft die Logs\\n   der Schnittstellen.\""]))
         tasks.create(setup.token, TaskApi.logCheck(setup.model, "it@example.com", [name: "Geschlossen"]))
         String key = (api.call(setup.token, "POST", "/tenant/admin/mcp-keys", [name: "Claude", taskIds: [opened.id]]) as Map).plainKey
 

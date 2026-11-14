@@ -75,10 +75,11 @@ python3 -c "import stack; stack.wait_until_up()"
   volumes, up, every setup step again). **Ask the user before doing it** - it is their test stack - and say that the
   provider keys come back through `KEYS_FILE` (step B5).
 - Setup, each step only when the mode's state file (`state.json` / `state-plain.json`) lacks its part: `base`
-  (`topics`), `full` (`full`), `knowledge` (`machines`), `stores` (`stores`), `models` (`chatModelId` - with `PROVIDER`,
+  (`topics`), `full` (`full` - and again when a topic there has no `described`: a stack from before templates had
+  descriptions, `check.py` expects them), `knowledge` (`machines`), `stores` (`stores`), `models` (`chatModelId` - with `PROVIDER`,
   `CHAT_MODEL` as the user named them, default `PROVIDER=ANTHROPIC CHAT_MODEL=claude-sonnet-5-5`, and the `KEYS_FILE`
   of step B5),
-  `stores` again when `stores.taskId` is missing, `walk` (`walk`). `podman restart general-chat-test-authelia` after a
+  `stores` again when `stores.taskId` or `stores.taskDescribed` is missing, `walk` (`walk`). `podman restart general-chat-test-authelia` after a
   change of its users file.
 - The A2A demo agent for the walk's step B11 and `check.py`'s agent part, in the background:
   `TEST_AGENT_DEMO=1 TEST_AGENT_PORT=19197 TEST_AGENT_ADDRESS=http://host.containers.internal:19197 ../a2a-test-agent/start.sh`
