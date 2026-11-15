@@ -58,8 +58,8 @@ public class TaskApiController {
         List<ApiTaskResponse> list = new ArrayList<>();
         for (Task task : service.tasksOfApiKey(tenantId, TenantContext.apiKeyId(authentication))) {
             Optional<TaskRun> last = service.lastRun(tenantId, task.id());
-            list.add(new ApiTaskResponse(task.id(), task.name(), task.active(), last.map(run -> run.state().name()).orElse(null),
-                    last.map(TaskRun::createdAt).orElse(null)));
+            list.add(new ApiTaskResponse(task.id(), task.name(), service.description(task), task.active(),
+                    last.map(run -> run.state().name()).orElse(null), last.map(TaskRun::createdAt).orElse(null)));
         }
         return list;
     }

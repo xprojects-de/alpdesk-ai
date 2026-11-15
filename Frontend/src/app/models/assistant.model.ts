@@ -31,6 +31,7 @@ export const REASONINGS: Reasoning[] = ["OFF", "LOW", "MEDIUM", "HIGH"];
 /** Like the backend. */
 export const MAX_INSTRUCTIONS = 4000;
 export const MAX_TEMPLATE_NAME = 80;
+export const MAX_TEMPLATE_DESCRIPTION = 500;
 export const MIN_SEARCH_RESULTS = 3;
 export const MAX_SEARCH_RESULTS = 20;
 
@@ -58,6 +59,8 @@ export interface ChatTemplate {
     id: number;
     name: string;
     instructions: string;
+    /** What it is for, shown to the client software, MCP and A2A clients - not to the model. */
+    description: string | null;
     answerSource: AnswerSource | null;
     creativity: Creativity | null;
     reasoning: Reasoning | null;
@@ -69,14 +72,16 @@ export interface ChatTemplate {
 export interface ChatTemplateRequest {
     name: string;
     instructions: string;
+    description: string | null;
     answerSource: AnswerSource | null;
     creativity: Creativity | null;
     reasoning: Reasoning | null;
     searchResults: number | null;
 }
 
-/** A template as the chat offers it - its name only. */
+/** A template as the chat offers it - its name and what it is for. */
 export interface ChatTemplateOption {
     id: number;
     name: string;
+    description: string | null;
 }

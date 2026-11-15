@@ -141,7 +141,8 @@ Ollama with Qwen or Devstral, Mistral - next to the three big providers.
   - Ollama itself has neither TLS nor keys: a reverse proxy in front does both; the entry's key goes as
     `Authorization: Bearer`. Without a key no Authorization header is sent.
   - Failures name the model's display name, never the address ("Firmen-KI is not reachable", "... refused the API key -
-    ask the admin", a certificate not trusted); the address is in the server log for the admin.
+    ask the admin", a certificate not trusted); the log names provider, model, the kind of failure and the HTTP
+    status - the address is the catalog entry's, which the admin keeps.
 - **Embeddings**: a server is not asked for a dimension (many refuse OpenAI's `dimensions`); the vectors' length is
   checked against the catalog instead - another one fails with 502 instead of breaking the tenant's embedding table.
 - **Billing**: a call with a model on an own server counts as the admin's (`KeySource.GLOBAL`), billed at the model's
@@ -449,6 +450,10 @@ the company - "Vertrieb", "Geschäftsleitung", "Werkstatt".
     Bereich"), and it is moved or deleted one by one. Deliberately so: it needs two admins at once and fails closed.
   - User groups and API keys: `areaIds` in request and response (left out on a change: unchanged; another tenant's
     area 400); a user finds the areas of its groups ([tenancy.md](tenancy.md) "User groups"). MCP keys the same (`.../mcp-keys`, [mcp.md](mcp.md) "MCP keys").
+    A scheduled task can hand a key text of an area the key is not assigned to: a `prompt` step answered by the
+    assistant searches the areas the task's text names, and its answer goes to the key the task is assigned to
+    ([tasks.md](tasks.md) "The step `prompt`") - a tenant admin, who finds every area, wrote the task and assigned
+    the key.
   - Documents: `areaId`/`area` in the response, multipart field `areaId` on upload and ZIP import,
     `PUT .../documents/{id}/area` (`{areaId}`, null = company knowledge; 409 when a ZIP file of the same path is in
     that area already).
@@ -487,8 +492,14 @@ and keeps templates for kinds of questions ("Angebotsprüfung", "Nachschlagen").
 
 - **Templates** (`chat_template`, unique name per tenant, `.../assistant/templates`): a name, instructions of their own
   (next to the tenant's) and any of the four settings - null takes the tenant's. A user chooses one in the chat next to
-  the model ("Standard" = none, `GET /tenant/chat/templates` lists the names only); the client software with
-  `GET /api/v1/templates` and `templateId` at `POST /api/v1/chat`. The conversation keeps the template of its last
+  the model ("Standard" = none, `GET /tenant/chat/templates` lists names and descriptions, never the instructions); the
+  client software with `GET /api/v1/templates` and `templateId` at `POST /api/v1/chat`. **A description** (optional,
+  up to 500 characters, kept on one line - line breaks become a space -, `template.descriptionTooLong`; decided 13
+  November 2026) says what the template is for, to
+  whoever chooses it from outside: it leads the template's skill in the A2A card and its MCP prompt, follows its name
+  in `list_templates` and comes with `GET /api/v1/templates` and `/tenant/chat/templates` (the chat does not show it).
+  It never reaches the model - the instructions are for the model, the description for the one who chooses; taking
+  the instructions' first sentence instead would send out what was written for the model alone. The conversation keeps the template of its last
   question (`conversation.template_id`, tenant database) and the chat shows it chosen again; a deleted template leaves
   "Standard". An unknown or another tenant's template answers 400. **A template needs no question** (decided 24
   October 2026): a template can be the task itself ("Videoanalyse" - its instructions say what to do with the

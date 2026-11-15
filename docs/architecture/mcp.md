@@ -131,7 +131,7 @@ API: Claude Code brings its own model and takes extra knowledge through MCP tool
     ([ai-features.md](ai-features.md) "Files sent with a question"); a file that cannot come is a tool error. Text only:
     binary files would have to come as Base64, which the client's model writes out character by character; they come
     when a real case asks for them. The default model's context must hold them (an own Ollama server: `num_ctx`).
-  - `list_templates()`: the templates' names, as a user sees them.
+  - `list_templates()`: the templates' names, each with its description where a tenant admin wrote one.
 - **Templates as prompts** (roadmap point 29, decided 14 October 2026): the tenant's chat templates are the server's
   MCP prompts, which clients offer as slash commands - Copilot `/mcp.muster-ai.code-review`, Claude Code
   `/mcp__muster-ai__code-review`. The server's part of the command (`muster-ai`) is the name the client was given
@@ -139,7 +139,7 @@ API: Claude Code brings its own model and takes extra knowledge through MCP tool
   (`AssistantMcpPrompts.promptName`: "Code-Review" → `code-review`, "Prüfung" → `pruefung`, at most 40 characters;
   a name taken twice stays the oldest template's, a later one gets its id, `code-review-17` - not a number by position,
   which a template added later would move to another one), its title the template's name, its description "Asks Muster AI (the company's
-  assistant) with its template ...". One optional argument, `question`. `prompts/get` gives the client's model one
+  assistant) with its template ..." - after the template's own description, where it has one. One optional argument, `question`. `prompts/get` gives the client's model one
   user message: "Ask Muster AI with the tool ask_assistant and the template "Code-Review". The question: ..." - without
   a question, "what I am working on right now", with the full context and the files. The templates' instructions never
   go out. Each tenant has its own templates, so `BrandedMcpServer` answers `prompts/list` and `prompts/get` itself
@@ -887,7 +887,8 @@ a key, and the token renews itself.
   reads the tools without a token drops a grant nobody signed in to.
 - **Our client identity - the software decides**: 1. the client id held for this issuer (made for this callback
   address); 2. **our client id metadata document** (`/oauth/client-metadata.json`, anonymous, built from the request:
-  its own URL as `client_id`, the installation's brand name, the callback, `none`) when the server announces
+  its own URL as `client_id`, the installation's brand name, its address and logo as `client_uri` and `logo_uri`, the
+  callback, `none`; a server may keep it for an hour) when the server announces
   `client_id_metadata_document_supported` **and** the host the admin uses resolves to public addresses only
   (`OAuthReachability`) - a server cannot fetch a document of an installation inside a company network; 3. **dynamic
   registration** (RFC 7591, `application_type` web, `none` when the server offers it, else a secret) when the metadata
@@ -939,7 +940,9 @@ a key, and the token renews itself.
   replaced meanwhile (another server) gets neither tokens nor a client. A refused refresh (400/401, `invalid_grant`) marks `SIGN_IN_NEEDED`
   (502 `oauth.signInNeeded`, the chip "Anmeldung nötig", a line in the daily report); a server that cannot be reached
   or answers in a way we cannot read leaves the grant as it is (`oauth.unreachable`, `oauth.timeout`,
-  `oauth.refreshFailed`). Tokens no longer decryptable (`APP_SECRET_KEY` changed) mark `SIGN_IN_NEEDED` too.
+  `oauth.refreshFailed`). Tokens no longer decryptable (`APP_SECRET_KEY` changed) mark `SIGN_IN_NEEDED` too; a client secret no longer
+  decryptable fails the sign-in or the refresh with its reason ("remove the sign-in, then sign in again"), never a
+  server error.
 - **Every address of the flow we call** is an absolute http(s) address and passes `McpAddresses.requireAllowed`
   (HTTPS, plain HTTP only to `APP_AI_PLAIN_HTTP_HOSTS`, no internal address), no redirect, connect 10 s, 30 s for an
   answer's headers and body together (not `app.ai.timeout`: a refresh holds its row lock and a database connection,

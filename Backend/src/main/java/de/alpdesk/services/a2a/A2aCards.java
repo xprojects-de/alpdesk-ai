@@ -36,6 +36,13 @@ public class A2aCards {
     public static final String ASSISTANT_EXTENSION = "urn:alpdesk-ai:a2a:assistant:1";
     static final String SECURITY_SCHEME = "key";
 
+    /**
+     * What a message may bring: text, and files that are text whatever type they name (AssistantAgent). A2A lists
+     * media types and knows no wildcard; "text/*" says it for a client that reads one, the named ones for one that
+     * compares - any text file may also come as text/plain.
+     */
+    private static final List<String> INPUT_MODES = List.of("text/plain", "text/*", "application/json");
+
     private final BrandingService brandings;
     private final McpKeyService keys;
     private final AssistantService assistants;
@@ -79,18 +86,24 @@ public class A2aCards {
                 : assistants.templates(tenantId);
         for (ChatTemplate template : templates) {
             skills.add(AgentSkill.builder().id("template:" + template.id()).name(template.name())
-                    .description("A template of " + brand + " - ask with metadata[\"" + ASSISTANT_EXTENSION
-                            + "\"].template = \"" + template.name() + "\"")
+                    .description(described(template.description()) + "A template of " + brand + " - ask with metadata[\""
+                            + ASSISTANT_EXTENSION + "\"].template = \"" + template.name() + "\"")
                     .tags(List.of("template")).build());
         }
         for (Task task : tasks.tasksOfMcpKey(tenantId, mcpKeyId)) {
             skills.add(AgentSkill.builder().id("task:" + task.id()).name(task.name())
-                    .description("A scheduled task of " + brand + " - start it with metadata[\"" + ASSISTANT_EXTENSION
+                    .description(described(tasks.description(task)) + "A scheduled task of " + brand
+                            + " - start it with metadata[\"" + ASSISTANT_EXTENSION
                             + "\"].task = \"" + task.name() + "\": the answer is a task whose artifacts are its "
                             + "report and its findings")
                     .tags(List.of("task")).build());
         }
         return card(origin, brand, description, new AgentProvider(brand, origin), skills);
+    }
+
+    /** What a tenant admin wrote it is for, ahead of how to ask for it; empty without. */
+    private static String described(@Nullable String description) {
+        return description == null ? "" : description + "\n\n";
     }
 
     /** The absolute address under the context path. */
@@ -106,7 +119,7 @@ public class A2aCards {
                 .provider(provider)
                 .version(version)
                 .capabilities(new AgentCapabilities(true, true, true, extensions(origin)))
-                .defaultInputModes(List.of("text/plain"))
+                .defaultInputModes(INPUT_MODES)
                 .defaultOutputModes(List.of("text/plain"))
                 .skills(skills)
                 .securitySchemes(Map.of(SECURITY_SCHEME, new HTTPAuthSecurityScheme("mcp_... key of the company",

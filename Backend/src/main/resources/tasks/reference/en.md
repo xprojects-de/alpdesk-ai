@@ -8,6 +8,7 @@ wrong, or when a run failed or stayed unclear.
 |---|---|
 | `version` | always `1` |
 | `name` | the task's name, unique in the tenant |
+| `description` | optional, up to 500 characters: what the task is for - shown to the client software, MCP and A2A clients that may start it |
 | `notify` | e-mail addresses that hear of a failed or unclear run (and get a `send_mail` without `to`) |
 | `triggers` | when it runs by itself - left out: only by hand, the client software or MCP |
 | `steps` | the steps, run from top to bottom |

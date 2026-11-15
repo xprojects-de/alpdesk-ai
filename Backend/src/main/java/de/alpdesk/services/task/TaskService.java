@@ -769,6 +769,11 @@ public class TaskService {
         }
     }
 
+    /** What the task is for, as its text says - for whoever may start it from outside; null: none written. */
+    public @Nullable String description(Task task) {
+        return read(task.definition()).description();
+    }
+
     private TaskDefinition read(String definition) {
         try {
             return json.readValue(definition, TaskDefinition.class);

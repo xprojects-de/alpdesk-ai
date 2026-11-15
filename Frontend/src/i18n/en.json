@@ -460,7 +460,8 @@
       "template": {
         "nameRequired": "The name is required",
         "nameTooLong": "The name may have at most {{max}} characters",
-        "unknown": "Unknown template"
+        "unknown": "Unknown template",
+        "descriptionTooLong": "The description may have at most {{max}} characters"
       },
       "tenant": {
         "databaseNotCreated": "The tenant's database could not be created - please try again.",
@@ -1711,6 +1712,8 @@
       "titleEdit": "Edit template",
       "namePlaceholder": "e.g. Look up",
       "nameHint": "How users choose it in the chat",
+      "description": "Description",
+      "descriptionHint": "What the template is for - shown to the client software, MCP and A2A clients that choose it, not to the model ({{length}}/{{max}})",
       "instructions": "Instructions",
       "instructionsHint": "Added to the base instructions, e.g. \"Answer as a table with step, owner and deadline.\" ({{length}}/{{max}})",
       "standard": "Default",

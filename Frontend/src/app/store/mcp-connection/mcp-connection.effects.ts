@@ -1,10 +1,11 @@
 import {inject, Injectable} from "@angular/core";
 import {Actions, createEffect, ofType} from "@ngrx/effects";
 import {of} from "rxjs";
-import {catchError, concatMap, exhaustMap, map, mergeMap, switchMap, tap} from "rxjs/operators";
+import {catchError, concatMap, exhaustMap, filter, map, mergeMap, switchMap, tap} from "rxjs/operators";
 import {McpConnectionService} from "../../services/mcp-connection.service";
 import {ErrorMessages} from "../../i18n/error-messages.service";
 import {isWebAddress, leaveFor} from "../../utils/mcp-connection.util";
+import * as AccountActions from "../account/account.actions";
 import {endedByLogout} from "../session.operator";
 import * as McpConnectionActions from "./mcp-connection.actions";
 
@@ -131,6 +132,22 @@ export class McpConnectionEffects {
                 tap(({authorizationUrl}) => leaveFor(authorizationUrl)),
             ),
         {dispatch: false},
+    );
+
+    /**
+     * Whether an agent answers the chat is part of the account, read once when the shell starts: a tenant admin who
+     * connects, changes or removes software sees their own chat follow at once.
+     */
+    reloadAccountAfterChange$ = createEffect(() =>
+        this.actions$.pipe(
+            ofType(
+                McpConnectionActions.createConnectionSuccess,
+                McpConnectionActions.updateConnectionSuccess,
+                McpConnectionActions.deleteConnectionSuccess,
+            ),
+            filter(({scope}) => scope === "self"),
+            map(() => AccountActions.loadAccount()),
+        ),
     );
 
     /** Without its sign-in the software is read again - it names its sign-in anew, so "Sign in" is offered again. */

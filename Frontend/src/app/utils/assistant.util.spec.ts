@@ -72,6 +72,7 @@ describe("assistant.util", () => {
             buildChatTemplateRequest({
                 name: " Planer ",
                 instructions: " Als Wochenplan. ",
+                description: "  Plant die Woche. ",
                 answerSource: "",
                 creativity: "LOW",
                 reasoning: "",
@@ -80,21 +81,23 @@ describe("assistant.util", () => {
         ).toEqual({
             name: "Planer",
             instructions: "Als Wochenplan.",
+            description: "Plant die Woche.",
             answerSource: null,
             creativity: "LOW",
             reasoning: null,
             searchResults: null,
         });
-        expect(
-            buildChatTemplateRequest({
-                name: "a",
-                instructions: "",
-                answerSource: "",
-                creativity: "",
-                reasoning: "",
-                searchResults: 10,
-            }).searchResults,
-        ).toBe(10);
+        const request = buildChatTemplateRequest({
+            name: "a",
+            instructions: "",
+            description: "   ",
+            answerSource: "",
+            creativity: "",
+            reasoning: "",
+            searchResults: 10,
+        });
+        expect(request.searchResults).toBe(10);
+        expect(request.description).toBeNull();
     });
 
     it("summarises what a template sets itself", () => {

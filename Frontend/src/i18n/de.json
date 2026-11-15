@@ -460,7 +460,8 @@
       "template": {
         "nameRequired": "Der Name ist erforderlich",
         "nameTooLong": "Der Name darf höchstens {{max}} Zeichen haben",
-        "unknown": "Unbekannte Vorlage"
+        "unknown": "Unbekannte Vorlage",
+        "descriptionTooLong": "Die Beschreibung darf höchstens {{max}} Zeichen haben"
       },
       "tenant": {
         "databaseNotCreated": "Die Datenbank des Mandanten konnte nicht angelegt werden - bitte versuchen Sie es erneut.",
@@ -1711,6 +1712,8 @@
       "titleEdit": "Vorlage bearbeiten",
       "namePlaceholder": "z.B. Nachschlagen",
       "nameHint": "So wählen die Benutzer sie im Chat aus",
+      "description": "Beschreibung",
+      "descriptionHint": "Wofür die Vorlage da ist - angezeigt der angebundenen Software, MCP- und A2A-Clients, die sie wählen, nicht dem Modell ({{length}}/{{max}})",
       "instructions": "Anweisung",
       "instructionsHint": "Kommt zur Grundanweisung hinzu, z.B. \"Antworte als Tabelle mit Schritt, Verantwortlichem und Termin.\" ({{length}}/{{max}})",
       "standard": "Standard",

@@ -26,6 +26,10 @@ Nothing in `.env` or `/api/v1` needs a hand; the new settings have defaults.
 
 ### Added
 
+- **Descriptions for templates and scheduled tasks**: a template gets an optional description in its dialog, a task a
+  `description` in its text. They tell the client software, MCP clients (`list_templates`, `list_tasks`, the
+  templates' prompts) and A2A clients (the card's skills) what each one is for - so another agent can pick the right
+  one. A template's instructions still never go out; the description never reaches the model.
 - **Resources of your own software for MCP clients**: switched "Ressourcen an MCP-Clients" on the page "Software"
   (off for every software), an MCP key that gets the software directly also lists and reads its resources - files,
   logs, attachments. Their addresses start with the software's name and a dot, e.g.
@@ -142,6 +146,8 @@ Nothing in `.env` or `/api/v1` needs a hand; the new settings have defaults.
 
 ### Changed
 
+- **The API documentation is called "Zirmo API" 2.0** (`/swagger`): it was "AI API" 1.0; its file is now
+  `/swagger/zirmo-api-2.0.yml` - a tool that fetched the old file name by heart needs the new one.
 - **Structured results of a connected software reach the assistant**: the structured data a tool returns was
   dropped; the assistant now reads it - beside the tool's text, or in its place where the tool sends no text.
 - **MCP clients get what your connected software sends, unchanged**: a software passed "Direkt an MCP-Clients" now
@@ -208,6 +214,22 @@ Nothing in `.env` or `/api/v1` needs a hand; the new settings have defaults.
 
 ### Fixed
 
+- **A software naming a broken address for its sign-in server no longer ends in a server error**: connecting or
+  reloading a software whose OAuth metadata named something that is no address as its sign-in server failed with an
+  unexpected error and left the connection saved. Now the connection says that the sign-in server's description
+  could not be read.
+- **An agent that is down behind its reverse proxy fails the answer at once**: a connected A2A agent whose proxy
+  answered with an error page (502) left the chat waiting for the whole `APP_A2A_TIMEOUT` before it reported a
+  timeout. Now the question fails immediately.
+- **A sign-in whose client secret can no longer be read says so**: after `APP_SECRET_KEY` changed, signing in again
+  to a connection with OAuth ended in a server error. Now the connection says to remove the sign-in and sign in
+  again.
+- **Source code sent to the assistant over A2A is read whatever type the client names**: a file sent as
+  `application/x-python`, `application/javascript` or `application/octet-stream` was refused as "not a text file".
+  Now any file whose content is text is read; images, PDFs and other binary files are refused as before. The agent
+  card names `text/*` and `application/json` next to `text/plain` as what a message may bring.
+- **An S3 file store that refuses says why**: a wrong secret or another refusal of the S3 server ended in "An
+  unexpected error occurred" instead of the check's answer - two versions of the AWS library met in one installation.
 - **Embedding, replacing and deleting documents stays fast in a large knowledge**: removing a document's previous
   pieces read the tenant's whole store each time - noticeable in a large import or after a change of the embedding
   model. An index now finds them; a tenant gets it with the first document embedded after the update.
@@ -285,6 +307,10 @@ Nothing in `.env` or `/api/v1` needs a hand; the new settings have defaults.
   finds waiting.
 - A company answering through its A2A agent: an agent that returns nothing is now an error ("gave no answer")
   for the client software without history, the MCP server and A2A clients too - no longer an empty answer.
+- Small display fixes for tenant admins: after "Beantwortet den Chat" is switched for an A2A agent the own chat
+  follows at once (it showed the model and template pickers until a reload); after a knowledge source moves to
+  another area the document list shows the new area at once; "Bereich ändern" for a document of the company
+  knowledge opens with "Firmenwissen" shown instead of an empty field.
 
 ### Security
 

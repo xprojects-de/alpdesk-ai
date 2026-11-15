@@ -1,12 +1,15 @@
 package de.alpdesk.controller.task
 
+import de.alpdesk.repositories.task.TaskRepository
 import de.alpdesk.services.ai.AiApi
 import de.alpdesk.services.ai.FakeAiModels
 import de.alpdesk.services.task.FakeStoreClient
 import de.alpdesk.services.task.TaskApi
+import de.alpdesk.services.task.TaskDefinition
 import io.micronaut.context.annotation.Property
 import io.micronaut.http.client.HttpClient
 import io.micronaut.http.client.annotation.Client
+import io.micronaut.json.JsonMapper
 import io.micronaut.test.extensions.spock.annotation.MicronautTest
 import jakarta.inject.Inject
 import spock.lang.Shared
@@ -38,6 +41,12 @@ class TaskSpec extends Specification {
 
     @Inject
     FakeStoreClient store
+
+    @Inject
+    JsonMapper json
+
+    @Inject
+    TaskRepository taskRepository
 
     @Shared
     AiApi api
@@ -93,6 +102,25 @@ class TaskSpec extends Specification {
         api.call(setup.token, "GET", TASKS) == []
     }
 
+    def "a definition stored before tasks had a description is still read - the scheduler and open runs read it"() {
+        given:
+        def setup = tasks.tenant()
+        def task = tasks.create(setup.token, TaskApi.logCheck(setup.model, "it@example.com", [description: "Prüft die Logs."]))
+        def stored = json.readValue(taskRepository.findById(task.id as Long).get().definition(), Map)
+
+        expect:
+        stored.description == "Prüft die Logs."
+
+        when: "the same definition as it was written before: without the field"
+        stored.remove("description")
+        def old = json.readValue(json.writeValueAsString(stored), TaskDefinition)
+
+        then:
+        old.description() == null
+        old.name() == task.name
+        old.steps()*.id() == ["logs", "check", "verify", "mail"]
+    }
+
     def "the check lists every mistake with its line - nothing is saved"() {
         given:
         def setup = tasks.tenant()
@@ -112,6 +140,8 @@ class TaskSpec extends Specification {
         ""                                                                         || "task.empty"               | 0
         "version: 1\nname: [unclosed"                                              || "task.syntax"              | null
         "version: 1\nname: A\nnotify: [a@example.com]\nsteps: []\nextra: 1"        || "task.unknownField"        | 5
+        "version: 1\nname: A\ndescription: [a, b]\nnotify: [a@example.com]\nsteps: []" || "task.wrongType"     | 3
+        "version: 1\nname: A\ndescription: ${"x" * 501}\nnotify: [a@example.com]\nsteps: []" || "task.textTooLong" | 3
         "version: 1\nname: A\nnotify: [a@example.com]\nsteps: []\nnotify: [b@example.com]" || "task.duplicateField" | 5
         step("id: x\n    type: read_files\n    store: X\n    pattern: a.log\n    pattern: b.log") || "task.duplicateField" | 9
         "version: 2\nname: A\nnotify: [a@example.com]\nsteps: []"                  || "task.numberInvalid"       | 1

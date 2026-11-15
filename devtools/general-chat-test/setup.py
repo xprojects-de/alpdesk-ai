@@ -81,6 +81,7 @@ SOURCE_FILE = ("wissen/schmierplan-band-f3.md",
                "# Schmierplan Förderband F3\n\nDie Lager des Förderbands F3 werden alle 120 Betriebsstunden mit Fett "
                "LUB-77 geschmiert. Prüfmarke SCHMIER-5150.\n")
 TASK_NAME = "Logprüfung Presse"
+TASK_DESCRIPTION = "Checks the logs of the press P200 for hydraulic errors."
 # Any key - the Tavily fake (container tavily-fake) refuses only an empty one.
 TAVILY_KEY = "tvly-general-chat-test-fake"
 # The A2A agent as the app's container reaches this machine (the test agent listens on 127.0.0.1:19197 there).
@@ -97,6 +98,7 @@ TOPICS = [
                     "to clear them.",
      "full": {"sandbox": "http://sandbox-wartung:8080", "token": "general-chat-test-sandbox-token-wartung-0001",
               "software": "Auftragsverwaltung", "template": "Störungsbericht",
+              "what": "A fault report for a machine - name the machine and what it does.",
               "instructions": "Write a short fault report: machine, symptom, cause found in the documents, the steps "
                               "to clear it, and what to check afterwards."}},
     {"tenant": "Thema Qualität", "connection": "Qualitaet", "folder": "qualitaet", "wam": "AI-Thema-Qualitaet",
@@ -105,6 +107,7 @@ TOPICS = [
                     "complaints (8D).",
      "full": {"sandbox": "http://sandbox-qualitaet:8080", "token": "general-chat-test-sandbox-token-qualitaet-01",
               "software": "Pruefsoftware", "template": "8D-Bericht",
+              "what": "A customer complaint as an 8D report - send the complaint with the question.",
               "instructions": "Write the complaint as an 8D report: team, problem, containment, root cause, "
                               "corrective action, verification, prevention, closure."}},
     {"tenant": "Thema Einkauf", "connection": "Einkauf", "folder": "einkauf", "wam": "AI-Thema-Einkauf", "way": "mcp",
@@ -321,12 +324,16 @@ def equip(admin, topic, extra):
     # The topic's own people use the software in its chat (the changing call after their decision) and the web search.
     set_levels(admin, tenant_id, "Mitarbeitende", {software["id"]: "WRITE"}, web_search=True)
     templates = f"/admin/tenants/{tenant_id}/assistant/templates"
-    template = next((kept for kept in call(admin, "GET", templates) if kept["name"] == extra["template"]), None) \
-        or call(admin, "POST", templates, {"name": extra["template"], "instructions": extra["instructions"]})
+    wanted = {"name": extra["template"], "instructions": extra["instructions"], "description": extra["what"]}
+    kept = next((kept for kept in call(admin, "GET", templates) if kept["name"] == extra["template"]), None)
+    # A template of a stack set up before templates had a description gets it now.
+    template = call(admin, "PUT", f"{templates}/{kept['id']}", wanted) if kept else call(admin, "POST", templates, wanted)
     web_search_for(admin, tenant_id)
     call(admin, "PUT", f"/admin/tenants/{tenant_id}/mcp-keys/{topic['mcpKeyId']}",
          {"webSearch": True, "connectionIds": [software["id"]]})
-    return {"software": extra["software"], "softwareId": software["id"], "templateId": template["id"]}
+    # "described": the template has its description - a state without it is from before, and `full` runs again.
+    return {"software": extra["software"], "softwareId": software["id"], "templateId": template["id"],
+            "described": True}
 
 
 def connection_named(admin, tenant_id, name):
@@ -508,6 +515,7 @@ def stores():
     state["stores"] = {"tenantId": tenant_id, "storeId": store["id"], "sourceId": source["id"]}
     if state.get("chatModelId"):
         state["stores"]["taskId"] = scheduled_task(admin, state, topic, store)
+        state["stores"]["taskDescribed"] = True
     STATE.write_text(json.dumps(state, indent=2, ensure_ascii=False))
     print(f"{STORE['name']} in {topic['tenant']}: fingerprint confirmed, knowledge source {source['name']}"
           + (f", task {TASK_NAME}" if "taskId" in state["stores"] else " - the task comes with `models`, then "
@@ -521,6 +529,7 @@ def scheduled_task(admin, state, topic, store):
     model = next(m for m in call(admin, "GET", "/admin/models") if m["id"] == state["chatModelId"])
     source = f"""version: 1
 name: {TASK_NAME}
+description: {TASK_DESCRIPTION}
 notify: [instandhaltung@example.com]
 steps:
   - id: logs

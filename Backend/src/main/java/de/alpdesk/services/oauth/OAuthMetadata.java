@@ -39,7 +39,7 @@ public class OAuthMetadata {
      */
     public AuthorizationServer read(String issuer, String connectionName) {
         AuthorizationServerMetadata metadata = null;
-        for (String address : metadataAddresses(issuer)) {
+        for (String address : addressesOf(issuer, connectionName)) {
             metadata = metadataAt(address, connectionName);
             if (metadata != null) {
                 break;
@@ -57,7 +57,7 @@ public class OAuthMetadata {
      */
     public AuthorizationServer readAt(String url, String connectionName) {
         AuthorizationServerMetadata metadata = metadataAt(url, connectionName);
-        if (metadata == null || !metadataAddresses(metadata.getIssuer().getValue()).contains(url)) {
+        if (metadata == null || !addressesOf(metadata.getIssuer().getValue(), connectionName).contains(url)) {
             throw unreadable(connectionName);
         }
         return usable(metadata, metadata.getIssuer().getValue(), connectionName);
@@ -114,6 +114,15 @@ public class OAuthMetadata {
             return new ProtectedResource(servers.getFirst(), scopes.isEmpty() ? null : String.join(" ", scopes));
         } catch (ParseException e) {
             return null;
+        }
+    }
+
+    /** An issuer is the server's own text: one that is no address is unreadable metadata, not an unexpected error. */
+    private static List<String> addressesOf(String issuer, String connectionName) {
+        try {
+            return metadataAddresses(issuer);
+        } catch (IllegalArgumentException e) {
+            throw unreadable(connectionName);
         }
     }
 

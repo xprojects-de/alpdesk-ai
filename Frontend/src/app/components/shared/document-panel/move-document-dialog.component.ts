@@ -30,12 +30,11 @@ export interface MoveDocumentDialogData {
         <mat-dialog-content>
             <p class="path">{{ data.path }}</p>
             <form id="move-document-form" [formGroup]="form" (ngSubmit)="onSave()">
-                <mat-form-field appearance="outline">
+                <!-- The company knowledge is the empty choice (null) - shown as the placeholder, the label above it. -->
+                <mat-form-field appearance="outline" [floatLabel]="labelAbove">
                     <mat-label>{{ "documents.moveDialog.area" | transloco }}</mat-label>
-                    <mat-select formControlName="areaId">
-                        <mat-option [value]="null">{{
-                            "knowledgeAreas.companyKnowledgeForAll" | transloco
-                        }}</mat-option>
+                    <mat-select formControlName="areaId" [placeholder]="companyKnowledge | transloco">
+                        <mat-option [value]="null">{{ companyKnowledge | transloco }}</mat-option>
                         @for (area of data.areas; track area.id) {
                             <mat-option [value]="area.id">{{ area.name }}</mat-option>
                         }
@@ -70,6 +69,8 @@ export class MoveDocumentDialogComponent {
     readonly data = inject<MoveDocumentDialogData>(MAT_DIALOG_DATA);
     /** Closes only when moved - on an error (e.g. the same path in that area) the dialog stays open. */
     readonly saver = dialogSave<number | null>();
+    readonly companyKnowledge = "knowledgeAreas.companyKnowledgeForAll";
+    readonly labelAbove = "always" as const;
     readonly form = inject(FormBuilder).group({areaId: [this.data.areaId]});
 
     onCancel(): void {

@@ -105,6 +105,8 @@ class FakeA2aAgent {
     volatile boolean revokeOnNextPoll = false
     /** /a2a answers 403 to a valid token - the agent wants more rights (step-up). */
     volatile boolean forbidden = false
+    /** /a2a answers 502 with an HTML page - the agent is down behind its reverse proxy. */
+    volatile boolean badGateway = false
     /** The card names the key and the sign-in as alternatives: a request passes with either. */
     volatile boolean keyOrSignIn = false
 
@@ -203,6 +205,13 @@ class FakeA2aAgent {
         if (forbidden && exchange.requestURI.path == "/a2a") {
             exchange.sendResponseHeaders(403, -1)
             exchange.close()
+            return
+        }
+        if (badGateway && exchange.requestURI.path == "/a2a") {
+            byte[] page = "<html><body><h1>502 Bad Gateway</h1></body></html>".getBytes(StandardCharsets.UTF_8)
+            exchange.responseHeaders.add("Content-Type", "text/html")
+            exchange.sendResponseHeaders(502, page.length)
+            exchange.responseBody.withCloseable { it.write(page) }
             return
         }
         boolean keyTaken = key != null && authorization == "Bearer " + key

@@ -73,7 +73,7 @@ class TaskApi {
         """\
         version: 1
         name: ${options.name ?: "Log check " + UUID.randomUUID()}
-        # who hears of a failed or unclear run
+        ${options.description ? "description: " + options.description : "# who hears of a failed or unclear run"}
         notify: [${options.notify ?: recipient}]
         steps:
           - id: logs

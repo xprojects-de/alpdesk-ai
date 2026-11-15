@@ -120,6 +120,7 @@ class A2aServerSpec extends Specification {
         card.skills().isEmpty()
         card.supportedInterfaces()[0].protocolBinding() == "JSONRPC"
         card.supportedInterfaces()[0].url() == "${server.URL}/a2a".toString()
+        card.defaultInputModes() == ["text/plain", "text/*", "application/json"]
         card.capabilities().streaming()
         card.capabilities().extendedAgentCard()
         card.capabilities().extensions()*.uri() == [A2aCards.ASSISTANT_EXTENSION, "urn:alpdesk-ai:a2a:asker:1"]
@@ -157,6 +158,26 @@ class A2aServerSpec extends Specification {
         card.name() == (api.call(setup.admin, "GET", "/tenant/branding") as Map).name
         card.description() == "Das Wissen der Musterfirma"
         card.skills()*.id() == ["answer", "template:" + template.id]
+        card.skills()[1].description().startsWith("A template of ")
+    }
+
+    def "a template's and a task's description lead their skill in the card - what they are for, then how to ask"() {
+        given:
+        def setup = tasks.tenant()
+        def template = api.call(setup.token, "POST", "/tenant/admin/assistant/templates",
+                [name: "Code-Prüfung", instructions: "Prüfe den Code.", description: "Prüft Quellcode gegen die Regeln."]) as Map
+        def task = tasks.create(setup.token, TaskApi.logCheck(setup.model, "it@example.com",
+                [description: "Prüft die Logs der Schnittstellen."]))
+        def key = a2aKey(setup.token, [taskIds: [task.id]])
+
+        when:
+        AgentCard card = sdkClient(false, new LinkedBlockingQueue()).getExtendedAgentCard(auth(key))
+        def skills = card.skills().collectEntries { [(it.id()): it.description()] }
+
+        then:
+        (skills["template:" + template.id] as String).startsWith("Prüft Quellcode gegen die Regeln.\n\nA template of ")
+        (skills["task:" + task.id] as String).startsWith("Prüft die Logs der Schnittstellen.\n\nA scheduled task of ")
+        !card.toString().contains("Prüfe den Code.")
     }
 
     def "the extended card says what the assistant offers beyond the documents - here the key's software"() {
@@ -405,6 +426,28 @@ class A2aServerSpec extends Specification {
         fake.chats.last().messages.toString().contains("Inhalt der Notiz")
     }
 
+    def "a file under a type that does not say text is read when its content is text: #name as #type"() {
+        given:
+        def setup = answering()
+        def key = a2aKey(setup.admin)
+        def raw = Base64.encoder.encodeToString(bytes as byte[])
+
+        when:
+        def answer = rpc(key, send([[text: "Pruefe die Datei"], [raw: raw, filename: name, mediaType: type]]))
+
+        then:
+        read ? fake.chats.last().messages.toString().contains("def pruefe()") : answer.error.code == -32005
+        read || answer.error.message == "Only text files are read - \"${name}\" is not text in UTF-8"
+
+        where:
+        name         | type                       | bytes                                        | read
+        "pruefe.py"  | "application/x-python"     | "def pruefe():\n\treturn 1\n".getBytes("UTF-8") | true
+        "pruefe.js"  | "application/javascript"   | "// def pruefe()\r\n".getBytes("UTF-8")       | true
+        "pruefe.bin" | "application/octet-stream" | "def pruefe()".getBytes("UTF-8")             | true
+        "scan.pdf"   | "application/pdf"          | [0x25, 0x50, 0x44, 0x46, 0xFF, 0xFE]         | false
+        "daten.bin"  | "application/octet-stream" | [0x64, 0x65, 0x66, 0x00, 0x01]               | false
+    }
+
     def "a scheduled task assigned to the key starts over A2A: a task following the run, its report and findings at its end"() {
         given:
         def setup = tasks.tenant()
@@ -438,6 +481,37 @@ class A2aServerSpec extends Specification {
 
         cleanup:
         a2a?.close()
+    }
+
+    def "CancelTask cancels a run started over A2A: its task ends cancelled, the run before its next step"() {
+        given:
+        def setup = tasks.tenant()
+        store.write(TaskApi.LOGS + "/" + LocalDate.now(ZoneId.of("Europe/Berlin")) + "_app.log", "ERROR Timeout\n")
+        def task = tasks.create(setup.token, TaskApi.logCheck(setup.model, "a2a-${UUID.randomUUID()}@example.com"))
+        def key = a2aKey(setup.token, [taskIds: [task.id]])
+        store.hold = new java.util.concurrent.CountDownLatch(1)
+
+        when:
+        def started = rpc(key, send([[text: "los"]], [(A2aCards.ASSISTANT_EXTENSION): [task: task.name]], true)).result.task as Map
+        long until = System.currentTimeMillis() + 10_000
+        while (store.reads.get() == 0 && System.currentTimeMillis() < until) {
+            Thread.sleep(50)
+        }
+        def cancelled = rpc(key, json([jsonrpc: "2.0", id: 2, method: "CancelTask", params: [id: started.id]]))
+        store.hold.countDown()
+        def runId = (api.call(setup.token, "GET", "/tenant/admin/tasks/${task.id}/runs") as List<Map>)[0].id
+        def run = tasks.awaitRun(setup.token, task.id, runId)
+
+        then:
+        cancelled.result.status.state == "TASK_STATE_CANCELED"
+        (run.run as Map).state == "CANCELLED"
+        !((run.steps as List<Map>)*.stepId).contains("check")
+
+        and: "the task stays cancelled for whoever asks later"
+        rpc(key, json([jsonrpc: "2.0", id: 3, method: "GetTask", params: [id: started.id]])).result.status.state == "TASK_STATE_CANCELED"
+
+        cleanup:
+        store.hold?.countDown()
     }
 
     def "a webhook gets the events of a run started over A2A with its token; plain HTTP elsewhere, internal hosts and another key's task are refused; the webhooks go with the task"() {
@@ -489,6 +563,46 @@ class A2aServerSpec extends Specification {
                 .error.code == -32001
 
         cleanup:
+        webhook?.stop(0)
+    }
+
+    def "a task takes five webhooks: a sixth is refused, one registered again under its id replaces itself"() {
+        given: "a run held at its first step, so the task is open while the webhooks are registered"
+        def setup = tasks.tenant()
+        store.write(TaskApi.LOGS + "/" + LocalDate.now(ZoneId.of("Europe/Berlin")) + "_app.log", "ERROR Timeout\n")
+        def task = tasks.create(setup.token, TaskApi.logCheck(setup.model, "a2a-${UUID.randomUUID()}@example.com"))
+        def key = a2aKey(setup.token, [taskIds: [task.id]])
+        store.hold = new java.util.concurrent.CountDownLatch(1)
+        def webhook = com.sun.net.httpserver.HttpServer.create(new InetSocketAddress("127.0.0.1", 0), 0)
+        webhook.createContext("/hook") { exchange ->
+            exchange.requestBody.readAllBytes()
+            exchange.sendResponseHeaders(200, -1)
+            exchange.close()
+        }
+        webhook.start()
+        def hook = "http://127.0.0.1:${webhook.address.port}/hook".toString()
+        Map started = null
+        def register = { int number ->
+            rpc(key, json([jsonrpc: "2.0", id: number, method: "CreateTaskPushNotificationConfig",
+                           params : [taskId: started.id, id: "hook-${number}".toString(), url: hook]]))
+        }
+
+        when:
+        started = rpc(key, send([[text: "los"]], [(A2aCards.ASSISTANT_EXTENSION): [task: task.name]], true)).result.task as Map
+        def answers = (1..6).collect { register(it) }
+
+        then:
+        answers.take(5).every { it.result.url == hook }
+        answers[5].error.code == -32602
+
+        and: "one of the five again: replaced, not a sixth"
+        register(1).result.url == hook
+
+        cleanup:
+        if (started) {
+            rpc(key, json([jsonrpc: "2.0", id: 9, method: "CancelTask", params: [id: started.id]]))
+        }
+        store.hold?.countDown()
         webhook?.stop(0)
     }
 

@@ -11,6 +11,7 @@ import io.micronaut.serde.annotation.Serdeable;
 public record ChatTemplateRequest(
         String name,
         @Nullable String instructions,
+        @Nullable String description,
         @Nullable AnswerSource answerSource,
         @Nullable Creativity creativity,
         @Nullable Reasoning reasoning,

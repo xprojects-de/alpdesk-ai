@@ -41,6 +41,8 @@ class FakeMcpSoftware {
     volatile List<String> metadataScopes = ["read", "write"]
     /** The resource metadata names this host instead of its own (a challenge pointing elsewhere). */
     volatile String metadataUrlOverride = null
+    /** The resource metadata names this as its authorization server instead of the fake's issuer. */
+    volatile String issuerOverride = null
     /** Every token is refused, also one just renewed - the client was revoked at the server. */
     volatile boolean refuseEveryToken = false
     /** A tool call is answered 403 insufficient_scope - the server wants more rights (step-up). */
@@ -291,7 +293,7 @@ class FakeMcpSoftware {
             exchange.close()
             return
         }
-        Map document = [resource: url(), authorization_servers: [oauth.issuer()]]
+        Map document = [resource: url(), authorization_servers: [issuerOverride ?: oauth.issuer()]]
         if (metadataScopes) {
             document.scopes_supported = metadataScopes
         }

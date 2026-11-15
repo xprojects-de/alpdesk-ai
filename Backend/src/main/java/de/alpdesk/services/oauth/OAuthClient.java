@@ -448,14 +448,20 @@ public class OAuthClient {
         String method = grant.tokenEndpointAuthMethod();
         ClientID clientId = new ClientID(grant.clientId());
         TokenRequest.Builder builder;
-        if (grant.clientSecret() == null || ClientAuthenticationMethod.NONE.getValue().equals(method)) {
-            builder = new TokenRequest.Builder(endpoint, clientId, authorizationGrant);
-        } else if (ClientAuthenticationMethod.CLIENT_SECRET_POST.getValue().equals(method)) {
-            builder = new TokenRequest.Builder(endpoint,
-                    new ClientSecretPost(clientId, new Secret(cipher.decrypt(grant.clientSecret()))), authorizationGrant);
-        } else {
-            builder = new TokenRequest.Builder(endpoint,
-                    new ClientSecretBasic(clientId, new Secret(cipher.decrypt(grant.clientSecret()))), authorizationGrant);
+        try {
+            if (grant.clientSecret() == null || ClientAuthenticationMethod.NONE.getValue().equals(method)) {
+                builder = new TokenRequest.Builder(endpoint, clientId, authorizationGrant);
+            } else if (ClientAuthenticationMethod.CLIENT_SECRET_POST.getValue().equals(method)) {
+                builder = new TokenRequest.Builder(endpoint, new ClientSecretPost(clientId,
+                        new Secret(cipher.decrypt(grant.clientSecret()))), authorizationGrant);
+            } else {
+                builder = new TokenRequest.Builder(endpoint, new ClientSecretBasic(clientId,
+                        new Secret(cipher.decrypt(grant.clientSecret()))), authorizationGrant);
+            }
+        } catch (IllegalStateException e) {
+            // APP_SECRET_KEY changed: the client's secret is lost - said instead of failing the sign-in with a 500.
+            return new TokenOutcome(null, "the client secret can no longer be read - remove the sign-in, then sign in"
+                    + " again", true);
         }
         HTTPResponse response = http.send(builder.resource(URI.create(grant.resource())).build().toHTTPRequest(),
                 connectionName);

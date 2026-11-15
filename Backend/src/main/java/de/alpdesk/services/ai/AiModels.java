@@ -754,7 +754,7 @@ public class AiModels {
 
     /**
      * The failure as the user may read it. For a model on an own server it names the model, never the server's address:
-     * that is for the admin, who finds it in the log.
+     * that is the catalog entry's, which the admin keeps - the log names provider, model and the kind of failure.
      */
     private static ServiceException providerFailure(AiModel model, RuntimeException e) {
         if (e instanceof ServiceException refused) {

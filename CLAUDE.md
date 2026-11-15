@@ -210,6 +210,11 @@ The repo has two independent projects and the sandbox:
   (registration, PKCE, rotating refresh tokens) and the MCP server "Ticketsystem" behind it, for a test stack's
   connection that signs in (roadmap point 61; its README). A local helper, not used by the specs
   (they have `FakeAuthorizationServer`).
+- `devtools/pentest/` — the pentest container of the test stack below (skill `/alpdesk-pentest`): the tools of a
+  penetration test (OWASP ZAP, Nuclei, ffuf, sqlmap, Nmap, testssl.sh, gitleaks, Trivy) and Python for a run's
+  probes, a service of the stack's compose file with the profile `pentest`, on a network with the stack's Caddy alone
+  and no way out - it tests that stack and nothing else; `lib/watchdog.py` (does the app still answer),
+  `lib/listener.py` (does the app call out, and with what), `probes/` (its README). A local helper.
 - `devtools/general-chat-test/` — the test stack of the general chat over topic tenants (roadmap point 51): Caddy with
   Authelia (users and IDM groups in a file) in front of the app built from the working tree, a PostgreSQL of its own,
   its own embedding model (bge-m3), an SFTP server and MailHog; `setup.py`, `check.py` (no chat model: sign-in, the
@@ -464,8 +469,9 @@ de.alpdesk
 │   │                  ProviderKeyController (/tenant/admin/provider-keys), TenantAdminUsageController
 │   │                  (/tenant/admin/usage) (Roles.TENANT_ADMIN); AiSettingsController (/tenant/ai/**) (Roles.TENANT_USER)
 │   ├── document/      DocumentController (/tenant/admin/documents, .../embed-again, .../embedding-model,
-│   │                  .../search-language, Roles.TENANT_ADMIN), TenantKnowledgeController (/admin/tenants/{id}/documents,
-│   │                  .../embed-again, .../embedding-model, .../search-language, Roles.ADMIN),
+│   │                  .../reranking-model, .../search-language, Roles.TENANT_ADMIN), TenantKnowledgeController
+│   │                  (/admin/tenants/{id}/documents, .../embed-again, .../embedding-model, .../reranking-model,
+│   │                  .../search-language, Roles.ADMIN),
 │   │                  KnowledgeAreaController (/tenant/admin/knowledge-areas, Roles.TENANT_ADMIN),
 │   │                  KnowledgeAreaAdminController (/admin/tenants/{id}/knowledge-areas, Roles.ADMIN),
 │   │                  KnowledgeSourceController (/tenant/admin/knowledge-sources, Roles.TENANT_ADMIN),
@@ -473,7 +479,9 @@ de.alpdesk
 │   ├── chat/          ChatController (/tenant/chat/stream - server-sent events, /tenant/chat/actions/{id}/run|cancel
 │   │                  (a changing tool call of the connected software, decided), /tenant/chat/conversations/**,
 │   │                  /tenant/chat/files/**, Roles.TENANT_USER), ChatFiles (upload/download helpers shared with api/v1),
-│   │                  ChatEvents (the streamed answer's server-sent events, shared with api/v1)
+│   │                  ChatEvents (the streamed answer's server-sent events, shared with api/v1),
+│   │                  SoftwareChoiceController (/tenant/chat/software: the connected software a question may leave
+│   │                  out, Roles.TENANT_USER)
 │   ├── account/       AccountController (/tenant/account: the tenant user's own account, its password and language,
 │   │                  whether the tenant has an MCP key, Roles.TENANT_USER)
 │   ├── assistant/     TenantAdminAssistantController (/tenant/admin/assistant, Roles.TENANT_ADMIN),
@@ -498,7 +506,8 @@ de.alpdesk
 │   │                  (/admin/tenants/{id}/branding, Roles.ADMIN), TenantAdminBrandingController
 │   │                  (/tenant/admin/branding/login-key, Roles.TENANT_ADMIN)
 │   ├── a2a/           A2aController (/a2a: the tenant's assistant as an A2A agent, Roles.MCP - an MCP key with the A2A
-│   │                  door), A2aExtensionController (/.well-known/agent-card.json and /a2a/extensions/*, anonymous)
+│   │                  door), A2aExtensionController (/.well-known/agent-card.json and /a2a/extensions/*, anonymous),
+│   │                  A2aJsonRpcTransport (tells the SDK this server serves the JSON-RPC binding, by service loading)
 │   ├── oauth/         OAuthCallbackController (/oauth/connections/callback: a connection's OAuth sign-in coming back,
 │   │                  /oauth/client-metadata.json: our client id metadata document - both anonymous)
 │   └── api/v1/        TenantSelfController (/api/v1/me), DocumentApiController (/api/v1/documents),

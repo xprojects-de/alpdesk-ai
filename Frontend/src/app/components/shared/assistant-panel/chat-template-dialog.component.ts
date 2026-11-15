@@ -17,6 +17,7 @@ import {
     CREATIVITY_LABELS,
     MAX_INSTRUCTIONS,
     MAX_SEARCH_RESULTS,
+    MAX_TEMPLATE_DESCRIPTION,
     MAX_TEMPLATE_NAME,
     MIN_SEARCH_RESULTS,
     Reasoning,
@@ -33,8 +34,8 @@ function emptyOrSearchResults(control: AbstractControl): ValidationErrors | null
 }
 
 /**
- * Create/edit dialog of a chat template: its name, its instructions (next to the tenant's) and the settings it sets
- * itself - "Standard" takes the tenant's.
+ * Create/edit dialog of a chat template: its name, what it is for (for those who choose it from outside), its
+ * instructions (next to the tenant's) and the settings it sets itself - "Standard" takes the tenant's.
  */
 @Component({
     selector: "app-chat-template-dialog",
@@ -65,6 +66,19 @@ function emptyOrSearchResults(control: AbstractControl): ValidationErrors | null
                     <mat-hint>{{ "assistant.templateDialog.nameHint" | transloco }}</mat-hint>
                     @if (form.controls.name.hasError("maxlength")) {
                         <mat-error>{{ "assistant.form.maxLength" | transloco: {max: maxName} }}</mat-error>
+                    }
+                </mat-form-field>
+                <mat-form-field appearance="outline">
+                    <mat-label>{{ "assistant.templateDialog.description" | transloco }}</mat-label>
+                    <textarea matInput formControlName="description" rows="2"></textarea>
+                    <mat-hint>
+                        {{
+                            "assistant.templateDialog.descriptionHint"
+                                | transloco: {length: form.controls.description.value.length, max: maxDescription}
+                        }}
+                    </mat-hint>
+                    @if (form.controls.description.hasError("maxlength")) {
+                        <mat-error>{{ "assistant.form.maxLength" | transloco: {max: maxDescription} }}</mat-error>
                     }
                 </mat-form-field>
                 <mat-form-field appearance="outline">
@@ -177,12 +191,14 @@ export class ChatTemplateDialogComponent {
     readonly reasoningLabels = REASONING_LABELS;
     readonly maxName = MAX_TEMPLATE_NAME;
     readonly maxInstructions = MAX_INSTRUCTIONS;
+    readonly maxDescription = MAX_TEMPLATE_DESCRIPTION;
     readonly minResults = MIN_SEARCH_RESULTS;
     readonly maxResults = MAX_SEARCH_RESULTS;
 
     form = this.fb.nonNullable.group({
         name: [this.template?.name ?? "", [Validators.required, notBlank(), Validators.maxLength(MAX_TEMPLATE_NAME)]],
         instructions: [this.template?.instructions ?? "", [Validators.maxLength(MAX_INSTRUCTIONS)]],
+        description: [this.template?.description ?? "", [Validators.maxLength(MAX_TEMPLATE_DESCRIPTION)]],
         answerSource: [(this.template?.answerSource ?? "") as AnswerSource | ""],
         creativity: [(this.template?.creativity ?? "") as Creativity | ""],
         reasoning: [(this.template?.reasoning ?? "") as Reasoning | ""],

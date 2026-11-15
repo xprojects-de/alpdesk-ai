@@ -347,6 +347,9 @@ class TenantApiKeySpec extends Specification {
 
         expect:
         yaml.size() == 1
+        // Named as people read it: the product, the major version of the release.
+        yaml[0] =~ /(?m)^  title: Zirmo API$/
+        yaml[0] =~ /(?m)^  version: "?2\.0"?$/
         def paths = (yaml[0] =~ /(?m)^  (\/[^:]*):$/).collect { it[1] }
         paths.any { it.startsWith("/api/v1/") }
         paths.containsAll(["/login", "/login/wam", "/tenant/account", "/tenant/account/switch", "/tenant/chat/stream",

@@ -15,7 +15,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
  * API (used by our frontend) is internal: its controllers carry @Hidden.
  */
 @OpenAPIDefinition(
-        info = @Info(title = "AI API", version = "1.0",
+        info = @Info(title = "Zirmo API", version = "2.0",
                 description = "API v1: the tenant's software - the AI features of one tenant, authenticated with the "
                         + "tenant's API key (Authorization: Bearer ai_...), issued by the AI administration. Users: what a "
                         + "frontend of the tenant's own needs for its people - sign in with POST /login ({\"username\", "

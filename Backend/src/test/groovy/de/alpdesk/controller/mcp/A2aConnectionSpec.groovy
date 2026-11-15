@@ -408,6 +408,26 @@ class A2aConnectionSpec extends Specification {
         authServer.stop()
     }
 
+    def "a card's metadata address its issuer does not own is not taken - no sign-in is offered"() {
+        given: "the document at the card's address names another issuer than the one whose address it is"
+        def authServer = new FakeAuthorizationServer()
+        authServer.announcedIssuer = "http://127.0.0.1:1/other"
+        agent.oauth = authServer
+        def tenant = api.tenant()
+        allowA2a(tenant)
+        def admin = api.tenantAdminToken(tenant.id)
+
+        when:
+        def created = api.call(admin, "POST", "/tenant/admin/mcp-connections", request()) as Map
+
+        then:
+        created.toolsError.contains("description could not be read")
+        created.signIn == null
+
+        cleanup:
+        authServer.stop()
+    }
+
     def "a token refused while the agent's task is asked for is renewed - the question is never sent twice"() {
         given:
         def setup = signedInAgent()

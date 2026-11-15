@@ -135,7 +135,10 @@ official Python SDK) and `devtools/mcp-test-server/` are read, not run.
    agent's `<connection>__ask` offers as `skill` exactly the card's skills as last read (`syncSkills`: on at once, at
    most 500, each id once, dropped ones deleted); the extended card's `template:<id>` and `task:<id>` skills are
    exactly the tenant's templates and the key's tasks, and `metadata.template` / `metadata.task` resolve by the same
-   names.
+   names. What a client learns about a template or a task is its name and its **description** (the template's field,
+   the task's `description` in its text; none: the fixed sentence alone) - in the card's skill ahead of how to ask, in
+   the template's MCP prompt, in `list_templates` and `list_tasks`; a template's **instructions never go out** by any
+   of these, and its description never reaches the model.
 5. **What leaves Zirmo, and is it bounded?** Never the software's address, never its key (or token),
    never a connection that does not pass through (answer-only: only through `ask_assistant`),
    **a changing tool only by the key's level** (mcp.md "Changing tools passed through", roadmap point 68): listed and

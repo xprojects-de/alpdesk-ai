@@ -432,7 +432,7 @@ class McpSpec extends Specification {
         (server.instructions as String).startsWith("$shownAs is the AI assistant of the company")
         (server.instructions as String).contains("When the user names $shownAs")
         (tools[0].description as String).startsWith("Asks $shownAs (the company's assistant) a question.")
-        (tools.find { it.name == "list_templates" }.description as String).startsWith("Lists the names of the templates of $shownAs (the company's assistant) - kinds")
+        (tools.find { it.name == "list_templates" }.description as String).startsWith("Lists the templates of $shownAs (the company's assistant) with what each is for - kinds")
         (tools.find { it.name == "search_knowledge" }.description as String).startsWith("Searches the documents of $shownAs - its own knowledge")
         (tools.find { it.name == "read_document" }.description as String).startsWith("Reads on in a document of $shownAs that search_knowledge found")
 
@@ -500,6 +500,8 @@ class McpSpec extends Specification {
         def setup = chatSetup(tenant)
         api.call(setup.admin, "PUT", "/tenant/admin/assistant", settings(setup.chat.id))
         api.call(setup.admin, "POST", "/tenant/admin/assistant/templates", [name: "Nachschlagen", instructions: "Antworte knapp."])
+        api.call(setup.admin, "POST", "/tenant/admin/assistant/templates",
+                [name: "Code-Prüfung", instructions: "Prüfe den Code.", description: "Prüft Quellcode gegen die Regeln."])
         def key = mcpKey(tenant)
 
         when:
@@ -510,8 +512,8 @@ class McpSpec extends Specification {
         then:
         (fake.chats.last().messages[0] as SystemMessage).text().contains("Antworte knapp.")
         unknown.isError
-        unknown.content[0].text == 'Unknown template "Planer" - Templates: Nachschlagen'
-        templates.content[0].text == "Templates: Nachschlagen"
+        unknown.content[0].text == 'Unknown template "Planer" - Templates: Code-Prüfung, Nachschlagen'
+        templates.content[0].text == "Templates:\n- Code-Prüfung: Prüft Quellcode gegen die Regeln.\n- Nachschlagen"
     }
 
     def "without a default model, or without a question, ask_assistant is a tool error"() {
@@ -777,7 +779,8 @@ class McpSpec extends Specification {
         api.admin("PUT", "/admin/tenants/${tenant.id}/branding", [name: "Muster AI"])
         def admin = api.tenantAdminToken(tenant.id)
         ["Code-Review", "Prüfung", "code review"].each {
-            api.call(admin, "POST", "/tenant/admin/assistant/templates", [name: it, instructions: "Antworte knapp."])
+            api.call(admin, "POST", "/tenant/admin/assistant/templates", [name: it, instructions: "Antworte knapp.",
+                                                                           description: it == "Prüfung" ? "Prüft Quellcode." : null])
         }
         def key = mcpKey(tenant)
 
@@ -789,6 +792,7 @@ class McpSpec extends Specification {
         prompts*.name == ["code-review-$laterId".toString(), "code-review", "pruefung"]
         prompts*.title == ["code review", "Code-Review", "Prüfung"]
         prompts[1].description == 'Asks Muster AI (the company\'s assistant) with its template "Code-Review"'
+        prompts[2].description == 'Prüft Quellcode.\n\nAsks Muster AI (the company\'s assistant) with its template "Prüfung"'
         prompts[0].arguments*.name == ["question"]
         prompts[0].arguments*.required == [false]
 

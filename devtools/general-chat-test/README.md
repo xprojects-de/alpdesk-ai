@@ -162,6 +162,33 @@ fake (renewed once, the reload reads the tools), refuses the renewal (the reload
 17, tenant databases not migrated). Either set it up anew (`podman compose down -v`, then `base`, `full`, `models`), or
 bring the history to the folded files by hand - only when the database has every block the file had then.
 
+## A company's MCP server through the proxy (no model needed)
+
+```bash
+python3 company.py           # sets up and checks - runs again and again
+python3 company.py keys      # the same, and prints a reading key with the command for Claude Code
+python3 company.py ask       # the same, then a real model asks through ask_assistant (after `setup.py models`)
+```
+
+A tenant of its own, "Entwicklung (Proxy-Test)" - the eight topics stay as they are - with the connection
+"Entwicklung" to the container `company-software` (`devtools/mcp-test-server/company.py`: ten tools with German
+descriptions, resources, prompts, long instructions), everything turned on, "Direkt an MCP-Clients" and "Ressourcen
+an MCP-Clients" on, and three MCP keys. `devtools/mcp-test-server/company_check.py` then asks the server directly and
+through Zirmo with the MCP SDK's client, inside the stack's network, and compares both ends - the descriptions, the
+parameters, the results, the prompts, the resources, the keys' rights. What it prints as a note, not a failure: which
+names were cut to fit 32 characters, and that instructions over 2,000 characters arrive cut.
+
+`ask` gives the tenant the stack's chat model and asks five questions through `ask_assistant` with the reading key
+(`QUESTIONS` in `company.py`): the model must find the software's tools by their descriptions - the server's log names
+every call - and its answer must hold a text. Asked for a review ticket it must create none: the tenant's model gets
+the software's reading tools only. The build log (129,000 characters, the cause in its last line) shows a limit: the
+tenant's own model gets a tool's text up to 100,000 characters and must say that it was cut, not guess a cause - an
+MCP client through the proxy gets the log whole.
+
+Claude Code as the client (`company.py keys` prints the command) reaches the stack at
+`https://ai.general-chat.localhost:8443/mcp` and must trust Caddy's own certificate: copy it out as in "Start" above
+and start Claude Code with `NODE_EXTRA_CA_CERTS=~/Downloads/caddy-general-chat-root.crt`.
+
 ## The general chat answered by an A2A agent (no model needed)
 
 A tenant whose every question goes to a workflow engine behind A2A (roadmap point 54): the general chat. The
@@ -252,6 +279,18 @@ browser, runs `scenarios.py` and reports per feature:
   `KEYS_FILE`, the chat model marked as reading PDFs, images and scans, an image model, a transcriber when
   `TRANSCRIBE_PROVIDER` and `TRANSCRIBE_MODEL` name one. The walk's tenant gets the sandbox `sandbox-rundgang` - the
   video sandbox when started with `WALK_SANDBOX_IMAGE=localhost/alpdesk/alpdesk-ai-sandbox:video`.
+
+## The pentest container (the skill `/alpdesk-pentest`)
+
+```bash
+podman compose --profile pentest up -d --build pentest pentest-listener
+```
+
+Two containers that run only with the profile `pentest` (`devtools/pentest`, its README): `pentest` with the tools of
+a penetration test and the run's probes, on the network `outside` with Caddy alone - where a stranger stands, without
+a way to the app, the database or the internet -, and `pentest-listener` inside the stack's network, the address a
+probe enters where the app is to call out. The stack is where the skill `/alpdesk-pentest` tests Zirmo's hardness:
+from outside without a login, as a user and as a tenant admin, in two tenants of its own that it deletes at its end.
 
 ## Stop
 

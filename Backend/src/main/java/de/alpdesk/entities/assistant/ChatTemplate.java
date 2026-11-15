@@ -21,6 +21,10 @@ public record ChatTemplate(
 
         String instructions,
 
+        /** What it is for, said to whoever chooses it from outside (A2A, MCP, /api/v1) - not to the model; null: none. */
+        @Nullable
+        String description,
+
         @Nullable
         AnswerSource answerSource,
 

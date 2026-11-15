@@ -11,11 +11,13 @@ import java.util.Map;
  * A task as the engine runs it (docs/architecture/tasks.md "The format"): compiled from what its tenant admin wrote,
  * every name resolved to its id - stored as JSON next to the text, and kept with every run.
  *
+ * @param description what it is for, said to whoever may start it from outside (A2A, MCP, /api/v1); null: none
  * @param notifyTo who hears of a failed run and of one that ended unclear (written "notify")
  * @param triggers when it starts by itself; none: only by hand, through the client software or MCP
  */
 @Serdeable
-public record TaskDefinition(String name, List<String> notifyTo, List<Trigger> triggers, List<Step> steps) {
+public record TaskDefinition(String name, @Nullable String description, List<String> notifyTo, List<Trigger> triggers,
+                             List<Step> steps) {
 
     public Step step(String id) {
         return steps.stream().filter(step -> step.id().equals(id)).findFirst()

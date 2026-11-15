@@ -8,7 +8,7 @@ unmodified libraries, or offer a permissive option.
 The licenses were read out of the resolved artifacts - POM metadata, `Bundle-License` in the jar manifests,
 `META-INF/LICENSE` files and source headers for the backend, the `license` field of each installed package for the
 frontend - not assumed. As of: backend `runtimeClasspath` and frontend `dependencies` of 23 October 2026, the AWS SDK and MSAL added 29 October 2026, Tika 4's
-libraries 6 November 2026, langchain4j's Bedrock module with the SDK's Bedrock and Netty clients 8 November 2026, Nimbus' OAuth SDK with its libraries 9 November 2026, Micronaut 5.2.6, the A2A SDK 1.5.1, MSAL 1.26.1 and openhtmltopdf 1.1.113 12 November 2026.
+libraries 6 November 2026, langchain4j's Bedrock module with the SDK's Bedrock and Netty clients 8 November 2026, Nimbus' OAuth SDK with its libraries 9 November 2026, Micronaut 5.2.6, the A2A SDK 1.5.1, MSAL 1.26.1 and openhtmltopdf 1.1.113 12 November 2026, the AWS SDK's modules on one version (2.57.3) 13 November 2026.
 
 ## Backend (Java, shipped in the jar)
 

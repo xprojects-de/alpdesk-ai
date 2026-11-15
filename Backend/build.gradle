@@ -110,6 +110,10 @@ dependencies {
     // Models of Amazon Bedrock - Claude in the EU (docs/architecture/ai-features.md "Amazon Bedrock"): its Converse API
     // through the AWS SDK (the platform's version, as S3's), streamed over the SDK's Netty client - Micronaut brings
     // Netty anyway; the Apache client is left out as for S3 (services.ai.BedrockClients sets both clients explicitly).
+    // One version for every AWS SDK module: the Micronaut platform pins s3 lower than langchain4j-bedrock pulls the
+    // SDK's core, and a mix fails on the SDK's error path (IncompatibleClassChangeError instead of S3's refusal).
+    // Keep it at least at the version bedrockruntime asks for.
+    implementation(platform("software.amazon.awssdk:bom:2.57.3"))
     implementation("dev.langchain4j:langchain4j-bedrock") {
         exclude(group: "software.amazon.awssdk", module: "apache-client")
         exclude(group: "software.amazon.awssdk", module: "apache5-client")

@@ -28,6 +28,7 @@ export interface AssistantSettingsFormValue {
 export interface ChatTemplateFormValue {
     name: string;
     instructions: string;
+    description: string;
     answerSource: AnswerSource | "";
     creativity: Creativity | "";
     reasoning: Reasoning | "";
@@ -83,12 +84,13 @@ export function imageModelHint(imageModels: ModelOption[], chosenId: number | nu
         : {key: "assistant.settings.imageModelHintNone"};
 }
 
-/** The template request: trimmed texts, "Standard" (empty) as null - the tenant's setting applies. */
+/** The template request: trimmed texts, "Standard" (empty) as null - the tenant's setting applies; no description null. */
 export function buildChatTemplateRequest(value: ChatTemplateFormValue): ChatTemplateRequest {
     const empty = value.searchResults === null || `${value.searchResults}` === "";
     return {
         name: value.name.trim(),
         instructions: value.instructions.trim(),
+        description: value.description.trim() || null,
         answerSource: value.answerSource || null,
         creativity: value.creativity || null,
         reasoning: value.reasoning || null,
