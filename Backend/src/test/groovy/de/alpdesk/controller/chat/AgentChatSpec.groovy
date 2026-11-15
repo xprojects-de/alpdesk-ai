@@ -367,6 +367,20 @@ class AgentChatSpec extends Specification {
         (api.ask(setup.token, [message: "Lang [[long]]"]).answer.content as String).length() == 2003
     }
 
+    def "an agent down behind its proxy (502 with an HTML page) fails the answer at once - not after the timeout"() {
+        given:
+        def setup = answering()
+        agent.badGateway = true
+
+        when:
+        long began = System.currentTimeMillis()
+        def last = api.askEvents(setup.token, [message: "Frage"]).last()
+
+        then:
+        last.data.code == "a2a.agentFailed"
+        System.currentTimeMillis() - began < 2_500
+    }
+
     def "the key's A2A card lists no template while the agent answers - it would be refused"() {
         given:
         def setup = answering()

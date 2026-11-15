@@ -345,13 +345,20 @@ public class A2aHttpClient implements A2AHttpClient {
                 return;
             }
             ended = true;
-            if (eventStream) {
-                if (line.size() > 0) {
-                    parser.processLine(line.toLine());
+            try {
+                if (eventStream) {
+                    if (line.size() > 0) {
+                        parser.processLine(line.toLine());
+                    }
+                    parser.flush();
+                } else if (line.size() > 0) {
+                    events.accept(new ServerSentEvent(line.toLine()));
                 }
-                parser.flush();
-            } else if (line.size() > 0) {
-                events.accept(new ServerSentEvent(line.toLine()));
+            } catch (RuntimeException e) {
+                // No JSON at all (a proxy's error page): the SDK's parser throws - without this the asker would wait
+                // for its timeout.
+                errors.accept(e);
+                return;
             }
             complete.run();
         }

@@ -71,7 +71,8 @@ the client's on `services.a2a.A2aHttpClient`, the server's behind `controller.a2
   artifact text - `delta` events; files - the answer's files; input-required - the answer, stored with
   `message.a2a_waiting` (the chat shows "wartet auf Ihre Antwort"), the task kept on the conversation
   (`conversation.a2a_task_id`) and answered by the next question (`taskId` and `contextId`). The context id is kept
-  (`a2a_context_id`) and sent with every question. Failed, rejected, canceled - `error` `a2a.agentFailed`; slower than
+  (`a2a_context_id`) and sent with every question. Failed, rejected, canceled, or an answer that is
+  no A2A at all (a proxy's error page) - `error` `a2a.agentFailed` at once; slower than
   `app.a2a.timeout` (10 min) - `a2a.timeout`; an answer is cut at `app.a2a.max-answer-chars` (200,000). **A card that
   streams nothing** is asked with a blocking `SendMessage`: the whole answer comes in one piece on the asking thread,
   the request waiting `app.a2a.timeout` like the latch (not `app.ai.timeout`); a stop meanwhile cannot end that

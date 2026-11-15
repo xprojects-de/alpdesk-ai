@@ -939,7 +939,9 @@ a key, and the token renews itself.
   replaced meanwhile (another server) gets neither tokens nor a client. A refused refresh (400/401, `invalid_grant`) marks `SIGN_IN_NEEDED`
   (502 `oauth.signInNeeded`, the chip "Anmeldung nötig", a line in the daily report); a server that cannot be reached
   or answers in a way we cannot read leaves the grant as it is (`oauth.unreachable`, `oauth.timeout`,
-  `oauth.refreshFailed`). Tokens no longer decryptable (`APP_SECRET_KEY` changed) mark `SIGN_IN_NEEDED` too.
+  `oauth.refreshFailed`). Tokens no longer decryptable (`APP_SECRET_KEY` changed) mark `SIGN_IN_NEEDED` too; a client secret no longer
+  decryptable fails the sign-in or the refresh with its reason ("remove the sign-in, then sign in again"), never a
+  server error.
 - **Every address of the flow we call** is an absolute http(s) address and passes `McpAddresses.requireAllowed`
   (HTTPS, plain HTTP only to `APP_AI_PLAIN_HTTP_HOSTS`, no internal address), no redirect, connect 10 s, 30 s for an
   answer's headers and body together (not `app.ai.timeout`: a refresh holds its row lock and a database connection,

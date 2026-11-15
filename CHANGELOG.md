@@ -214,6 +214,12 @@ Nothing in `.env` or `/api/v1` needs a hand; the new settings have defaults.
 
 ### Fixed
 
+- **An agent that is down behind its reverse proxy fails the answer at once**: a connected A2A agent whose proxy
+  answered with an error page (502) left the chat waiting for the whole `APP_A2A_TIMEOUT` before it reported a
+  timeout. Now the question fails immediately.
+- **A sign-in whose client secret can no longer be read says so**: after `APP_SECRET_KEY` changed, signing in again
+  to a connection with OAuth ended in a server error. Now the connection says to remove the sign-in and sign in
+  again.
 - **Source code sent to the assistant over A2A is read whatever type the client names**: a file sent as
   `application/x-python`, `application/javascript` or `application/octet-stream` was refused as "not a text file".
   Now any file whose content is text is read; images, PDFs and other binary files are refused as before. The agent

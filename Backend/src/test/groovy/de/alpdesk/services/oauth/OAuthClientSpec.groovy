@@ -643,6 +643,21 @@ class OAuthClientSpec extends Specification {
         grants.findByConnectionId(grant.connectionId()).get().status() == GrantStatus.SIGN_IN_NEEDED
     }
 
+    def "a client secret no longer readable (APP_SECRET_KEY changed) fails the sign-in with its reason - no server error"() {
+        given:
+        authServer.authMethods = ["client_secret_basic"]
+        def grant = prepared()
+        signIn(grant)
+        sql("UPDATE oauth_grant SET client_secret = 'enc:v1:AAAA' WHERE connection_id = ${grant.connectionId()}")
+
+        when:
+        def back = signIn(grant)
+
+        then:
+        back.endsWith("signIn=exchangeFailed")
+        grants.findByConnectionId(grant.connectionId()).get().lastError().contains("client secret can no longer be read")
+    }
+
     def "a sign-in nobody finished is shown as over once its time passed - no endless 'sign-in running'"() {
         given:
         def grant = prepared()
@@ -811,6 +826,9 @@ class OAuthClientSpec extends Specification {
         authServer.slowRefreshMillis = 1500
         def grant = prepared()
         signIn(grant)
+        // The renewed token lasts beyond the margin: a call that reads the grant only after the other one renewed it
+        // (a slow machine) takes that token, as it would in the lock - it must not look due again.
+        authServer.tokenLifetime = 3600
         int earlier = authServer.refreshes.get()
         def pool = Executors.newFixedThreadPool(2)
 

@@ -483,6 +483,37 @@ class A2aServerSpec extends Specification {
         a2a?.close()
     }
 
+    def "CancelTask cancels a run started over A2A: its task ends cancelled, the run before its next step"() {
+        given:
+        def setup = tasks.tenant()
+        store.write(TaskApi.LOGS + "/" + LocalDate.now(ZoneId.of("Europe/Berlin")) + "_app.log", "ERROR Timeout\n")
+        def task = tasks.create(setup.token, TaskApi.logCheck(setup.model, "a2a-${UUID.randomUUID()}@example.com"))
+        def key = a2aKey(setup.token, [taskIds: [task.id]])
+        store.hold = new java.util.concurrent.CountDownLatch(1)
+
+        when:
+        def started = rpc(key, send([[text: "los"]], [(A2aCards.ASSISTANT_EXTENSION): [task: task.name]], true)).result.task as Map
+        long until = System.currentTimeMillis() + 10_000
+        while (store.reads.get() == 0 && System.currentTimeMillis() < until) {
+            Thread.sleep(50)
+        }
+        def cancelled = rpc(key, json([jsonrpc: "2.0", id: 2, method: "CancelTask", params: [id: started.id]]))
+        store.hold.countDown()
+        def runId = (api.call(setup.token, "GET", "/tenant/admin/tasks/${task.id}/runs") as List<Map>)[0].id
+        def run = tasks.awaitRun(setup.token, task.id, runId)
+
+        then:
+        cancelled.result.status.state == "TASK_STATE_CANCELED"
+        (run.run as Map).state == "CANCELLED"
+        !((run.steps as List<Map>)*.stepId).contains("check")
+
+        and: "the task stays cancelled for whoever asks later"
+        rpc(key, json([jsonrpc: "2.0", id: 3, method: "GetTask", params: [id: started.id]])).result.status.state == "TASK_STATE_CANCELED"
+
+        cleanup:
+        store.hold?.countDown()
+    }
+
     def "a webhook gets the events of a run started over A2A with its token; plain HTTP elsewhere, internal hosts and another key's task are refused; the webhooks go with the task"() {
         given:
         def setup = tasks.tenant()
