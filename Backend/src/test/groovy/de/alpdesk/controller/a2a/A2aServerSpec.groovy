@@ -566,6 +566,46 @@ class A2aServerSpec extends Specification {
         webhook?.stop(0)
     }
 
+    def "a task takes five webhooks: a sixth is refused, one registered again under its id replaces itself"() {
+        given: "a run held at its first step, so the task is open while the webhooks are registered"
+        def setup = tasks.tenant()
+        store.write(TaskApi.LOGS + "/" + LocalDate.now(ZoneId.of("Europe/Berlin")) + "_app.log", "ERROR Timeout\n")
+        def task = tasks.create(setup.token, TaskApi.logCheck(setup.model, "a2a-${UUID.randomUUID()}@example.com"))
+        def key = a2aKey(setup.token, [taskIds: [task.id]])
+        store.hold = new java.util.concurrent.CountDownLatch(1)
+        def webhook = com.sun.net.httpserver.HttpServer.create(new InetSocketAddress("127.0.0.1", 0), 0)
+        webhook.createContext("/hook") { exchange ->
+            exchange.requestBody.readAllBytes()
+            exchange.sendResponseHeaders(200, -1)
+            exchange.close()
+        }
+        webhook.start()
+        def hook = "http://127.0.0.1:${webhook.address.port}/hook".toString()
+        Map started = null
+        def register = { int number ->
+            rpc(key, json([jsonrpc: "2.0", id: number, method: "CreateTaskPushNotificationConfig",
+                           params : [taskId: started.id, id: "hook-${number}".toString(), url: hook]]))
+        }
+
+        when:
+        started = rpc(key, send([[text: "los"]], [(A2aCards.ASSISTANT_EXTENSION): [task: task.name]], true)).result.task as Map
+        def answers = (1..6).collect { register(it) }
+
+        then:
+        answers.take(5).every { it.result.url == hook }
+        answers[5].error.code == -32602
+
+        and: "one of the five again: replaced, not a sixth"
+        register(1).result.url == hook
+
+        cleanup:
+        if (started) {
+            rpc(key, json([jsonrpc: "2.0", id: 9, method: "CancelTask", params: [id: started.id]]))
+        }
+        store.hold?.countDown()
+        webhook?.stop(0)
+    }
+
     def "a webhook's address must be public https"() {
         when:
         new de.alpdesk.services.a2a.PushAddresses().validate(url)

@@ -135,6 +135,17 @@ class OAuthClientSpec extends Specification {
         "oauth.metadataUnreadable" | { FakeAuthorizationServer s -> s.withoutFields = ["token_endpoint"] }
     }
 
+    def "an issuer that is no address is unreadable like a server without metadata - nothing is fetched"() {
+        when:
+        metadata.read("https://sign in.example.com", "Buchhaltung")
+
+        then:
+        def e = thrown(ServiceException)
+        e.code() == "oauth.metadataUnreadable"
+        e.params() == [name: "Buchhaltung"]
+        authServer.received.isEmpty()
+    }
+
     def "the browser is sent to a web address only - a server naming anything else as its sign-in page starts no sign-in"() {
         given:
         authServer.authorizationEndpoint = signInPage

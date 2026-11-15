@@ -42,7 +42,8 @@ services:
       # The topics' /mcp is reached at the app's own internal address - never through Caddy and Authelia; the A2A test
       # agent runs on this machine (devtools/a2a-test-agent, setup.py a2a), reached as a company's own engine would be.
       # The embedding model runs in the stack too (the container embeddings) - the knowledge needs no provider key.
-      APP_AI_PLAIN_HTTP_HOSTS: "alpdesk-ai,host.containers.internal,mcp-software,company-software,oauth-fake,embeddings"
+      # pentest-listener: the pentest's listening server (below) - there only while the profile "pentest" runs.
+      APP_AI_PLAIN_HTTP_HOSTS: "alpdesk-ai,host.containers.internal,mcp-software,company-software,oauth-fake,embeddings,pentest-listener"
       # The file store of `setup.py stores` (the container sftp) - an internal host the installation names.
       APP_FILE_STORE_INTERNAL_HOSTS: "sftp"
       # Every mail - a task's findings, the daily report - goes to the stack's MailHog (mail.general-chat.localhost).
@@ -222,8 +223,69 @@ services:
       # The browser walk's files, served at files.general-chat.localhost (walk/walk.md).
       - ./walk/files:/srv/walk-files:ro
       - caddy:/data
+    # "outside": the network of the pentest container, which reaches Caddy and nothing else.
+    networks:
+      - default
+      - outside
     depends_on:
       - alpdesk-ai
+
+  # The pentest container (devtools/pentest, the skill /alpdesk-pentest) - only with the profile "pentest". It stands
+  # where a stranger stands: on a network of its own with Caddy alone, without a way to the app, the database or the
+  # internet. The stack's names are the container itself, whose port 8443 is passed on to Caddy (its entrypoint.sh) -
+  # so the address is the one a browser of this machine uses. Runs idle; the tools are started with `podman exec`.
+  pentest:
+    build:
+      context: ../pentest
+      dockerfile: Containerfile
+    image: localhost/alpdesk/alpdesk-ai-pentest:general-chat-test
+    profiles: ["pentest"]
+    container_name: general-chat-test-pentest
+    networks:
+      - outside
+    extra_hosts:
+      - "ai.general-chat.localhost:127.0.0.1"
+      - "auth.general-chat.localhost:127.0.0.1"
+      - "signin.general-chat.localhost:127.0.0.1"
+      - "mail.general-chat.localhost:127.0.0.1"
+      - "files.general-chat.localhost:127.0.0.1"
+    environment:
+      # stack.py and the mode's state (the ids and keys of this stack only) for the probes behind a login.
+      PYTHONPATH: "/stack:/pentest/lib"
+    volumes:
+      - ../pentest:/pentest:ro,z
+      - ../pentest/out:/pentest/out:z
+      - .:/stack:ro,z
+      # The repository's history for gitleaks - not the working tree, which holds local files.
+      - ../../.git:/repo/.git:ro
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges
+    depends_on:
+      - caddy
+
+  # The pentest's listening server (devtools/pentest/lib/listener.py): the address a probe enters where the app is to
+  # call out. On the stack's network, so the app reaches it (APP_AI_PLAIN_HTTP_HOSTS above) - its log shows every
+  # request, a key or token only as a hash.
+  pentest-listener:
+    image: localhost/alpdesk/alpdesk-ai-pentest:general-chat-test
+    profiles: ["pentest"]
+    container_name: general-chat-test-pentest-listener
+    command: ["python3", "-I", "/pentest/lib/listener.py"]
+    volumes:
+      - ../pentest:/pentest:ro,z
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges
+    depends_on:
+      - pentest
+
+networks:
+  # No way out: what runs here reaches the containers on it, not the internet and not this machine's network.
+  outside:
+    internal: true
 
 volumes:
   # Each mode its own database and files (.env of mode.sh) - the WAM mode's names as they were before the switch.

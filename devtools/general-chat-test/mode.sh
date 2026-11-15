@@ -24,8 +24,8 @@ CADDYFILE=Caddyfile.plain
 VOLUME_SUFFIX=-plain' ;;
   *) echo "usage: $0 [wam|plain]" >&2; exit 2 ;;
 esac
-# Down with every profile - Authelia too, whatever mode ran before.
-podman compose --profile wam down >/dev/null 2>&1 || true
+# Down with every profile - Authelia too, whatever mode ran before, and the pentest container if it runs.
+podman compose --profile wam --profile pentest down >/dev/null 2>&1 || true
 printf '# Written by mode.sh - the mode of the stack (README.md)\n%s\n' "$settings" > .env
 podman compose up -d
 echo "the stack runs in mode $1"

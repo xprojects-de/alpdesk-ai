@@ -887,7 +887,8 @@ a key, and the token renews itself.
   reads the tools without a token drops a grant nobody signed in to.
 - **Our client identity - the software decides**: 1. the client id held for this issuer (made for this callback
   address); 2. **our client id metadata document** (`/oauth/client-metadata.json`, anonymous, built from the request:
-  its own URL as `client_id`, the installation's brand name, the callback, `none`) when the server announces
+  its own URL as `client_id`, the installation's brand name, its address and logo as `client_uri` and `logo_uri`, the
+  callback, `none`; a server may keep it for an hour) when the server announces
   `client_id_metadata_document_supported` **and** the host the admin uses resolves to public addresses only
   (`OAuthReachability`) - a server cannot fetch a document of an installation inside a company network; 3. **dynamic
   registration** (RFC 7591, `application_type` web, `none` when the server offers it, else a secret) when the metadata

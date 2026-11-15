@@ -81,8 +81,10 @@ Decided 6 October 2026: every company has its own admins who keep its settings, 
 | The client software | API key `ai_...` (`ApiKeyTokenValidator`) | `ROLE_TENANT` | `/api/v1/**`: the tenant itself, no person behind it - chat (with the templates' names to choose; a key without history - "Verlauf speichern" off - answers every question on its own and stores nothing, see [ai-features.md](ai-features.md)), and the company knowledge plus the knowledge areas assigned to its key (upload - into an area by name -, list, delete), the reading tools of the connected software given its key, with conversations of its own key only; never users, keys or settings |
 
 The admin and the tenant admins use the same services: `/admin/tenants/{id}/X` and `/tenant/admin/X` have the same
-sub-paths (`users`, `groups`, `api-keys`, `provider-keys`, `documents`, `knowledge-areas`, `embedding-model`, `search-language`,
-`assistant`), the frontend's `TenantScope` (`"self"` or a tenant's id) picks one. Which models a tenant may use stays
+sub-paths (`users`, `groups`, `api-keys`, `provider-keys`, `documents`, `knowledge-areas`, `knowledge-sources`,
+`embedding-model`, `reranking-model`, `search-language`, `assistant`, `mcp-keys`, `mcp-connections`, `file-stores`,
+`tasks`, `doc-sites`; the branding is the admin's but for the login key), the frontend's `TenantScope` (`"self"` or a
+tenant's id) picks one. Which models a tenant may use stays
 the admin's (it decides prices and billing); the tenant admin chooses the embedding model among them, and the language
 the full-text search reads the documents in (`tenant.search_language`, chosen by the admin when the tenant is created -
 [ai-features.md](ai-features.md) "The search language").
@@ -335,7 +337,8 @@ and passes their user name on in a header):
   password login.
 
 Every controller is secured with exactly one role, matching its path (`/admin/**` admin, `/tenant/admin/**` tenant
-admin, the rest of `/tenant/**` tenant user, `/api/v1/**` client software); `TenantApiKeySpec`, `TenantUserSpec` and
+admin, the rest of `/tenant/**` tenant user, `/api/v1/**` client software, `/a2a` - like `/mcp`, Micronaut MCP's own
+controller - an MCP key; `/version` is the admin's outside `/admin/**`); `TenantApiKeySpec`, `TenantUserSpec` and
 `TenantAdminSpec` guard it.
 
 ## Status

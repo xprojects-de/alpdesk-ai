@@ -499,7 +499,10 @@ the connection, its address and encrypted key, the internal hosts and the tool's
   (`task.softwareUnknown`; A2A agents as their `__ask` tool, with the A2A switch), the web search with `web: true`
   and a chat template named in `template` (`task.templateUnknown`) - `areas`, `software`, `web`, `template` without
   `assistant: true` are `task.fieldNotTaken`. Kept as `Step.assistant` (`AssistantAsk`); `PromptStep` runs it with the
-  asker `TASK` (`ToolContext.taskConnections`, `McpTools.forTask`), reading tools only, no sandbox or files. A tenant
+  asker `TASK` (`ToolContext.taskConnections`, `McpTools.forTask`), reading tools only, no sandbox or files. The
+  areas are the task's, not those of whoever starts it: an answer handed on reaches the API or MCP key the task is
+  assigned to also when the key itself is not assigned to these areas - the tenant admin who assigns the task
+  decides that. A tenant
   answering through its A2A agent has the step answered by the agent (`task.agentAsksBack` when it asks back; the
   admin's A2A switch off fails the step with `a2a.notAllowed`, as the chat is refused): the
   agent gets the step's prompt, the findings and files of its inputs and, with `choices`, the request for the

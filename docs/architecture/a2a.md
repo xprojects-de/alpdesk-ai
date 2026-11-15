@@ -1,7 +1,7 @@
 # A2A (Agent2Agent)
 
 Zirmo speaks A2A 1.0 (a2a-protocol.org, the JSON-RPC binding) in both directions, on the official Java SDK
-(`org.a2aproject.sdk` 1.5.0.Final): as a **client** - an A2A agent is connected software of a tenant (roadmap point 54)
+(`org.a2aproject.sdk` 1.5.1.Final): as a **client** - an A2A agent is connected software of a tenant (roadmap point 54)
 - and as a **server** - the tenant's assistant is an A2A agent at `/a2a` (roadmap point 52). The plan with every decision is kept outside the repository.
 
 **Every byte of A2A JSON goes through the SDK** (`JSONRPCUtils`, `JsonUtil`, `ProtoUtils` - generated from the
@@ -34,8 +34,9 @@ the client's on `services.a2a.A2aHttpClient`, the server's behind `controller.a2
   `OAuth2SecurityScheme` keeps the connection with "sign-in available" and its skills from the public card; the
   sign-in, the grant and the renewal are the MCP connections' - [mcp.md](mcp.md) "Signing in to the software's server
   (OAuth)". The scheme's `oauth2MetadataUrl` wins over the authorization code flow's URLs (then the client id comes by
-  hand); no such flow is `oauth.noAuthorizationCode`. The public card goes without the token, the extended card, every
-  question, stream, task asked for and cancel with it - to the connection's host only; a 401 renews it once (while a
+  hand); no such flow is `oauth.noAuthorizationCode`. Reading the card for the connection (create, reload) fetches the
+  public card without the token; the extended card, every question, stream, task asked for and cancel go with it - and
+  so does the public card read again before each of them - to the connection's host only; a 401 renews it once (while a
   task is asked for: the asking, never the message again; a streamed question hears it as the stream's end and is sent
   once more by `AgentAnswers`, on the asking thread), a 403 is never renewed. A `HTTPAuthSecurityScheme` bearer or an
   API key scheme is the key field, as before - a card naming a key and a sign-in as alternatives keeps a connection
@@ -103,8 +104,8 @@ Every message to an agent carries `metadata["urn:alpdesk-ai:a2a:asker:1"]` (the 
 the header `A2A-Extensions`): `tenant` (its name), `language` (the user's; a key's or a task's: the tenant's search
 language in lower case), `user` (the username) or `apiKey` / `mcpKey` (the key's name), `groups` (the user's groups'
 names), `idmGroups` (the WAM proxy's), `skills` (the skills left on); a task's call `task` and `run` instead of the
-user. Names, never ids, nothing secret. The agent trusts it as it trusts the installation: it comes with the
-connection's key. Described at `/a2a/extensions/asker/1`.
+user (`run` is the run's id). Otherwise names, never ids, nothing secret. The agent trusts it as it trusts the
+installation: it comes with the connection's key. Described at `/a2a/extensions/asker/1`.
 
 ### The skills' choice (package C)
 
@@ -139,9 +140,9 @@ templates as prompts.
   `VersionNotSupportedError`. The call context carries the key's tenant and the key.
 - `GET /.well-known/agent-card.json`, `GET /a2a/extensions/assistant/1`, `/a2a/extensions/asker/1` - anonymous
   (`A2aExtensionController`). The public card is **neutral**: "AI assistant", provider Zirmo, no skills, the
-  absolute `/a2a` address under the context path (its scheme from the proxy's `X-Forwarded-Proto` - behind Caddy or
-  nginx the app itself is spoken to in plain HTTP), `streaming`, `pushNotifications`, `extendedAgentCard`, a bearer
-  scheme `key`, both extensions (never required).
+  absolute `/a2a` address under the context path (its host from the request's `Host` header, its scheme from the
+  proxy's `X-Forwarded-Proto` - behind Caddy or nginx the app itself is spoken to in plain HTTP; `RequestOrigin`),
+  `streaming`, `pushNotifications`, `extendedAgentCard`, a bearer scheme `key`, both extensions (never required).
 - `GetExtendedAgentCard` (answered by our controller - the SDK resolves one card for everyone): the tenant's brand, the
   key's description (or "<brand> is the AI assistant of the company ...") followed by what the assistant offers beyond
   the documents - web search, code, the key's software (mcp.md "The brand", `McpKeyService.offerOf`) -, the skills
@@ -196,8 +197,11 @@ until someone reads them and would otherwise stay for good.
 
 `CreateTaskPushNotificationConfig` and its siblings: up to 5 webhooks per task (`JdbcPushConfigStore`, tenant table
 `a2a_push_config`, the config encrypted with `SecretCipher`, deleted with the task); a webhook must be public HTTPS
-(`PushAddresses` - no exemption for listed hosts), checked on registration and before every delivery. The SDK's
-`BasePushNotificationSender` posts every event on our HTTP adapter (no redirect, 10 s) with the client's token - of a
+(`PushAddresses` - no exemption for listed hosts), checked on registration and before every delivery - where our
+HTTP adapter checks the address once more like any agent's (`McpAddresses`). The SDK's
+`BasePushNotificationSender` posts every event on our HTTP adapter (no redirect, 10 s) with the client's token
+(`X-A2A-Notification-Token`) and nothing else: an `Authorization` header the SDK builds from a config's
+`authentication` is not sent (the adapter sends that header only with a connection's key) - of a
 run started over A2A those of its first 30 minutes (`app.task.a2a-subscribe`, "Questions and tasks"). A webhook
 sent inside a plain `SendMessage` that starts something new is refused (`InvalidParamsError`): the SDK stores it before the task has its key, so
 the work would start while the client heard "task not found" - with `SendStreamingMessage`, or registered once the task

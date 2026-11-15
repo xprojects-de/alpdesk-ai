@@ -107,7 +107,8 @@ class ContextPathSpec extends Specification {
 
         and: "a path written another way reaches no tenant admins' route either (sent as it is, not normalised)"
         ["//tenant/admin/users", "/tenant//admin/users", "/tenant/./admin/users", "/tenant/admin/../admin/users",
-         "/TENANT/admin/users", "/tenant/ADMIN/users"].every { rawStatus(token, "/alpdesk-ai" + it) != 200 }
+         "/TENANT/admin/users", "/tenant/ADMIN/users", "/tenant/%61dmin/users", "/tenant/admin;x/users"]
+                .every { rawStatus(token, "/alpdesk-ai" + it) != 200 }
 
         cleanup:
         if (tenant) {

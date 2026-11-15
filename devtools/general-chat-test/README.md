@@ -280,6 +280,18 @@ browser, runs `scenarios.py` and reports per feature:
   `TRANSCRIBE_PROVIDER` and `TRANSCRIBE_MODEL` name one. The walk's tenant gets the sandbox `sandbox-rundgang` - the
   video sandbox when started with `WALK_SANDBOX_IMAGE=localhost/alpdesk/alpdesk-ai-sandbox:video`.
 
+## The pentest container (the skill `/alpdesk-pentest`)
+
+```bash
+podman compose --profile pentest up -d --build pentest pentest-listener
+```
+
+Two containers that run only with the profile `pentest` (`devtools/pentest`, its README): `pentest` with the tools of
+a penetration test and the run's probes, on the network `outside` with Caddy alone - where a stranger stands, without
+a way to the app, the database or the internet -, and `pentest-listener` inside the stack's network, the address a
+probe enters where the app is to call out. The stack is where the skill `/alpdesk-pentest` tests Zirmo's hardness:
+from outside without a login, as a user and as a tenant admin, in two tenants of its own that it deletes at its end.
+
 ## Stop
 
 ```bash

@@ -214,6 +214,10 @@ Nothing in `.env` or `/api/v1` needs a hand; the new settings have defaults.
 
 ### Fixed
 
+- **A software naming a broken address for its sign-in server no longer ends in a server error**: connecting or
+  reloading a software whose OAuth metadata named something that is no address as its sign-in server failed with an
+  unexpected error and left the connection saved. Now the connection says that the sign-in server's description
+  could not be read.
 - **An agent that is down behind its reverse proxy fails the answer at once**: a connected A2A agent whose proxy
   answered with an error page (502) left the chat waiting for the whole `APP_A2A_TIMEOUT` before it reported a
   timeout. Now the question fails immediately.

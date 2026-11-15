@@ -626,7 +626,7 @@ MCP, size limits), `Backend/podman/**` (Caddyfile, compose files, `.env.example`
      - **the sign-in's routes**: `/oauth/connections/callback` (anonymous, `@Secured(IS_ANONYMOUS)`) - **exchanges
      nothing** (security review 9 November 2026): it finds the state and forwards the browser 302 to the page the sign-in
      started on; an unknown state a plain 400 page, never 401/403; the state random, single use, 10 minutes, bound to
-     one grant; `/oauth/client-metadata.json` - no database, nothing but name, address, callback, `none`.
+     one grant; `/oauth/client-metadata.json` - no database, nothing but name, address, logo, callback, `none`.
      `POST .../mcp-connections/{id}/sign-in` (tenant admin and the admin's mirror): the `returnUrl` absolute http(s) on
      the request's host and a frontend page only (`/app/...` or `/dashboard/...` below the context path, plain segments,
      no query or fragment) - never a path serving a tenant's own content (a handbook's website, whose scripts could pass

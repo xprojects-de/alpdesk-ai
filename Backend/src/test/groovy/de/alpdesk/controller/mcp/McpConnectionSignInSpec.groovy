@@ -182,6 +182,7 @@ class McpConnectionSignInSpec extends Specification {
         "no authorization code"           | "no sign-in in the browser"                    | { FakeAuthorizationServer s, FakeMcpSoftware m -> s.grantTypes = ["client_credentials"] }
         "no PKCE with S256"               | "PKCE"                                         | { FakeAuthorizationServer s, FakeMcpSoftware m -> s.challengeMethods = ["plain"] }
         "an issuer the document does not name" | "description could not be read"           | { FakeAuthorizationServer s, FakeMcpSoftware m -> s.announcedIssuer = "http://127.0.0.1:1/other" }
+        "an issuer that is no address"    | "description could not be read"                | { FakeAuthorizationServer s, FakeMcpSoftware m -> m.issuerOverride = "https://sign in.example.com" }
     }
 
     def "resource metadata named on another host is ignored - the well-known address of the software is asked"() {
