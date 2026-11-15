@@ -111,6 +111,22 @@ the dev database): enter the test server at a test tenant (its address as seen f
 podman run --rm -v $PWD/devtools/mcp-test-server/proxy_check.py:/app/proxy_check.py:ro,Z localhost/alpdesk-mcp-test:latest python -I /app/proxy_check.py http://host.containers.internal:29100/mcp <key with> <key without> [connection name] [key that may change]
 ```
 
+## A company's own server (`company.py`, `company_check.py`)
+
+Where `server.py` has one tool per way of answering, `company.py` is a whole server as a company writes it - the
+"Entwicklungsportal" of the invented Musterfirma: ten tools of a development department (guidelines, repositories,
+source code, a build log of 130,000 characters, a review report as PDF and CSV, a ZIP, an image, one tool that
+changes something), German descriptions over several paragraphs (one of nearly 5,000 characters), a description for
+every parameter, titles, output schemas, four resources, two resource templates, two prompts and instructions of more
+than 2,000 characters. Three of its names are too long to pass through under a connection "Entwicklung" unchanged.
+
+`company_check.py` connects with the SDK's client to the server directly and through Zirmo and compares both ends:
+every tool's entry (the description whole after `[<connection>] `, the parameters, title, output schema, hints), every
+call's result, the prompts with their messages, the resources with the connection in front, and what three MCP keys
+get - one that reads, one that may change in the software, one without it. It runs in the test stack:
+`devtools/general-chat-test/company.py` sets up the tenant, the connection and the keys and starts it (that folder's
+README).
+
 ## A new scenario
 
 One tool in `server.py` - named after what it shows, its docstring the description the client's model reads, invented
