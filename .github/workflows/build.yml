@@ -149,7 +149,7 @@ jobs:
           grep -qxF "app.version=${VERSION}" src/main/resources/application.properties
 
       - name: Setup Java 25
-        uses: actions/setup-java@v5
+        uses: actions/setup-java@v6
         with:
           java-version: '25'
           distribution: 'temurin'
