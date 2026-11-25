@@ -6,7 +6,7 @@ the client software's API); **minor** - new features, updating needs nothing by 
 improvements. Every release is a tag `v<version>` with its images `ghcr.io/xprojects-de/alpdesk-ai:<version>` and
 `-sandbox:<version>`; updating: see `Backend/podman/public/README.md`.
 
-## [2.0.0] - unreleased
+## [2.0.0] - 2026-11-25
 
 A major version, and a new name: **Alpdesk AI is now Zirmo** - a product of Alpdesk. Only the name changes: the
 images, containers, volumes, the database and `/api/v1` keep theirs. This repository now holds the source code as well;
