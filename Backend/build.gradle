@@ -89,7 +89,7 @@ dependencies {
     implementation("org.jsoup:jsoup:1.24.1")
     // The AI features (docs/architecture/ai-features.md): one module per provider, pgvector for the tenants'
     // embeddings, the core for splitting documents.
-    implementation(platform("dev.langchain4j:langchain4j-bom:1.23.0"))
+    implementation(platform("dev.langchain4j:langchain4j-bom:1.24.0"))
     implementation("dev.langchain4j:langchain4j")
     implementation("dev.langchain4j:langchain4j-anthropic")
     implementation("dev.langchain4j:langchain4j-open-ai")
