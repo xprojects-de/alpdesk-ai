@@ -113,7 +113,7 @@ dependencies {
     // One version for every AWS SDK module: the Micronaut platform pins s3 lower than langchain4j-bedrock pulls the
     // SDK's core, and a mix fails on the SDK's error path (IncompatibleClassChangeError instead of S3's refusal).
     // Keep it at least at the version bedrockruntime asks for.
-    implementation(platform("software.amazon.awssdk:bom:2.57.3"))
+    implementation(platform("software.amazon.awssdk:bom:2.59.7"))
     implementation("dev.langchain4j:langchain4j-bedrock") {
         exclude(group: "software.amazon.awssdk", module: "apache-client")
         exclude(group: "software.amazon.awssdk", module: "apache5-client")
