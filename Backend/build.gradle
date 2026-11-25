@@ -85,11 +85,11 @@ dependencies {
     }
     implementation("com.vladsch.flexmark:flexmark:0.64.8")
     implementation("com.vladsch.flexmark:flexmark-ext-tables:0.64.8")
-    implementation("io.github.openhtmltopdf:openhtmltopdf-pdfbox:1.1.113")
+    implementation("io.github.openhtmltopdf:openhtmltopdf-pdfbox:1.1.117")
     implementation("org.jsoup:jsoup:1.24.1")
     // The AI features (docs/architecture/ai-features.md): one module per provider, pgvector for the tenants'
     // embeddings, the core for splitting documents.
-    implementation(platform("dev.langchain4j:langchain4j-bom:1.23.0"))
+    implementation(platform("dev.langchain4j:langchain4j-bom:1.24.0"))
     implementation("dev.langchain4j:langchain4j")
     implementation("dev.langchain4j:langchain4j-anthropic")
     implementation("dev.langchain4j:langchain4j-open-ai")
@@ -113,7 +113,7 @@ dependencies {
     // One version for every AWS SDK module: the Micronaut platform pins s3 lower than langchain4j-bedrock pulls the
     // SDK's core, and a mix fails on the SDK's error path (IncompatibleClassChangeError instead of S3's refusal).
     // Keep it at least at the version bedrockruntime asks for.
-    implementation(platform("software.amazon.awssdk:bom:2.57.3"))
+    implementation(platform("software.amazon.awssdk:bom:2.59.9"))
     implementation("dev.langchain4j:langchain4j-bedrock") {
         exclude(group: "software.amazon.awssdk", module: "apache-client")
         exclude(group: "software.amazon.awssdk", module: "apache5-client")
@@ -141,18 +141,8 @@ dependencies {
     // Scheduled tasks (docs/architecture/tasks.md): written as YAML 1.2 (the platform's SnakeYAML Engine, whose nodes
     // keep their lines), run as a langgraph4j graph with checkpoints in the tenant database.
     implementation("org.snakeyaml:snakeyaml-engine")
-    implementation("org.bsc.langgraph4j:langgraph4j-core:1.9.9")
-    implementation("org.bsc.langgraph4j:langgraph4j-postgres-saver:1.9.9")
-    // Fixes the Micronaut platform does not bring yet - each goes once micronautVersion manages the version or later.
-    // Jackson 2 is langchain4j's (provider answers) and Tika's CAD module's; Micronaut Serde runs on Jackson 3.
-    constraints {
-        implementation("com.fasterxml.jackson.core:jackson-core:2.22.4") {
-            because("CVE-2026-89425, CVE-2026-89407 - fixed in 2.22.3, the platform 5.2.x manages 2.22.2")
-        }
-        implementation("com.fasterxml.jackson.core:jackson-databind:2.22.4") {
-            because("CVE-2026-91776, CVE-2026-91777 - fixed in 2.22.3, the platform 5.2.x manages 2.22.2")
-        }
-    }
+    implementation("org.bsc.langgraph4j:langgraph4j-core:1.9.10")
+    implementation("org.bsc.langgraph4j:langgraph4j-postgres-saver:1.9.10")
 }
 
 application {

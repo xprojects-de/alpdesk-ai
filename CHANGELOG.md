@@ -210,7 +210,8 @@ Nothing in `.env` or `/api/v1` needs a hand; the new settings have defaults.
   document's id holds only within the software that gave it - for a chat asking several tenants' MCP servers.
 - **Documents are read with Apache Tika 4.2** (before 3.3): the same file types are read, but the text a document gives
   may differ slightly (Markdown is still read as written, headings and paragraphs kept). Documents already in the
-  knowledge stay as they are - "Embed again" reads them anew. Libraries updated besides: Micronaut 5.2.6, Angular 22.2.
+  knowledge stay as they are - "Embed again" reads them anew. Libraries updated besides: Micronaut 5.2.8, Angular 22.3,
+  langchain4j 1.24 (the AI providers' clients), the AWS SDK 2.59 (S3, Amazon Bedrock).
 
 ### Fixed
 
@@ -364,9 +365,9 @@ Nothing in `.env` or `/api/v1` needs a hand; the new settings have defaults.
   row it failed on - like every other database error.
 - The privacy notes now say that a scheduled task's last successful run stays beyond the 14 days (the next run
   reads on from it), until a later run takes its place or a tenant admin deletes it.
-- **Micronaut 5.2.6** brings the framework's security fixes (access rules checked against the path as routed, also
-  below a context path; upload limits; server-sent events). Behind a sub-path, a request outside it now answers 401
-  instead of 404 - nothing is served there, as before.
+- **Micronaut 5.2.8** brings the framework's security fixes (access rules checked against the path as routed, also
+  below a context path; upload limits; server-sent events; HEAD requests checked like GET). Behind a sub-path, a
+  request outside it now answers 401 instead of 404 - nothing is served there, as before.
 
 ## [1.9.0] - 2026-11-02
 
