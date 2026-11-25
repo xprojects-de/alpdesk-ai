@@ -44,7 +44,7 @@
     "@ngrx/store": "^22.0.1",
     "@ngrx/store-devtools": "^22.0.1",
     "highlight.js": "^11.12.0",
-    "marked": "^18.2.0",
+    "marked": "^18.2.1",
     "material-icons": "^1.13.14",
     "rxjs": "~7.8.2",
     "tslib": "^2.9.1"
